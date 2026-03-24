@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Custom Theme</title>
+    <style>
+        .ct-section { margin-bottom: 24px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+        .ct-section h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: #aaa; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+        .ct-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; min-height: 40px; }
+        .ct-row label { font-size: 0.95rem; }
+        .ct-row select, .ct-row input[type="text"] { background: #333; color: white; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; font-size: 0.85rem; }
+        .ct-row input[type="color"] { width: 40px; height: 30px; border: 2px solid #555; border-radius: 4px; cursor: pointer; padding: 0; }
+        .ct-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #E50914; }
+        .ct-save { background: #E50914; color: white; border: none; padding: 12px 32px; border-radius: 4px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 16px; }
+        .ct-save:hover { background: #ff0a16; }
+        .ct-status { margin-top: 12px; padding: 10px; border-radius: 4px; display: none; }
+        .ct-status.success { display: block; background: rgba(70,211,105,0.15); color: #46d369; }
+        .ct-status.error { display: block; background: rgba(229,9,20,0.15); color: #E50914; }
+    </style>
+</head>
+<body>
+    <div id="CustomThemeConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+         data-require="emby-input,emby-button,emby-select,emby-checkbox">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <h2>Custom Theme Settings</h2>
+                <p style="color:#888;margin-bottom:20px;">Changes are applied immediately after saving. Reload the page to see the new theme.</p>
+
+                <div class="ct-section">
+                    <h3>Colors</h3>
+                    <div class="ct-row"><label>Theme Preset</label><select id="ctSeasonalTheme"><option value="default">Default</option><option value="christmas">Christmas</option><option value="halloween">Halloween</option><option value="summer">Summer</option><option value="ocean">Ocean</option></select></div>
+                    <div class="ct-row"><label>Accent Color</label><input type="color" id="ctAccentColor"></div>
+                    <div class="ct-row"><label>Background</label><input type="color" id="ctBgColor"></div>
+                    <div class="ct-row"><label>Text Color</label><input type="color" id="ctTextColor"></div>
+                    <div class="ct-row"><label>Muted Text</label><input type="color" id="ctMutedColor"></div>
+                    <div class="ct-row"><label>Progress Bar</label><select id="ctProgressColor"><option value="red">Red</option><option value="green">Green</option><option value="blue">Blue</option><option value="purple">Purple</option></select></div>
+                </div>
+
+                <div class="ct-section">
+                    <h3>Header & Logo</h3>
+                    <div class="ct-row"><label>Logo Style</label><select id="ctLogoStyle"><option value="netflix">Netflix N</option><option value="jellyfin">Jellyfin</option><option value="letter">Letter</option><option value="custom">Custom Image</option><option value="none">None</option></select></div>
+                    <div class="ct-row" id="ctLetterRow"><label>Letter</label><select id="ctLogoLetter"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option><option>L</option><option>M</option><option>N</option><option>O</option><option>P</option><option>Q</option><option>R</option><option>S</option><option>T</option><option>U</option><option>V</option><option>W</option><option>X</option><option>Y</option><option>Z</option></select></div>
+                    <div class="ct-row" id="ctCustomLogoRow"><label>Logo URL</label><input type="text" id="ctCustomLogoUrl" placeholder="https://..." style="width:200px"></div>
+                    <div class="ct-row"><label>Header Blur</label><input type="checkbox" id="ctHeaderBlur"></div>
+                </div>
+
+                <div class="ct-section">
+                    <h3>Elements</h3>
+                    <div class="ct-row"><label>Unplayed Badges</label><input type="checkbox" id="ctShowBadges"></div>
+                    <div class="ct-row"><label>Watched Marks</label><input type="checkbox" id="ctShowPlayed"></div>
+                    <div class="ct-row"><label>Backdrop Image</label><input type="checkbox" id="ctShowBackdrop"></div>
+                    <div class="ct-row"><label>Round Cast Images</label><input type="checkbox" id="ctRoundCast"></div>
+                    <div class="ct-row"><label>Description</label><input type="checkbox" id="ctShowDescription"></div>
+                    <div class="ct-row"><label>Tags</label><input type="checkbox" id="ctShowTags"></div>
+                    <div class="ct-row"><label>External Links</label><input type="checkbox" id="ctShowExternalLinks"></div>
+                    <div class="ct-row"><label>Similar Titles</label><input type="checkbox" id="ctShowSimilar"></div>
+                    <div class="ct-row"><label>Spoiler Mode (blur unwatched)</label><input type="checkbox" id="ctSpoilerMode"></div>
+                </div>
+
+                <div class="ct-section">
+                    <h3>Buttons (Detail Page)</h3>
+                    <div class="ct-row"><label>Watched Button</label><input type="checkbox" id="ctShowBtnWatched"></div>
+                    <div class="ct-row"><label>Favorite Button</label><input type="checkbox" id="ctShowBtnFavorite"></div>
+                    <div class="ct-row"><label>More Button</label><input type="checkbox" id="ctShowBtnMore"></div>
+                </div>
+
+                <div class="ct-section">
+                    <h3>Layout</h3>
+                    <div class="ct-row"><label>Font</label><select id="ctFontFamily"><option value="inter">Inter (Default)</option><option value="poppins">Poppins</option><option value="montserrat">Montserrat</option><option value="roboto">Roboto</option><option value="oswald">Oswald</option><option value="raleway">Raleway</option><option value="nunito">Nunito</option><option value="bebas">Bebas Neue</option></select></div>
+                    <div class="ct-row"><label>Font Size</label><select id="ctFontSize"><option value="small">Small</option><option value="normal">Normal</option><option value="large">Large</option></select></div>
+                    <div class="ct-row"><label>Card Rounding</label><select id="ctCardRadius"><option value="0">Square</option><option value="4">Light</option><option value="8">Medium</option><option value="16">Round</option></select></div>
+                    <div class="ct-row"><label>Card Size</label><select id="ctCardSize"><option value="small">Small</option><option value="normal">Normal</option><option value="large">Large</option></select></div>
+                    <div class="ct-row"><label>Card Style</label><select id="ctCardStyle"><option value="mixed">Mixed</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+                    <div class="ct-row"><label>Card Hover Zoom</label><input type="checkbox" id="ctCardHoverScale"></div>
+                    <div class="ct-row"><label>Card Info Overlay</label><input type="checkbox" id="ctCardInfoOverlay"></div>
+                    <div class="ct-row"><label>Gradient Strength</label><select id="ctGradientStrength"><option value="light">Light</option><option value="medium">Medium</option><option value="heavy">Heavy</option></select></div>
+                    <div class="ct-row"><label>Title Size</label><select id="ctTitleSize"><option value="small">Small</option><option value="large">Large</option><option value="huge">Huge</option></select></div>
+                    <div class="ct-row"><label>Animation Speed</label><select id="ctAnimSpeed"><option value="fast">Fast</option><option value="normal">Normal</option><option value="slow">Slow</option><option value="off">Off</option></select></div>
+                    <div class="ct-row"><label>Compact Sidebar</label><input type="checkbox" id="ctSidebarCompact"></div>
+                    <div class="ct-row"><label>Ambient Glow</label><input type="checkbox" id="ctAmbientGlow"></div>
+                </div>
+
+                <button class="ct-save" id="ctSave">Save & Apply Theme</button>
+                <div class="ct-status" id="ctStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var CTPage = {
+            pluginId: '78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a',
+
+            selects: ['SeasonalTheme','AccentColor','BgColor','TextColor','MutedColor','ProgressColor',
+                      'LogoStyle','LogoLetter','CustomLogoUrl','FontFamily','FontSize','CardRadius',
+                      'CardSize','CardStyle','GradientStrength','TitleSize','AnimSpeed'],
+            checks: ['HeaderBlur','ShowBadges','ShowPlayed','ShowBackdrop','RoundCast','ShowDescription',
+                     'ShowTags','ShowExternalLinks','ShowSimilar','SpoilerMode','ShowBtnWatched',
+                     'ShowBtnFavorite','ShowBtnMore','CardHoverScale','CardInfoOverlay','SidebarCompact','AmbientGlow'],
+
+            load: function() {
+                var self = this;
+                ApiClient.getPluginConfiguration(this.pluginId).then(function(config) {
+                    self.selects.forEach(function(key) {
+                        var el = document.getElementById('ct' + key);
+                        if (el) el.value = config[key] || el.value;
+                    });
+                    self.checks.forEach(function(key) {
+                        var el = document.getElementById('ct' + key);
+                        if (el) el.checked = config[key] !== false;
+                    });
+                    // Show/hide conditional rows
+                    self.updateVisibility();
+                });
+            },
+
+            save: function() {
+                var self = this;
+                ApiClient.getPluginConfiguration(this.pluginId).then(function(config) {
+                    self.selects.forEach(function(key) {
+                        var el = document.getElementById('ct' + key);
+                        if (el) {
+                            config[key] = (key === 'CardRadius') ? parseInt(el.value) : el.value;
+                        }
+                    });
+                    self.checks.forEach(function(key) {
+                        var el = document.getElementById('ct' + key);
+                        if (el) config[key] = el.checked;
+                    });
+
+                    ApiClient.updatePluginConfiguration(self.pluginId, config).then(function() {
+                        var status = document.getElementById('ctStatus');
+                        status.className = 'ct-status success';
+                        status.textContent = 'Theme saved and applied! Reload the page to see changes.';
+                        setTimeout(function() { status.style.display = 'none'; }, 5000);
+                    }).catch(function(err) {
+                        var status = document.getElementById('ctStatus');
+                        status.className = 'ct-status error';
+                        status.textContent = 'Error: ' + err;
+                    });
+                });
+            },
+
+            updateVisibility: function() {
+                var logo = document.getElementById('ctLogoStyle').value;
+                document.getElementById('ctLetterRow').style.display = logo === 'letter' ? '' : 'none';
+                document.getElementById('ctCustomLogoRow').style.display = logo === 'custom' ? '' : 'none';
+            }
+        };
+
+        document.getElementById('ctSave').addEventListener('click', function() { CTPage.save(); });
+        document.getElementById('ctLogoStyle').addEventListener('change', function() { CTPage.updateVisibility(); });
+
+        // Load config when page is shown
+        document.querySelector('.pluginConfigurationPage').addEventListener('pageshow', function() { CTPage.load(); });
+        CTPage.load();
+    </script>
+</body>
+</html>

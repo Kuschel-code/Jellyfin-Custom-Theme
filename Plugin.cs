@@ -29,8 +29,8 @@ namespace Jellyfin.Plugin.CustomTheme
             {
                 new PluginPageInfo
                 {
-                    Name = "custom-theme-css",
-                    EmbeddedResourcePath = GetType().Namespace + ".netflix.css",
+                    Name = "custom-theme-config",
+                    EmbeddedResourcePath = GetType().Namespace + ".configPage.html",
                     EnableInMainMenu = false
                 },
                 new PluginPageInfo
@@ -41,9 +41,5 @@ namespace Jellyfin.Plugin.CustomTheme
                 }
             };
         }
-    }
-
-    public class PluginConfiguration : BasePluginConfiguration
-    {
     }
 }
