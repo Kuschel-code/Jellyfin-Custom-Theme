@@ -35,7 +35,20 @@
             fontFamily: 'Font', fontDefault: 'Inter (Default)',
             language: 'Language', langEn: 'English', langDe: 'Deutsch',
             reset: 'Reset to defaults',
-            tooltipWatched: 'Watched', tooltipFavorite: 'Favorite', tooltipMore: 'More'
+            tooltipWatched: 'Watched', tooltipFavorite: 'Favorite', tooltipMore: 'More',
+            // v1.2.0
+            heroBillboard: 'Hero Billboard', heroBillboardDesc: 'Featured item banner on homepage',
+            autoHideHeader: 'Auto-Hide Header', autoHideHeaderDesc: 'Header hides on scroll down',
+            cardInfoOverlay: 'Card Info Overlay', cardInfoOverlayDesc: 'Show info on card hover',
+            progressColor: 'Progress Bar', progressRed: 'Red', progressGreen: 'Green', progressBlue: 'Blue', progressPurple: 'Purple',
+            cardSize: 'Card Size', cardSizeSmall: 'Small', cardSizeNormal: 'Normal', cardSizeLarge: 'Large',
+            ambientGlow: 'Ambient Glow', ambientGlowDesc: 'Subtle color glow effect',
+            animSpeed: 'Animation Speed', animFast: 'Fast', animNormal: 'Normal', animSlow: 'Slow', animOff: 'Off',
+            sidebarCompact: 'Compact Sidebar', sidebarCompactDesc: 'Icons only in sidebar',
+            showClock: 'Clock in Header', showClockDesc: 'Show current time',
+            seasonalTheme: 'Theme Preset', themeDefault: 'Default', themeChristmas: 'Christmas', themeHalloween: 'Halloween', themeSummer: 'Summer', themeOcean: 'Ocean',
+            cardStyle: 'Card Style', cardMixed: 'Mixed', cardPortrait: 'Portrait', cardLandscape: 'Landscape',
+            spoilerMode: 'Spoiler Mode', spoilerModeDesc: 'Blur unwatched content'
         },
         de: {
             title: 'Skin Einstellungen',
@@ -63,7 +76,20 @@
             fontFamily: 'Schriftart', fontDefault: 'Inter (Standard)',
             language: 'Sprache', langEn: 'English', langDe: 'Deutsch',
             reset: 'Auf Standard zuruecksetzen',
-            tooltipWatched: 'Gesehen', tooltipFavorite: 'Favorit', tooltipMore: 'Mehr'
+            tooltipWatched: 'Gesehen', tooltipFavorite: 'Favorit', tooltipMore: 'Mehr',
+            // v1.2.0
+            heroBillboard: 'Hero Banner', heroBillboardDesc: 'Grosses Banner auf Startseite',
+            autoHideHeader: 'Header ausblenden', autoHideHeaderDesc: 'Verschwindet beim Scrollen',
+            cardInfoOverlay: 'Card Info-Overlay', cardInfoOverlayDesc: 'Info beim Hover',
+            progressColor: 'Fortschrittsbalken', progressRed: 'Rot', progressGreen: 'Gruen', progressBlue: 'Blau', progressPurple: 'Lila',
+            cardSize: 'Card Groesse', cardSizeSmall: 'Klein', cardSizeNormal: 'Normal', cardSizeLarge: 'Gross',
+            ambientGlow: 'Umgebungslicht', ambientGlowDesc: 'Dezentes Farbglimmen',
+            animSpeed: 'Animationen', animFast: 'Schnell', animNormal: 'Normal', animSlow: 'Langsam', animOff: 'Aus',
+            sidebarCompact: 'Kompakte Sidebar', sidebarCompactDesc: 'Nur Icons',
+            showClock: 'Uhr im Header', showClockDesc: 'Aktuelle Uhrzeit',
+            seasonalTheme: 'Farbschema', themeDefault: 'Standard', themeChristmas: 'Weihnachten', themeHalloween: 'Halloween', themeSummer: 'Sommer', themeOcean: 'Ozean',
+            cardStyle: 'Card Stil', cardMixed: 'Gemischt', cardPortrait: 'Hochformat', cardLandscape: 'Querformat',
+            spoilerMode: 'Spoiler-Modus', spoilerModeDesc: 'Ungesehenes unscharf'
         }
     };
 
@@ -115,7 +141,20 @@
         customLogoUrl: '',
         logoLetter: 'N',
         // Font
-        fontFamily: 'inter'
+        fontFamily: 'inter',
+        // v1.2.0
+        cardSize: 'normal',
+        progressColor: 'red',
+        ambientGlow: false,
+        animSpeed: 'normal',
+        sidebarCompact: false,
+        cardStyle: 'mixed',
+        spoilerMode: false,
+        cardInfoOverlay: true,
+        seasonalTheme: 'default',
+        autoHideHeader: false,
+        showClock: false,
+        heroBillboard: false
     };
 
     // --- Load / Save ---
@@ -205,6 +244,156 @@
         if (settings.fontFamily && settings.fontFamily !== 'inter') {
             body.classList.add('nf-font-' + settings.fontFamily);
         }
+
+        // --- v1.2.0 features ---
+
+        // Card size
+        body.classList.remove('nf-cards-small', 'nf-cards-large');
+        if (settings.cardSize === 'small') body.classList.add('nf-cards-small');
+        if (settings.cardSize === 'large') body.classList.add('nf-cards-large');
+
+        // Progress bar color
+        var progressColors = { red: '#E50914', green: '#46d369', blue: '#0078D4', purple: '#9B59B6' };
+        root.style.setProperty('--progress-color', progressColors[settings.progressColor] || settings.accentColor);
+
+        // Ambient glow
+        body.classList.toggle('nf-ambient-glow', !!settings.ambientGlow);
+
+        // Animation speed
+        body.classList.remove('nf-anim-fast', 'nf-anim-slow', 'nf-anim-off');
+        if (settings.animSpeed === 'fast') body.classList.add('nf-anim-fast');
+        if (settings.animSpeed === 'slow') body.classList.add('nf-anim-slow');
+        if (settings.animSpeed === 'off') body.classList.add('nf-anim-off');
+
+        // Compact sidebar
+        body.classList.toggle('nf-sidebar-compact', !!settings.sidebarCompact);
+
+        // Card style
+        body.classList.remove('nf-cards-portrait', 'nf-cards-landscape');
+        if (settings.cardStyle === 'portrait') body.classList.add('nf-cards-portrait');
+        if (settings.cardStyle === 'landscape') body.classList.add('nf-cards-landscape');
+
+        // Spoiler mode
+        body.classList.toggle('nf-spoiler-mode', !!settings.spoilerMode);
+
+        // Card info overlay
+        body.classList.toggle('nf-card-info-overlay', !!settings.cardInfoOverlay);
+
+        // Auto-hide header
+        body.classList.toggle('nf-autohide-header', !!settings.autoHideHeader);
+        setupAutoHideHeader(settings.autoHideHeader);
+
+        // Seasonal themes — override colors
+        var PRESETS = {
+            christmas: { accent: '#C41E3A', bg: '#1B2A1B', text: '#F0E6D3', muted: '#8B9A7B' },
+            halloween: { accent: '#FF6600', bg: '#1A1A0A', text: '#F5E6C8', muted: '#8B8B6B' },
+            summer:    { accent: '#FF9500', bg: '#1A1520', text: '#FFF5E6', muted: '#C4A882' },
+            ocean:     { accent: '#0099CC', bg: '#0A1628', text: '#E0F0FF', muted: '#7BA3C4' }
+        };
+        if (settings.seasonalTheme && settings.seasonalTheme !== 'default' && PRESETS[settings.seasonalTheme]) {
+            var p = PRESETS[settings.seasonalTheme];
+            root.style.setProperty('--accent-red', p.accent);
+            root.style.setProperty('--bg-dark', p.bg);
+            root.style.setProperty('--text-main', p.text);
+            root.style.setProperty('--text-muted', p.muted);
+            root.style.setProperty('--progress-color', p.accent);
+        }
+
+        // Hero billboard
+        body.classList.toggle('nf-hero-billboard', !!settings.heroBillboard);
+        if (settings.heroBillboard) setupBillboard();
+
+        // Clock
+        setupClock(settings.showClock);
+    }
+
+    // --- Auto-hide header scroll listener ---
+    var _scrollListener = null;
+    var _lastScrollY = 0;
+    function setupAutoHideHeader(enabled) {
+        if (enabled && !_scrollListener) {
+            _lastScrollY = window.scrollY;
+            _scrollListener = function() {
+                var y = window.scrollY;
+                if (y > _lastScrollY && y > 80) {
+                    document.body.classList.add('nf-header-hidden');
+                } else {
+                    document.body.classList.remove('nf-header-hidden');
+                }
+                _lastScrollY = y;
+            };
+            window.addEventListener('scroll', _scrollListener, { passive: true });
+        } else if (!enabled && _scrollListener) {
+            window.removeEventListener('scroll', _scrollListener);
+            _scrollListener = null;
+            document.body.classList.remove('nf-header-hidden');
+        }
+    }
+
+    // --- Clock ---
+    var _clockInterval = null;
+    function setupClock(enabled) {
+        if (enabled) {
+            if (!document.querySelector('.nf-clock')) {
+                var clock = document.createElement('span');
+                clock.className = 'nf-clock';
+                clock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                var hr = document.querySelector('.headerRight');
+                var sb = hr ? hr.querySelector('.nf-settings-btn') : null;
+                if (sb) hr.insertBefore(clock, sb);
+                else if (hr) hr.appendChild(clock);
+            }
+            if (!_clockInterval) {
+                _clockInterval = setInterval(function() {
+                    var c = document.querySelector('.nf-clock');
+                    if (c) c.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }, 30000);
+            }
+        } else {
+            var c = document.querySelector('.nf-clock');
+            if (c) c.remove();
+            if (_clockInterval) { clearInterval(_clockInterval); _clockInterval = null; }
+        }
+    }
+
+    // --- Hero Billboard ---
+    function setupBillboard() {
+        if (document.querySelector('.nf-billboard')) return;
+        if (!window.location.hash.includes('/home')) return;
+        var container = document.querySelector('.homeSectionsContainer');
+        if (!container) return;
+
+        try {
+            var userId = window.ApiClient.getCurrentUserId();
+            window.ApiClient.getItems(userId, {
+                SortBy: 'Random', Limit: 1, Recursive: true,
+                IncludeItemTypes: 'Series,Movie',
+                ImageTypes: 'Backdrop',
+                EnableTotalRecordCount: false
+            }).then(function(result) {
+                if (!result.Items || !result.Items.length) return;
+                var item = result.Items[0];
+                var serverId = window.ApiClient._serverInfo.Id;
+                var backdropUrl = window.ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 1920, quality: 80 });
+                var detailUrl = '#/details?id=' + item.Id + '&serverId=' + serverId;
+
+                var billboard = document.createElement('div');
+                billboard.className = 'nf-billboard';
+                billboard.innerHTML =
+                    '<div class="nf-billboard-bg" style="background-image:url(\'' + backdropUrl + '\')"></div>' +
+                    '<div class="nf-billboard-gradient"></div>' +
+                    '<div class="nf-billboard-content">' +
+                        '<div class="nf-billboard-title">' + (item.Name || '') + '</div>' +
+                        '<div class="nf-billboard-overview">' + (item.Overview || '').substring(0, 200) + '</div>' +
+                        '<div class="nf-billboard-actions">' +
+                            '<a class="nf-billboard-play" href="' + detailUrl + '"><span class="material-icons" style="font-size:20px">play_arrow</span> Play</a>' +
+                            '<a class="nf-billboard-info" href="' + detailUrl + '"><span class="material-icons" style="font-size:20px">info_outline</span> Info</a>' +
+                        '</div>' +
+                    '</div>';
+
+                container.insertBefore(billboard, container.firstChild);
+            });
+        } catch (e) { /* ApiClient not ready */ }
     }
 
     // --- Select HTML helper ---
@@ -251,10 +440,12 @@
 
             '<div class="nf-settings-section">' +
                 '<h3>' + t('colors') + '</h3>' +
+                sel('seasonalTheme', t('seasonalTheme'), [['default',t('themeDefault')],['christmas',t('themeChristmas')],['halloween',t('themeHalloween')],['summer',t('themeSummer')],['ocean',t('themeOcean')]]) +
                 '<div class="nf-setting-row"><div class="nf-setting-label">' + t('accentColor') + '</div><input type="color" class="nf-color-picker" data-setting="accentColor" value="' + currentSettings.accentColor + '"></div>' +
                 '<div class="nf-setting-row"><div class="nf-setting-label">' + t('background') + '</div><input type="color" class="nf-color-picker" data-setting="bgColor" value="' + currentSettings.bgColor + '"></div>' +
                 '<div class="nf-setting-row"><div class="nf-setting-label">' + t('textColor') + '</div><input type="color" class="nf-color-picker" data-setting="textColor" value="' + currentSettings.textColor + '"></div>' +
                 '<div class="nf-setting-row"><div class="nf-setting-label">' + t('mutedText') + '</div><input type="color" class="nf-color-picker" data-setting="mutedColor" value="' + currentSettings.mutedColor + '"></div>' +
+                sel('progressColor', t('progressColor'), [['red',t('progressRed')],['green',t('progressGreen')],['blue',t('progressBlue')],['purple',t('progressPurple')]]) +
             '</div>' +
 
             '<div class="nf-settings-section">' +
@@ -267,6 +458,7 @@
                 makeToggle('showTags', t('tags'), t('tagsDesc')) +
                 makeToggle('showExternalLinks', t('extLinks'), t('extLinksDesc')) +
                 makeToggle('showSimilar', t('similar'), t('similarDesc')) +
+                makeToggle('spoilerMode', t('spoilerMode'), t('spoilerModeDesc')) +
             '</div>' +
 
             '<div class="nf-settings-section">' +
@@ -283,6 +475,8 @@
                     '<input type="text" class="nf-select" data-setting="customLogoUrl" value="' + (currentSettings.customLogoUrl || '') + '" placeholder="https://..." style="width:160px;font-size:0.8rem">' +
                 '</div>' +
                 makeToggle('headerBlur', t('headerBlur'), t('headerBlurDesc')) +
+                makeToggle('autoHideHeader', t('autoHideHeader'), t('autoHideHeaderDesc')) +
+                makeToggle('showClock', t('showClock'), t('showClockDesc')) +
             '</div>' +
 
             '<div class="nf-settings-section">' +
@@ -300,6 +494,13 @@
                 sel('gradientStrength', t('gradient'), [['light',t('gradientLight')],['medium',t('gradientMedium')],['heavy',t('gradientHeavy')]]) +
                 sel('titleSize', t('titleSize'), [['small',t('titleSmall')],['large',t('titleLarge')],['huge',t('titleHuge')]]) +
                 sel('fontFamily', t('fontFamily'), [['inter',t('fontDefault')],['poppins','Poppins'],['montserrat','Montserrat'],['roboto','Roboto'],['oswald','Oswald'],['raleway','Raleway'],['nunito','Nunito'],['bebas','Bebas Neue']]) +
+                sel('cardSize', t('cardSize'), [['small',t('cardSizeSmall')],['normal',t('cardSizeNormal')],['large',t('cardSizeLarge')]]) +
+                sel('cardStyle', t('cardStyle'), [['mixed',t('cardMixed')],['portrait',t('cardPortrait')],['landscape',t('cardLandscape')]]) +
+                sel('animSpeed', t('animSpeed'), [['fast',t('animFast')],['normal',t('animNormal')],['slow',t('animSlow')],['off',t('animOff')]]) +
+                makeToggle('cardInfoOverlay', t('cardInfoOverlay'), t('cardInfoOverlayDesc')) +
+                makeToggle('sidebarCompact', t('sidebarCompact'), t('sidebarCompactDesc')) +
+                makeToggle('ambientGlow', t('ambientGlow'), t('ambientGlowDesc')) +
+                makeToggle('heroBillboard', t('heroBillboard'), t('heroBillboardDesc')) +
             '</div>' +
 
             '<div class="nf-settings-section">' +
