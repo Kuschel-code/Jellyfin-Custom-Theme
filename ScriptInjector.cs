@@ -62,29 +62,12 @@ namespace Jellyfin.Plugin.NetflixSkin
                 using var reader = new StreamReader(stream);
                 var css = CssMarker + "\n" + reader.ReadToEnd();
 
-                // Append a JS loader that uses CSS @import trick won't work,
-                // so we embed a tiny inline script loader via CSS background-image hack
-                // that Jellyfin's branding system will include in every page.
-                // This is needed because Docker containers have read-only web directories.
-                var jsLoader = @"
-/* JS Loader — loads settings module from plugin endpoint */
-" + CssMarker + @"-JS";
-
                 var brandingConfig = _configManager.GetConfiguration<BrandingOptions>("branding");
 
-                // Only update if our CSS is not already set
-                if (brandingConfig.CustomCss != null && brandingConfig.CustomCss.Contains(CssMarker))
-                {
-                    _logger.LogInformation("[Custom Theme] CSS already installed in branding config");
-                    return;
-                }
-
-                // Append our CSS (preserve any existing user CSS)
-                var existingCss = brandingConfig.CustomCss ?? string.Empty;
-                brandingConfig.CustomCss = existingCss + "\n\n" + css;
-
+                // Always replace entire Custom CSS with latest theme
+                brandingConfig.CustomCss = css;
                 _configManager.SaveConfiguration("branding", brandingConfig);
-                _logger.LogInformation("[Custom Theme] CSS injected into branding config ({Length} bytes)", css.Length);
+                _logger.LogInformation("[Custom Theme] CSS replaced in branding config ({Length} bytes)", css.Length);
             }
             catch (Exception ex)
             {
