@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.3.4.0",
+        "changelog": "Fix JS loading: EntryPoint injects script into index.html. Removed broken CSS HTML loader. Clear warning log if index.html is read-only.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v1.3.4/custom-theme-v1.3.4.zip",
+        "checksum": "84d7b2f3f485c56b2c5b8406c23c2454",
+        "timestamp": "2026-03-24T20:00:00"
+      },
+      {
         "version": "1.3.3.0",
         "changelog": "Fix: Assembly version now matches plugin version. Plugin correctly shows v1.3.3 in Jellyfin dashboard.",
         "targetAbi": "10.11.0.0",

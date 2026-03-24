@@ -1566,6 +1566,4 @@ body.nf-hero-billboard .homeSectionsContainer { padding-top: 0 !important; }
     .nf-billboard-content { bottom: 12%; }
 }
 
-/* === JS LOADER === */
-</style><script>if(!document.getElementById("custom-theme-js")){var s=document.createElement("script");s.id="custom-theme-js";s.src="/web/configurationpage?name=custom-theme-js";document.head.appendChild(s);}</script><style>
-/* === END LOADER === */
+/* === END OF CUSTOM THEME CSS === */
