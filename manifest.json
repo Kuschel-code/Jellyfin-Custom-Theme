@@ -13,7 +13,7 @@
         "changelog": "Fix: CSS auto-injection now works via IPluginServiceRegistrator + IHostedService. Previous approaches (constructor injection, plain IHostedService) silently failed.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v1.3.2/custom-theme-v1.3.2.zip",
-        "checksum": "7ef79feb9607e2ef1987ea75365bee1a",
+        "checksum": "c2ec76be813c94cdd8085d75c4db8115",
         "timestamp": "2026-03-24T18:00:00"
       },
       {

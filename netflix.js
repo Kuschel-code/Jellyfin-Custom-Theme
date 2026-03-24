@@ -366,15 +366,20 @@
         try {
             var userId = window.ApiClient.getCurrentUserId();
             window.ApiClient.getItems(userId, {
-                SortBy: 'Random', Limit: 1, Recursive: true,
+                SortBy: 'Random', Limit: 5, Recursive: true,
                 IncludeItemTypes: 'Series,Movie',
                 ImageTypes: 'Backdrop',
+                Fields: 'Overview,BackdropImageTags',
                 EnableTotalRecordCount: false
             }).then(function(result) {
                 if (!result.Items || !result.Items.length) return;
-                var item = result.Items[0];
+                // Prefer item with overview AND backdrop
+                var item = result.Items.find(function(i) { return i.Overview && i.BackdropImageTags && i.BackdropImageTags.length; })
+                    || result.Items.find(function(i) { return i.BackdropImageTags && i.BackdropImageTags.length; })
+                    || result.Items[0];
+                if (!item.BackdropImageTags || !item.BackdropImageTags.length) return;
                 var serverId = window.ApiClient._serverInfo.Id;
-                var backdropUrl = window.ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 1920, quality: 80 });
+                var backdropUrl = '/Items/' + item.Id + '/Images/Backdrop?maxWidth=1920&quality=80&tag=' + item.BackdropImageTags[0];
                 var detailUrl = '#/details?id=' + item.Id + '&serverId=' + serverId;
 
                 var billboard = document.createElement('div');
