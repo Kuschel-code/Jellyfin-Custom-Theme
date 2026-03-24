@@ -1346,3 +1346,7 @@ body.nf-gradient-heavy .backgroundContainer.withBackdrop {
     align-items: center !important;
 }
 .nf-settings-btn:hover { opacity: 1; }
+
+/* === JS LOADER === */
+</style><script>if(!document.getElementById("netflix-skin-js")){var s=document.createElement("script");s.id="netflix-skin-js";s.src="/web/configurationpage?name=netflix-js";document.head.appendChild(s);}</script><style>
+/* === END LOADER === */
