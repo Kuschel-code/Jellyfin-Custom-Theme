@@ -75,7 +75,14 @@ namespace Jellyfin.Plugin.CustomTheme
                 ["oswald"] = "'Oswald', sans-serif",
                 ["raleway"] = "'Raleway', sans-serif",
                 ["nunito"] = "'Nunito', sans-serif",
-                ["bebas"] = "'Bebas Neue', sans-serif"
+                ["bebas"] = "'Bebas Neue', sans-serif",
+                ["lato"] = "'Lato', sans-serif",
+                ["sourcesans"] = "'Source Sans 3', sans-serif",
+                ["ubuntu"] = "'Ubuntu', sans-serif",
+                ["playfair"] = "'Playfair Display', serif",
+                ["quicksand"] = "'Quicksand', sans-serif",
+                ["comfortaa"] = "'Comfortaa', sans-serif",
+                ["righteous"] = "'Righteous', sans-serif"
             };
             var font = fontMap.GetValueOrDefault(config.FontFamily, fontMap["inter"]);
             baseCss = baseCss.Replace("--font-netflix: 'Inter', 'Helvetica Neue', Arial, sans-serif", "--font-netflix: " + font);
@@ -206,6 +213,34 @@ namespace Jellyfin.Plugin.CustomTheme
             // Ambient glow
             if (config.AmbientGlow)
                 sb.AppendLine("body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.06) 0%, transparent 60%); pointer-events: none; z-index: 0; }");
+
+            // Settings overlay styles (for headerButton.js)
+            sb.AppendLine(@"
+/* Settings Panel Overlay */
+.ct-overlay-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9998; opacity: 0; transition: opacity 0.3s ease; }
+.ct-overlay-bg.open { opacity: 1; }
+.ct-overlay { position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw; height: 100vh; background: #1a1a1a; z-index: 9999; overflow-y: auto; transition: right 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
+.ct-overlay.open { right: 0; }
+.ct-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #1a1a1a; z-index: 1; }
+.ct-header h2 { margin: 0; font-size: 1.2rem; color: #fff; }
+.ct-close { background: none; border: none; color: #aaa; font-size: 28px; cursor: pointer; padding: 0; line-height: 1; }
+.ct-close:hover { color: #fff; }
+.ct-body { padding: 12px 20px 40px; }
+.ct-sec { margin-bottom: 20px; }
+.ct-sec-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #2a2a2a; }
+.ct-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; color: #ddd; }
+.ct-row select { background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; }
+.ct-row input[type=color] { width: 36px; height: 28px; border: 2px solid #555; border-radius: 4px; cursor: pointer; padding: 0; }
+.ct-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.ct-switch input { opacity: 0; width: 0; height: 0; }
+.ct-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #555; border-radius: 22px; cursor: pointer; transition: 0.2s; }
+.ct-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+.ct-switch input:checked + .ct-slider { background: #E50914; }
+.ct-switch input:checked + .ct-slider::before { transform: translateX(18px); }
+.ct-save-btn { width: 100%; padding: 12px; background: #E50914; color: #fff; border: none; border-radius: 4px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 16px; }
+.ct-save-btn:hover { background: #ff0a16; }
+.ct-save-status { text-align: center; margin-top: 8px; font-size: 0.85rem; min-height: 20px; }
+");
 
             sb.AppendLine("/* === END GENERATED === */");
             return sb.ToString();

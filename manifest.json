@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.4.2.0",
+        "changelog": "Header settings button with full panel. Settings saved server-side. 15 fonts. Script auto-injected into index.html.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v1.4.2/custom-theme-v1.4.2.zip",
+        "checksum": "35f524c4d04e6627bd7795f427a3ecc0",
+        "timestamp": "2026-03-25T01:00:00"
+      },
+      {
         "version": "1.4.1.0",
         "changelog": "Fix: Settings page now loads values correctly. Removed old netflix.js (no longer needed). Default logo set to Jellyfin.",
         "targetAbi": "10.11.0.0",

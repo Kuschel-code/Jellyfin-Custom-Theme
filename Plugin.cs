@@ -32,6 +32,12 @@ namespace Jellyfin.Plugin.CustomTheme
                     Name = "custom-theme-config",
                     EmbeddedResourcePath = GetType().Namespace + ".configPage.html",
                     EnableInMainMenu = false
+                },
+                new PluginPageInfo
+                {
+                    Name = "custom-theme-headerjs",
+                    EmbeddedResourcePath = GetType().Namespace + ".headerButton.js",
+                    EnableInMainMenu = false
                 }
             };
         }
