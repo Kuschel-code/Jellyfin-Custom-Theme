@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Bebas+Neue&family=Poppins:wght@400;500;600;700;900&family=Montserrat:wght@400;500;600;700;900&family=Roboto:wght@400;500;700;900&family=Oswald:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;900&family=Nunito:wght@400;600;700;900&display=swap');
 
 /* =============================================
-   NETFLIX SKIN FOR JELLYFIN 10.11.6
+   CUSTOM THEME FOR JELLYFIN 10.11+
    ============================================= */
 
 :root {
@@ -1567,5 +1567,5 @@ body.nf-hero-billboard .homeSectionsContainer { padding-top: 0 !important; }
 }
 
 /* === JS LOADER === */
-</style><script>if(!document.getElementById("netflix-skin-js")){var s=document.createElement("script");s.id="netflix-skin-js";s.src="/web/configurationpage?name=netflix-js";document.head.appendChild(s);}</script><style>
+</style><script>if(!document.getElementById("custom-theme-js")){var s=document.createElement("script");s.id="custom-theme-js";s.src="/web/configurationpage?name=custom-theme-js";document.head.appendChild(s);}</script><style>
 /* === END LOADER === */

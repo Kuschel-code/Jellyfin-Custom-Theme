@@ -4,8 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>Jellyfin.Plugin.NetflixSkin</AssemblyName>
-    <RootNamespace>Jellyfin.Plugin.NetflixSkin</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.CustomTheme</AssemblyName>
+    <RootNamespace>Jellyfin.Plugin.CustomTheme</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

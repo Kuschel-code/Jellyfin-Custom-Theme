@@ -5,11 +5,11 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace Jellyfin.Plugin.NetflixSkin
+namespace Jellyfin.Plugin.CustomTheme
 {
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        public override string Name => "Netflix Skin";
+        public override string Name => "Custom Theme";
 
         public override Guid Id => Guid.Parse("78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a");
 
@@ -27,15 +27,13 @@ namespace Jellyfin.Plugin.NetflixSkin
             {
                 new PluginPageInfo
                 {
-                    Name = "netflix-css",
+                    Name = "custom-theme-css",
                     EmbeddedResourcePath = GetType().Namespace + ".netflix.css",
-                    EnableInMainMenu = false,
-                    MenuSection = "Skin",
-                    MenuIcon = "style"
+                    EnableInMainMenu = false
                 },
                 new PluginPageInfo
                 {
-                    Name = "netflix-js",
+                    Name = "custom-theme-js",
                     EmbeddedResourcePath = GetType().Namespace + ".netflix.js",
                     EnableInMainMenu = false
                 }
