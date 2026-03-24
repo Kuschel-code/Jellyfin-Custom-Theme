@@ -99,18 +99,29 @@
 
             load: function() {
                 var self = this;
-                ApiClient.getPluginConfiguration(this.pluginId).then(function(config) {
-                    self.selects.forEach(function(key) {
-                        var el = document.getElementById('ct' + key);
-                        if (el) el.value = config[key] || el.value;
+                var doLoad = function() {
+                    if (typeof ApiClient === 'undefined' || !ApiClient.getPluginConfiguration) {
+                        setTimeout(doLoad, 200);
+                        return;
+                    }
+                    ApiClient.getPluginConfiguration(self.pluginId).then(function(config) {
+                        self.selects.forEach(function(key) {
+                            var el = document.getElementById('ct' + key);
+                            if (el) {
+                                var val = config[key];
+                                if (val !== undefined && val !== null) {
+                                    el.value = String(val);
+                                }
+                            }
+                        });
+                        self.checks.forEach(function(key) {
+                            var el = document.getElementById('ct' + key);
+                            if (el) el.checked = config[key] !== false;
+                        });
+                        self.updateVisibility();
                     });
-                    self.checks.forEach(function(key) {
-                        var el = document.getElementById('ct' + key);
-                        if (el) el.checked = config[key] !== false;
-                    });
-                    // Show/hide conditional rows
-                    self.updateVisibility();
-                });
+                };
+                doLoad();
             },
 
             save: function() {

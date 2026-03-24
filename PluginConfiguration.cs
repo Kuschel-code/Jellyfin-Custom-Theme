@@ -12,7 +12,7 @@ namespace Jellyfin.Plugin.CustomTheme
         public string ProgressColor { get; set; } = "red"; // red, green, blue, purple
 
         // --- Logo ---
-        public string LogoStyle { get; set; } = "netflix"; // netflix, jellyfin, letter, custom, none
+        public string LogoStyle { get; set; } = "jellyfin"; // netflix, jellyfin, letter, custom, none
         public string LogoLetter { get; set; } = "N";
         public string CustomLogoUrl { get; set; } = "";
 
