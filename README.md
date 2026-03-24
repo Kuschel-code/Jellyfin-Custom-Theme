@@ -24,39 +24,46 @@ A Netflix-inspired custom skin for **Jellyfin 10.11.6** with a built-in settings
 
 ## Installation
 
-### Option 1: CSS Only (Quick Start)
+### From Release (Recommended)
 
-1. Open your Jellyfin server admin dashboard
-2. Go to **Dashboard > General > Branding**
-3. Paste the contents of `netflix.css` into the **Custom CSS** field
-4. Save
-
-> This gives you the full visual theme but without the settings panel.
-
-### Option 2: Plugin (Full Experience)
-
-The plugin adds persistent JavaScript for the settings panel.
-
-1. Build the plugin:
-   ```bash
-   dotnet build -c Release
+1. Download the latest release ZIP from [Releases](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases)
+2. Extract and copy the files into your Jellyfin plugins directory:
    ```
-
-2. Copy the output files to your Jellyfin plugins directory:
-   ```bash
-   # Docker example:
-   docker cp bin/Release/net9.0/Jellyfin.Plugin.NetflixSkin.dll \
-     jellyfin:/config/plugins/NetflixSkin/Jellyfin.Plugin.NetflixSkin.dll
+   /config/plugins/NetflixSkin/
+     Jellyfin.Plugin.NetflixSkin.dll
+     manifest.json
    ```
+3. Restart Jellyfin
+4. Done — the plugin automatically injects CSS and JS. No manual steps needed.
 
-3. Also copy the manifest:
-   ```bash
-   docker cp manifest.json jellyfin:/config/plugins/NetflixSkin/manifest.json
-   ```
+### Docker Example
 
-4. Restart Jellyfin
+```bash
+# Create plugin directory
+docker exec jellyfin mkdir -p /config/plugins/NetflixSkin
 
-5. The CSS still needs to be added via **Dashboard > Branding > Custom CSS**
+# Copy plugin files
+docker cp Jellyfin.Plugin.NetflixSkin.dll jellyfin:/config/plugins/NetflixSkin/
+docker cp manifest.json jellyfin:/config/plugins/NetflixSkin/
+
+# Restart
+docker restart jellyfin
+```
+
+### Build from Source
+
+```bash
+dotnet build -c Release
+# Output: bin/Release/net9.0/Jellyfin.Plugin.NetflixSkin.dll
+```
+
+### CSS Only (No Settings Panel)
+
+If you only want the visual theme without the settings panel:
+
+1. Go to **Dashboard > General > Branding**
+2. Paste the contents of `netflix.css` into **Custom CSS**
+3. Save
 
 ## Project Structure
 

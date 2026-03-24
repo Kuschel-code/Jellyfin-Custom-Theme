@@ -1,74 +1,132 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller;
+using MediaBrowser.Model.Branding;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.NetflixSkin
 {
     /// <summary>
-    /// Injects the Netflix Skin script tag into Jellyfin's index.html at startup.
+    /// Automatically injects CSS (via Branding config) and JS (via index.html script tag) at startup.
+    /// Install the plugin and everything works — no manual steps needed.
     /// </summary>
-    public class ScriptInjector : IHostedService
+    public class SkinInjector : IHostedService
     {
         private readonly IServerApplicationPaths _appPaths;
-        private readonly ILogger<ScriptInjector> _logger;
+        private readonly IConfigurationManager _configManager;
+        private readonly ILogger<SkinInjector> _logger;
         private const string ScriptTag = "<script src=\"/web/configurationpage?name=netflix-js\"></script>";
         private const string Marker = "<!-- Netflix Skin -->";
+        private const string CssMarker = "/* === JELLYFIN CUSTOM THEME === */";
 
-        public ScriptInjector(IServerApplicationPaths appPaths, ILogger<ScriptInjector> logger)
+        public SkinInjector(
+            IServerApplicationPaths appPaths,
+            IConfigurationManager configManager,
+            ILogger<SkinInjector> logger)
         {
             _appPaths = appPaths;
+            _configManager = configManager;
             _logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
+        {
+            InjectCss();
+            InjectScript();
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Reads the embedded netflix.css and sets it as Custom CSS in Jellyfin's Branding config.
+        /// </summary>
+        private void InjectCss()
+        {
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var resourceName = "Jellyfin.Plugin.NetflixSkin.netflix.css";
+
+                using var stream = assembly.GetManifestResourceStream(resourceName);
+                if (stream == null)
+                {
+                    _logger.LogWarning("[Custom Theme] CSS resource not found: {Resource}", resourceName);
+                    return;
+                }
+
+                using var reader = new StreamReader(stream);
+                var css = CssMarker + "\n" + reader.ReadToEnd();
+
+                var brandingConfig = _configManager.GetConfiguration<BrandingOptions>("branding");
+
+                // Only update if our CSS is not already set (avoid overwriting user changes)
+                if (brandingConfig.CustomCss != null && brandingConfig.CustomCss.Contains(CssMarker))
+                {
+                    _logger.LogInformation("[Custom Theme] CSS already installed in branding config");
+                    return;
+                }
+
+                // Append our CSS (preserve any existing user CSS)
+                var existingCss = brandingConfig.CustomCss ?? string.Empty;
+                brandingConfig.CustomCss = existingCss + "\n\n" + css;
+
+                _configManager.SaveConfiguration("branding", brandingConfig);
+                _logger.LogInformation("[Custom Theme] CSS injected into branding config ({Length} bytes)", css.Length);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Custom Theme] Failed to inject CSS");
+            }
+        }
+
+        /// <summary>
+        /// Injects a script tag into index.html to load the settings JS module.
+        /// </summary>
+        private void InjectScript()
         {
             try
             {
                 var webPath = _appPaths.WebPath;
                 if (string.IsNullOrEmpty(webPath))
                 {
-                    _logger.LogWarning("[Netflix Skin] WebPath is empty, cannot inject script");
-                    return Task.CompletedTask;
+                    _logger.LogWarning("[Custom Theme] WebPath is empty, cannot inject script");
+                    return;
                 }
 
                 var indexPath = Path.Combine(webPath, "index.html");
                 if (!File.Exists(indexPath))
                 {
-                    _logger.LogWarning("[Netflix Skin] index.html not found at {Path}", indexPath);
-                    return Task.CompletedTask;
+                    _logger.LogWarning("[Custom Theme] index.html not found at {Path}", indexPath);
+                    return;
                 }
 
                 var html = File.ReadAllText(indexPath);
 
-                // Already injected
                 if (html.Contains(Marker))
                 {
-                    _logger.LogInformation("[Netflix Skin] Script already injected");
-                    return Task.CompletedTask;
+                    _logger.LogInformation("[Custom Theme] Script already injected in index.html");
+                    return;
                 }
 
-                // Inject before </body>
                 var injection = $"\n    {Marker}\n    {ScriptTag}\n";
                 html = html.Replace("</body>", injection + "</body>");
 
                 File.WriteAllText(indexPath, html);
-                _logger.LogInformation("[Netflix Skin] Script injected into index.html");
+                _logger.LogInformation("[Custom Theme] Script tag injected into index.html");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Netflix Skin] Failed to inject script");
+                _logger.LogError(ex, "[Custom Theme] Failed to inject script");
             }
-
-            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            // Optionally remove the injected script on shutdown
+            // Remove script tag from index.html on shutdown (clean uninstall)
             try
             {
                 var webPath = _appPaths.WebPath;
@@ -82,12 +140,12 @@ namespace Jellyfin.Plugin.NetflixSkin
                 {
                     html = html.Replace($"\n    {Marker}\n    {ScriptTag}\n", "");
                     File.WriteAllText(indexPath, html);
-                    _logger.LogInformation("[Netflix Skin] Script removed from index.html");
+                    _logger.LogInformation("[Custom Theme] Script removed from index.html");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Netflix Skin] Failed to remove script");
+                _logger.LogError(ex, "[Custom Theme] Failed to remove script");
             }
 
             return Task.CompletedTask;
