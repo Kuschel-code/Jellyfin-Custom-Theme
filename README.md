@@ -1,98 +1,93 @@
 # Jellyfin Custom Theme
 
-A Netflix-inspired custom skin for **Jellyfin 10.11.6** with a built-in settings panel, multiple fonts, i18n support, and full customization.
+A Netflix-inspired custom skin plugin for **Jellyfin 10.11+** with server-side settings, 15 Google Fonts, and full customization. Install the plugin and everything works automatically.
 
-![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.6-00A4DC?logo=jellyfin&logoColor=white)
+![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11+-00A4DC?logo=jellyfin&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Features
 
 - Netflix-style dark UI with backdrop gradients and smooth animations
-- **Settings panel** with 20+ customizable options (click the tune icon in the header)
-- **i18n** — English & German with auto-detection
-- **Logo options** — Jellyfin, Netflix N, custom letter (A-Z), custom image URL, or none
-- **8 Google Fonts** — Inter, Poppins, Montserrat, Roboto, Oswald, Raleway, Nunito, Bebas Neue
+- **Server-side settings** stored in plugin config (persist across all devices)
+- **Dashboard settings page** at Plugins > Custom Theme > Einstellungen
+- **15 Google Fonts** — Inter, Poppins, Montserrat, Roboto, Oswald, Raleway, Nunito, Bebas Neue, Lato, Source Sans, Ubuntu, Playfair Display, Quicksand, Comfortaa, Righteous
+- **Logo options** — Jellyfin (default), Netflix N, custom letter, custom image URL, or none
 - Round cast/crew images (Netflix-style)
 - Detail page with full backdrop overlay and Netflix triple gradient
 - Card hover zoom with shadow effects
 - Toggle visibility of badges, tags, external links, description, similar titles
 - Toggle detail page buttons (watched, favorite, more)
-- Adjustable card rounding, gradient strength, title size, font size
-- Color customization (accent, background, text, muted text)
-- Settings persist in localStorage across sessions
-- Responsive design for mobile and desktop
+- Adjustable card rounding, gradient strength, title size, font size, card size
+- Color customization (accent, background, text, muted text, progress bar)
+- Spoiler mode (hide unplayed episode thumbnails)
+- Ambient glow effect
+- Seasonal theme presets (Christmas, Halloween, Summer, Ocean)
+- Animation speed control
+- CSS auto-generated from settings — no manual CSS needed
 
 ## Installation
 
-### From Release (Recommended)
+### Via Plugin Repository (Recommended)
 
-1. Download the latest release ZIP from [Releases](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases)
-2. Extract and copy the files into your Jellyfin plugins directory:
+1. In Jellyfin, go to **Dashboard > Plugins > Repositories**
+2. Add repository URL:
    ```
-   /config/plugins/NetflixSkin/
-     Jellyfin.Plugin.NetflixSkin.dll
-     manifest.json
+   https://raw.githubusercontent.com/Kuschel-code/Jellyfin-Custom-Theme/main/manifest.json
    ```
-3. Restart Jellyfin
-4. Done — the plugin automatically injects CSS and JS. No manual steps needed.
+3. Go to **Catalog** and install **Custom Theme**
+4. Restart Jellyfin
+5. Done! The plugin automatically generates and applies the CSS.
 
-### Docker Example
+### Settings
 
-```bash
-# Create plugin directory
-docker exec jellyfin mkdir -p /config/plugins/NetflixSkin
+Go to **Dashboard > Plugins > Custom Theme > Einstellungen** to customize the theme.
 
-# Copy plugin files
-docker cp Jellyfin.Plugin.NetflixSkin.dll jellyfin:/config/plugins/NetflixSkin/
-docker cp manifest.json jellyfin:/config/plugins/NetflixSkin/
+| Section | Options |
+|---------|---------|
+| Colors | Accent, background, text, muted text, progress bar color |
+| Logo | Jellyfin / Netflix N / Letter / Custom image / None |
+| Elements | Badges, watched marks, backdrop, round cast, description, tags, external links, similar titles, spoiler mode |
+| Buttons | Watched, favorite, more (detail page circle buttons) |
+| Layout | 15 fonts, font size, card radius, card size, gradient strength, title size, animation speed, hover zoom, card info overlay, ambient glow |
+| Theme | Default, Christmas, Halloween, Summer, Ocean |
 
-# Restart
-docker restart jellyfin
+### Optional: Header Settings Button
+
+To get a settings button directly in the header (palette icon), the plugin needs write access to `index.html`. In Docker, mount the web directory as a volume:
+
+```yaml
+volumes:
+  - /path/on/host/jellyfin-web:/jellyfin/jellyfin-web
 ```
 
-### Build from Source
+Without this, the theme works fully — you just access settings through the Dashboard instead.
+
+## Build from Source
 
 ```bash
 dotnet build -c Release
-# Output: bin/Release/net9.0/Jellyfin.Plugin.NetflixSkin.dll
+# Output: bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll
 ```
-
-### CSS Only (No Settings Panel)
-
-If you only want the visual theme without the settings panel:
-
-1. Go to **Dashboard > General > Branding**
-2. Paste the contents of `netflix.css` into **Custom CSS**
-3. Save
 
 ## Project Structure
 
 ```
-Jellyfin.Plugin.NetflixSkin.csproj  # .NET 9 plugin project
-Plugin.cs                           # Plugin entry point, serves CSS/JS as web pages
-ScriptInjector.cs                   # Injects <script> tag into index.html at startup
-netflix.css                         # Main skin stylesheet (~1300 lines)
-netflix.js                          # Settings panel module with i18n
-manifest.json                       # Jellyfin plugin manifest
+Plugin.cs                  # Plugin entry, serves config page and JS as web pages
+PluginConfiguration.cs     # All settings as properties with defaults
+CssGenerator.cs            # Generates CSS from plugin config + base CSS
+EntryPoint.cs              # IHostedService — applies CSS on startup, injects script
+ServiceRegistrator.cs      # Registers EntryPoint with Jellyfin DI
+headerButton.js            # Settings button for header (optional, needs index.html access)
+configPage.html            # Dashboard settings page
+netflix.css                # Base skin stylesheet
+manifest.json              # Jellyfin plugin repository manifest
+meta.json                  # Plugin metadata
 ```
-
-## Settings Panel
-
-Click the **tune** icon (slider icon) in the header to open the settings panel.
-
-| Section | Options |
-|---------|---------|
-| Language | English, Deutsch |
-| Colors | Accent, background, text, muted text |
-| Header & Logo | Jellyfin / Netflix N / Letter A-Z / Custom image / None, header blur |
-| Elements | Badges, watched marks, backdrop, round cast, description, tags, external links, similar titles |
-| Buttons | Watched, favorite, more (detail page circle buttons) |
-| Layout | Hover zoom, font size, card rounding, gradient strength, title size, font family |
 
 ## Requirements
 
-- Jellyfin 10.11.x
-- .NET 9 SDK (for building the plugin)
+- Jellyfin 10.11+
+- .NET 9 (for building from source)
 
 ## License
 
