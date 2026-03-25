@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.4.5.0",
+        "changelog": "Settings button via IStartupFilter middleware. Works in Docker without volume mount.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v1.4.5/custom-theme-v1.4.5.zip",
+        "checksum": "593562f60e25d888fbb0da0c72f540de",
+        "timestamp": "2026-03-25T04:00:00"
+      },
+      {
         "version": "1.4.4.0",
         "changelog": "Fix: Robust index.html path discovery for Docker. Settings button in header.",
         "targetAbi": "10.11.0.0",
