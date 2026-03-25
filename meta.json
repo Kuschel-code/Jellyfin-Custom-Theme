@@ -1,7 +1,7 @@
 {
   "name": "Custom Theme",
   "id": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
-  "version": "1.4.5.0",
+  "version": "1.4.6.0",
   "description": "Netflix-style custom skin with settings panel, multiple fonts, and full customization.",
   "targetAbi": "10.11.0.0",
   "author": "Kuschel-code",
