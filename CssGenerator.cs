@@ -244,15 +244,6 @@ namespace Jellyfin.Plugin.CustomTheme
 
             sb.AppendLine("/* === END GENERATED === */");
 
-            // Script injection via CSS style-break trick
-            // This closes the <style> tag that Jellyfin creates for Custom CSS,
-            // inserts our <script> tag, then reopens a <style> tag.
-            // This is the standard approach used by Jellyfin community themes
-            // when index.html cannot be modified (e.g., Docker read-only filesystem).
-            sb.AppendLine("</style>");
-            sb.AppendLine("<script src=\"/web/configurationpage?name=custom-theme-headerjs\"></script>");
-            sb.AppendLine("<style>");
-
             return sb.ToString();
         }
     }

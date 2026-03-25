@@ -88,15 +88,32 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             try
             {
-                var webPath = _appHost.GetType().GetProperty("WebPath")?.GetValue(_appHost) as string;
+                // Try multiple approaches to find the web path
+                string? webPath = null;
+
+                // 1. Try common Docker and Linux paths first (most reliable)
+                var candidates = new[]
+                {
+                    "/jellyfin/jellyfin-web",
+                    "/usr/share/jellyfin/web",
+                    "/usr/lib/jellyfin/web"
+                };
+                foreach (var c in candidates)
+                {
+                    if (File.Exists(Path.Combine(c, "index.html")))
+                    {
+                        webPath = c;
+                        _logger.LogInformation("[Custom Theme] Found web path at {Path}", c);
+                        break;
+                    }
+                }
+
+                // 2. Try reflection as fallback
                 if (string.IsNullOrEmpty(webPath))
                 {
-                    _logger.LogWarning("[Custom Theme] WebPath not found, trying common paths");
-                    var candidates = new[] { "/jellyfin/jellyfin-web/index.html", "/usr/share/jellyfin/web/index.html" };
-                    foreach (var c in candidates)
-                    {
-                        if (File.Exists(c)) { webPath = Path.GetDirectoryName(c); break; }
-                    }
+                    webPath = _appHost.GetType().GetProperty("WebPath")?.GetValue(_appHost) as string;
+                    if (!string.IsNullOrEmpty(webPath))
+                        _logger.LogInformation("[Custom Theme] Found WebPath via reflection: {Path}", webPath);
                 }
 
                 if (string.IsNullOrEmpty(webPath))
