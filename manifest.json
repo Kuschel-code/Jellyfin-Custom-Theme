@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.4.3.0",
+        "changelog": "Fix: Settings button now works in Docker. JS injected via CSS style-break trick (no index.html modification needed).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v1.4.3/custom-theme-v1.4.3.zip",
+        "checksum": "b6a8d5d6a693b184e53eef9a8e1c4b76",
+        "timestamp": "2026-03-25T02:00:00"
+      },
+      {
         "version": "1.4.2.0",
         "changelog": "Header settings button with full panel. Settings saved server-side. 15 fonts. Script auto-injected into index.html.",
         "targetAbi": "10.11.0.0",
