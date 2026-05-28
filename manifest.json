@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.0.0.0",
+        "changelog": "Complete rewrite. Robust CSS-variable generation (no brittle string replacement), every setting now wired to CSS, single middleware-based script injection (no disk writes), fixed the settings-save event so changes apply immediately, English UI throughout, and all 15 fonts available in the dashboard.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.0.0/custom-theme-v2.0.0.zip",
+        "checksum": "61f576f5280b75221be7754e266a2c32",
+        "timestamp": "2026-05-28T12:00:00"
+      },
+      {
         "version": "1.4.6.0",
         "changelog": "Fix: Replace IHttpResponseBodyFeature to prevent SendFileAsync bypass. Settings button should now work in Docker.",
         "targetAbi": "10.11.0.0",

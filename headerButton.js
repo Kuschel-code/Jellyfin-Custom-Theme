@@ -1,158 +1,180 @@
-(function() {
+(function () {
     'use strict';
+
     var PLUGIN_ID = '78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a';
 
-    function addSettingsBtn() {
+    var FONTS = [
+        ['inter', 'Inter'], ['poppins', 'Poppins'], ['montserrat', 'Montserrat'],
+        ['roboto', 'Roboto'], ['oswald', 'Oswald'], ['raleway', 'Raleway'],
+        ['nunito', 'Nunito'], ['bebas', 'Bebas Neue'], ['lato', 'Lato'],
+        ['sourcesans', 'Source Sans'], ['ubuntu', 'Ubuntu'], ['playfair', 'Playfair Display'],
+        ['quicksand', 'Quicksand'], ['comfortaa', 'Comfortaa'], ['righteous', 'Righteous']
+    ];
+
+    // Mirrors the dashboard configuration page.
+    var SECTIONS = [
+        ['Colors', [
+            ['SeasonalTheme', 'select', 'Theme preset', [['default','Default'],['christmas','Christmas'],['halloween','Halloween'],['summer','Summer'],['ocean','Ocean']]],
+            ['AccentColor', 'color', 'Accent color'],
+            ['BgColor', 'color', 'Background'],
+            ['TextColor', 'color', 'Text color'],
+            ['MutedColor', 'color', 'Muted text'],
+            ['ProgressColor', 'select', 'Progress bar', [['accent','Accent'],['red','Red'],['green','Green'],['blue','Blue'],['purple','Purple']]]
+        ]],
+        ['Logo & Header', [
+            ['LogoStyle', 'select', 'Logo style', [['jellyfin','Jellyfin'],['netflix','Netflix N'],['letter','Letter'],['custom','Custom image'],['none','None']]],
+            ['HeaderBlur', 'toggle', 'Header blur effect']
+        ]],
+        ['Elements', [
+            ['ShowBadges', 'toggle', 'Unplayed badges'],
+            ['ShowPlayed', 'toggle', 'Watched checkmarks'],
+            ['ShowBackdrop', 'toggle', 'Backdrop image'],
+            ['RoundCast', 'toggle', 'Round cast images'],
+            ['ShowDescription', 'toggle', 'Description'],
+            ['ShowTags', 'toggle', 'Tags'],
+            ['ShowExternalLinks', 'toggle', 'External links'],
+            ['ShowSimilar', 'toggle', 'Similar titles'],
+            ['SpoilerMode', 'toggle', 'Spoiler mode']
+        ]],
+        ['Detail Buttons', [
+            ['ShowBtnWatched', 'toggle', 'Watched'],
+            ['ShowBtnFavorite', 'toggle', 'Favorite'],
+            ['ShowBtnMore', 'toggle', 'More']
+        ]],
+        ['Layout', [
+            ['FontFamily', 'select', 'Font', FONTS],
+            ['FontSize', 'select', 'Font size', [['small','Small'],['normal','Normal'],['large','Large']]],
+            ['CardRadius', 'select', 'Card rounding', [['0','Square'],['4','Light'],['8','Medium'],['16','Round']]],
+            ['CardSize', 'select', 'Card size', [['small','Small'],['normal','Normal'],['large','Large']]],
+            ['CardStyle', 'select', 'Card shape', [['mixed','Mixed'],['portrait','Portrait'],['landscape','Landscape']]],
+            ['CardHoverScale', 'toggle', 'Card hover zoom'],
+            ['CardInfoOverlay', 'toggle', 'Card info overlay'],
+            ['GradientStrength', 'select', 'Gradient', [['light','Light'],['medium','Medium'],['heavy','Heavy']]],
+            ['TitleSize', 'select', 'Title size', [['small','Small'],['large','Large'],['huge','Huge']]],
+            ['AnimSpeed', 'select', 'Animations', [['fast','Fast'],['normal','Normal'],['slow','Slow'],['off','Off']]],
+            ['SidebarCompact', 'toggle', 'Compact sidebar'],
+            ['AmbientGlow', 'toggle', 'Ambient glow']
+        ]]
+    ];
+
+    var INT_KEYS = { CardRadius: true };
+
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function addButton() {
         if (document.querySelector('.ct-settings-btn')) return;
         var hr = document.querySelector('.headerRight');
         if (!hr) return;
         var btn = document.createElement('button');
+        btn.type = 'button';
         btn.className = 'ct-settings-btn headerButton headerButtonRight';
-        btn.title = 'Theme Settings';
-        btn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:none;border:none;color:inherit;padding:0 8px;';
-        btn.innerHTML = '<span class="material-icons" style="font-size:24px">palette</span>';
-        btn.onclick = function(e) { e.preventDefault(); e.stopPropagation(); openSettings(); };
-        var ub = hr.querySelector('.headerUserButton');
-        if (ub) hr.insertBefore(btn, ub);
+        btn.title = 'Theme settings';
+        btn.innerHTML = '<span class="material-icons" style="font-size:24px" aria-hidden="true">palette</span>';
+        btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); togglePanel(); });
+        var userBtn = hr.querySelector('.headerUserButton');
+        if (userBtn) hr.insertBefore(btn, userBtn);
         else hr.appendChild(btn);
     }
 
-    function openSettings() {
-        if (document.querySelector('.ct-overlay')) { closeSettings(); return; }
+    function togglePanel() {
+        if (document.querySelector('.ct-overlay')) { closePanel(); return; }
 
-        var backdrop = document.createElement('div');
-        backdrop.className = 'ct-overlay-bg';
-        backdrop.onclick = closeSettings;
+        var bg = document.createElement('div');
+        bg.className = 'ct-overlay-bg';
+        bg.addEventListener('click', closePanel);
 
         var panel = document.createElement('div');
         panel.className = 'ct-overlay';
-        panel.innerHTML = '<div class="ct-header"><h2>Theme Settings</h2><button class="ct-close">&times;</button></div><div class="ct-body"><p style="color:#888">Loading...</p></div>';
+        panel.innerHTML = '<div class="ct-header"><h2>Theme Settings</h2><button type="button" class="ct-close" aria-label="Close">&times;</button></div>'
+            + '<div class="ct-body"><p style="color:#888">Loading…</p></div>';
 
-        document.body.appendChild(backdrop);
+        document.body.appendChild(bg);
         document.body.appendChild(panel);
-        panel.querySelector('.ct-close').onclick = closeSettings;
-
-        requestAnimationFrame(function() { panel.classList.add('open'); backdrop.classList.add('open'); });
+        panel.querySelector('.ct-close').addEventListener('click', closePanel);
+        requestAnimationFrame(function () { panel.classList.add('open'); bg.classList.add('open'); });
 
         loadConfig(panel);
     }
 
-    function closeSettings() {
-        var p = document.querySelector('.ct-overlay');
-        var b = document.querySelector('.ct-overlay-bg');
-        if (p) { p.classList.remove('open'); setTimeout(function() { p.remove(); }, 300); }
-        if (b) { b.classList.remove('open'); setTimeout(function() { b.remove(); }, 300); }
+    function closePanel() {
+        var panel = document.querySelector('.ct-overlay');
+        var bg = document.querySelector('.ct-overlay-bg');
+        if (panel) { panel.classList.remove('open'); setTimeout(function () { panel.remove(); }, 300); }
+        if (bg) { bg.classList.remove('open'); setTimeout(function () { bg.remove(); }, 300); }
     }
 
     function loadConfig(panel) {
-        if (typeof ApiClient === 'undefined') {
-            panel.querySelector('.ct-body').innerHTML = '<p style="color:#E50914">ApiClient not available. Use Dashboard > Plugins > Custom Theme instead.</p>';
+        if (typeof ApiClient === 'undefined' || !ApiClient.getPluginConfiguration) {
+            panel.querySelector('.ct-body').innerHTML = '<p style="color:#E50914">Settings unavailable here. Use Dashboard &gt; Plugins &gt; Custom Theme.</p>';
             return;
         }
-        ApiClient.getPluginConfiguration(PLUGIN_ID).then(function(config) {
-            renderSettings(panel, config);
-        }).catch(function(err) {
-            panel.querySelector('.ct-body').innerHTML = '<p style="color:#E50914">Error: ' + err + '</p>';
+        ApiClient.getPluginConfiguration(PLUGIN_ID).then(function (config) {
+            renderPanel(panel, config);
+        }).catch(function (err) {
+            panel.querySelector('.ct-body').innerHTML = '<p style="color:#E50914">Error: ' + esc(err) + '</p>';
         });
     }
 
-    function renderSettings(panel, config) {
-        var body = panel.querySelector('.ct-body');
-        body.innerHTML =
-            sec('Farben',
-                color('AccentColor', 'Akzentfarbe', config) +
-                color('BgColor', 'Hintergrund', config) +
-                color('TextColor', 'Textfarbe', config) +
-                color('MutedColor', 'Gedämpfter Text', config) +
-                sel('ProgressColor', 'Fortschrittsbalken', config, [['red','Rot'],['green','Grün'],['blue','Blau'],['purple','Lila']])
-            ) +
-            sec('Logo & Header',
-                sel('LogoStyle', 'Logo', config, [['jellyfin','Jellyfin'],['netflix','Netflix N'],['letter','Buchstabe'],['custom','Eigenes Bild'],['none','Keins']]) +
-                tog('HeaderBlur', 'Header Blur-Effekt', config)
-            ) +
-            sec('Elemente',
-                tog('ShowBadges', 'Ungesehen-Badges', config) +
-                tog('ShowPlayed', 'Gesehen-Markierung', config) +
-                tog('ShowBackdrop', 'Backdrop-Bild', config) +
-                tog('RoundCast', 'Runde Cast-Bilder', config) +
-                tog('ShowDescription', 'Beschreibung', config) +
-                tog('ShowTags', 'Tags', config) +
-                tog('ShowExternalLinks', 'Externe Links', config) +
-                tog('ShowSimilar', 'Ähnliche Titel', config) +
-                tog('SpoilerMode', 'Spoiler-Modus', config)
-            ) +
-            sec('Buttons',
-                tog('ShowBtnWatched', 'Gesehen ✓', config) +
-                tog('ShowBtnFavorite', 'Favorit ♥', config) +
-                tog('ShowBtnMore', 'Mehr ⋯', config)
-            ) +
-            sec('Layout',
-                sel('FontFamily', 'Schriftart', config, [['inter','Inter'],['poppins','Poppins'],['montserrat','Montserrat'],['roboto','Roboto'],['oswald','Oswald'],['raleway','Raleway'],['nunito','Nunito'],['bebas','Bebas Neue'],['lato','Lato'],['sourcesans','Source Sans'],['ubuntu','Ubuntu'],['playfair','Playfair Display'],['quicksand','Quicksand'],['comfortaa','Comfortaa'],['righteous','Righteous']]) +
-                sel('FontSize', 'Schriftgröße', config, [['small','Klein'],['normal','Normal'],['large','Groß']]) +
-                sel('CardRadius', 'Card-Rundung', config, [['0','Eckig'],['4','Leicht'],['8','Mittel'],['16','Rund']]) +
-                sel('CardSize', 'Card-Größe', config, [['small','Klein'],['normal','Normal'],['large','Groß']]) +
-                sel('GradientStrength', 'Gradient', config, [['light','Leicht'],['medium','Mittel'],['heavy','Stark']]) +
-                sel('TitleSize', 'Titelgröße', config, [['small','Klein'],['large','Groß'],['huge','Riesig']]) +
-                sel('AnimSpeed', 'Animationen', config, [['fast','Schnell'],['normal','Normal'],['slow','Langsam'],['off','Aus']]) +
-                tog('CardHoverScale', 'Card Hover-Zoom', config) +
-                tog('CardInfoOverlay', 'Card Info-Overlay', config) +
-                tog('AmbientGlow', 'Ambient Glow', config)
-            ) +
-            '<button class="ct-save-btn" id="ctSaveBtn">Speichern & Anwenden</button>' +
-            '<div class="ct-save-status" id="ctSaveStatus"></div>';
+    function renderPanel(panel, config) {
+        var html = '';
+        SECTIONS.forEach(function (section) {
+            html += '<div class="ct-sec"><div class="ct-sec-title">' + section[0] + '</div>';
+            section[1].forEach(function (f) {
+                var key = f[0], type = f[1], label = f[2];
+                html += '<div class="ct-row"><span>' + label + '</span>';
+                if (type === 'toggle') {
+                    html += '<label class="ct-switch"><input type="checkbox" data-key="' + key + '"' + (config[key] !== false ? ' checked' : '') + '><span class="ct-slider"></span></label>';
+                } else if (type === 'color') {
+                    html += '<input type="color" data-key="' + key + '" value="' + esc(config[key] || '#000000') + '">';
+                } else {
+                    html += '<select data-key="' + key + '">';
+                    f[3].forEach(function (o) {
+                        html += '<option value="' + o[0] + '"' + (String(config[key]) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+                    });
+                    html += '</select>';
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+        });
+        html += '<button type="button" class="ct-save-btn">Save &amp; Apply</button><div class="ct-save-status"></div>';
 
-        // Bind save
-        body.querySelector('#ctSaveBtn').onclick = function() { saveConfig(panel, config); };
+        var body = panel.querySelector('.ct-body');
+        body.innerHTML = html;
+        body.querySelector('.ct-save-btn').addEventListener('click', function () { saveConfig(panel, config); });
     }
 
     function saveConfig(panel, config) {
-        var body = panel.querySelector('.ct-body');
-        // Collect values
-        body.querySelectorAll('[data-key]').forEach(function(el) {
+        panel.querySelectorAll('[data-key]').forEach(function (el) {
             var key = el.dataset.key;
             if (el.type === 'checkbox') config[key] = el.checked;
-            else if (el.type === 'color') config[key] = el.value;
-            else if (key === 'CardRadius') config[key] = parseInt(el.value);
+            else if (INT_KEYS[key]) config[key] = parseInt(el.value, 10);
             else config[key] = el.value;
         });
 
-        var status = body.querySelector('#ctSaveStatus');
-        status.textContent = 'Speichern...';
+        var status = panel.querySelector('.ct-save-status');
+        status.textContent = 'Saving…';
         status.style.color = '#aaa';
 
-        ApiClient.updatePluginConfiguration(PLUGIN_ID, config).then(function() {
-            status.textContent = '✓ Gespeichert! Seite wird neu geladen...';
+        ApiClient.updatePluginConfiguration(PLUGIN_ID, config).then(function () {
+            status.textContent = '✓ Saved — reloading…';
             status.style.color = '#46d369';
-            setTimeout(function() { location.reload(); }, 1500);
-        }).catch(function(err) {
-            status.textContent = 'Fehler: ' + err;
+            setTimeout(function () { location.reload(); }, 1200);
+        }).catch(function (err) {
+            status.textContent = 'Error: ' + err;
             status.style.color = '#E50914';
         });
     }
 
-    // Helper builders
-    function sec(title, content) {
-        return '<div class="ct-sec"><div class="ct-sec-title">' + title + '</div>' + content + '</div>';
-    }
-    function tog(key, label, config) {
-        return '<div class="ct-row"><span>' + label + '</span><label class="ct-switch"><input type="checkbox" data-key="' + key + '"' + (config[key] ? ' checked' : '') + '><span class="ct-slider"></span></label></div>';
-    }
-    function sel(key, label, config, opts) {
-        var h = '<div class="ct-row"><span>' + label + '</span><select data-key="' + key + '">';
-        opts.forEach(function(o) { h += '<option value="' + o[0] + '"' + (String(config[key]) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; });
-        return h + '</select></div>';
-    }
-    function color(key, label, config) {
-        return '<div class="ct-row"><span>' + label + '</span><input type="color" data-key="' + key + '" value="' + (config[key] || '#000000') + '"></div>';
-    }
-
-    // Init
     function init() {
-        addSettingsBtn();
-        new MutationObserver(function() {
-            if (!document.querySelector('.ct-settings-btn')) addSettingsBtn();
+        addButton();
+        new MutationObserver(function () {
+            if (!document.querySelector('.ct-settings-btn')) addButton();
         }).observe(document.body, { childList: true, subtree: true });
     }
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 })();

@@ -1,21 +1,35 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
 
 namespace Jellyfin.Plugin.CustomTheme
 {
+    /// <summary>
+    /// Builds the final stylesheet from <see cref="PluginConfiguration"/>.
+    ///
+    /// Strategy: the embedded <c>netflix.css</c> base theme is emitted unchanged,
+    /// then a generated block is appended. User colours/fonts are applied by
+    /// re-declaring the CSS custom properties in a trailing <c>:root</c> rule — it
+    /// has the same specificity as the base declaration but appears later, so it
+    /// wins by the cascade. This avoids brittle string replacement on the base CSS.
+    /// Every toggle/option then emits a small, explicit rule.
+    /// </summary>
     public static class CssGenerator
     {
+        private const string BaseResource = "Jellyfin.Plugin.CustomTheme.netflix.css";
+
         private static readonly Dictionary<string, string> ProgressColors = new()
         {
             ["red"] = "#E50914",
-            ["green"] = "#46d369",
+            ["green"] = "#46D369",
             ["blue"] = "#0078D4",
             ["purple"] = "#9B59B6"
         };
 
-        private static readonly Dictionary<string, (string accent, string bg, string text, string muted)> SeasonalPresets = new()
+        // accent, background, text, muted
+        private static readonly Dictionary<string, (string Accent, string Bg, string Text, string Muted)> SeasonalPresets = new()
         {
             ["christmas"] = ("#C41E3A", "#1B2A1B", "#F0E6D3", "#8B9A7B"),
             ["halloween"] = ("#FF6600", "#1A1A0A", "#F5E6C8", "#8B8B6B"),
@@ -23,77 +37,87 @@ namespace Jellyfin.Plugin.CustomTheme
             ["ocean"] = ("#0099CC", "#0A1628", "#E0F0FF", "#7BA3C4")
         };
 
+        private static readonly Dictionary<string, string> Fonts = new()
+        {
+            ["inter"] = "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            ["poppins"] = "'Poppins', sans-serif",
+            ["montserrat"] = "'Montserrat', sans-serif",
+            ["roboto"] = "'Roboto', sans-serif",
+            ["oswald"] = "'Oswald', sans-serif",
+            ["raleway"] = "'Raleway', sans-serif",
+            ["nunito"] = "'Nunito', sans-serif",
+            ["bebas"] = "'Bebas Neue', sans-serif",
+            ["lato"] = "'Lato', sans-serif",
+            ["sourcesans"] = "'Source Sans 3', sans-serif",
+            ["ubuntu"] = "'Ubuntu', sans-serif",
+            ["playfair"] = "'Playfair Display', serif",
+            ["quicksand"] = "'Quicksand', sans-serif",
+            ["comfortaa"] = "'Comfortaa', sans-serif",
+            ["righteous"] = "'Righteous', sans-serif"
+        };
+
         public static string Generate(PluginConfiguration config)
         {
-            // Load base CSS from embedded resource
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream("Jellyfin.Plugin.CustomTheme.netflix.css");
-            if (stream == null) return string.Empty;
+            var baseCss = LoadBaseCss();
+            if (string.IsNullOrEmpty(baseCss))
+            {
+                return string.Empty;
+            }
 
-            using var reader = new StreamReader(stream);
-            var baseCss = reader.ReadToEnd();
-
-            // Strip the old JS loader section if present
-            var loaderIdx = baseCss.IndexOf("/* === JS LOADER");
-            if (loaderIdx > 0) baseCss = baseCss.Substring(0, loaderIdx).TrimEnd();
-            var endIdx = baseCss.IndexOf("/* === END OF CUSTOM THEME CSS === */");
-            if (endIdx > 0) baseCss = baseCss.Substring(0, endIdx).TrimEnd();
-
-            // Resolve colors (seasonal theme overrides manual colors)
+            // Resolve colours — a seasonal preset overrides the manual colours.
             var accent = config.AccentColor;
             var bg = config.BgColor;
             var text = config.TextColor;
             var muted = config.MutedColor;
-
-            if (config.SeasonalTheme != "default" && SeasonalPresets.ContainsKey(config.SeasonalTheme))
+            if (SeasonalPresets.TryGetValue(config.SeasonalTheme, out var preset))
             {
-                var preset = SeasonalPresets[config.SeasonalTheme];
-                accent = preset.accent;
-                bg = preset.bg;
-                text = preset.text;
-                muted = preset.muted;
+                accent = preset.Accent;
+                bg = preset.Bg;
+                text = preset.Text;
+                muted = preset.Muted;
             }
 
-            // Replace CSS variable defaults with user values
-            baseCss = baseCss.Replace("--accent-red: #E50914", "--accent-red: " + accent);
-            baseCss = baseCss.Replace("--bg-dark: #141414", "--bg-dark: " + bg);
-            baseCss = baseCss.Replace("--text-main: #FFFFFF", "--text-main: " + text);
-            baseCss = baseCss.Replace("--text-muted: #B3B3B3", "--text-muted: " + muted);
-            baseCss = baseCss.Replace("--card-radius: 4px", "--card-radius: " + config.CardRadius + "px");
+            var font = Fonts.GetValueOrDefault(config.FontFamily, Fonts["inter"]);
+            var progress = string.Equals(config.ProgressColor, "accent", System.StringComparison.OrdinalIgnoreCase)
+                ? accent
+                : ProgressColors.GetValueOrDefault(config.ProgressColor, accent);
 
-            // Progress bar color
-            var progressHex = ProgressColors.GetValueOrDefault(config.ProgressColor, accent);
-            baseCss = baseCss.Replace("var(--progress-color, var(--accent-red))", progressHex);
-
-            // Font family
-            var fontMap = new Dictionary<string, string>
-            {
-                ["inter"] = "'Inter', 'Helvetica Neue', Arial, sans-serif",
-                ["poppins"] = "'Poppins', sans-serif",
-                ["montserrat"] = "'Montserrat', sans-serif",
-                ["roboto"] = "'Roboto', sans-serif",
-                ["oswald"] = "'Oswald', sans-serif",
-                ["raleway"] = "'Raleway', sans-serif",
-                ["nunito"] = "'Nunito', sans-serif",
-                ["bebas"] = "'Bebas Neue', sans-serif",
-                ["lato"] = "'Lato', sans-serif",
-                ["sourcesans"] = "'Source Sans 3', sans-serif",
-                ["ubuntu"] = "'Ubuntu', sans-serif",
-                ["playfair"] = "'Playfair Display', serif",
-                ["quicksand"] = "'Quicksand', sans-serif",
-                ["comfortaa"] = "'Comfortaa', sans-serif",
-                ["righteous"] = "'Righteous', sans-serif"
-            };
-            var font = fontMap.GetValueOrDefault(config.FontFamily, fontMap["inter"]);
-            baseCss = baseCss.Replace("--font-netflix: 'Inter', 'Helvetica Neue', Arial, sans-serif", "--font-netflix: " + font);
-
-            // Build conditional CSS rules
-            var sb = new StringBuilder();
-            sb.AppendLine(baseCss);
+            var sb = new StringBuilder(baseCss.Length + 4096);
+            sb.Append(baseCss);
             sb.AppendLine();
-            sb.AppendLine("/* === GENERATED FROM PLUGIN SETTINGS === */");
+            sb.AppendLine();
+            sb.AppendLine("/* ============================================");
+            sb.AppendLine("   GENERATED FROM PLUGIN SETTINGS");
+            sb.AppendLine("   ============================================ */");
 
-            // Logo
+            // --- Variable overrides (win by cascade order) ---
+            sb.AppendLine(":root {");
+            sb.AppendLine($"    --accent-red: {accent};");
+            sb.AppendLine($"    --accent-red-hover: {Lighten(accent, 0.15)};");
+            sb.AppendLine($"    --bg-dark: {bg};");
+            sb.AppendLine($"    --text-main: {text};");
+            sb.AppendLine($"    --text-muted: {muted};");
+            sb.AppendLine($"    --card-radius: {config.CardRadius}px;");
+            sb.AppendLine($"    --font-netflix: {font};");
+            sb.AppendLine($"    --progress-color: {progress};");
+            sb.AppendLine("}");
+
+            // --- Always-on extras (moved out of the base theme) ---
+            sb.AppendLine(".itemProgressBar-inner, .progressBarFill { background-color: var(--progress-color) !important; }");
+            sb.AppendLine(".headerUserButton .headerButton-icon { display: none !important; }");
+            sb.AppendLine(".headerUserButton { overflow: hidden !important; border-radius: 4px !important; }");
+
+            AppendLogo(sb, config);
+            AppendElements(sb, config);
+            AppendButtons(sb, config);
+            AppendLayout(sb, config);
+            AppendPanelStyles(sb);
+
+            return sb.ToString();
+        }
+
+        private static void AppendLogo(StringBuilder sb, PluginConfiguration config)
+        {
             switch (config.LogoStyle)
             {
                 case "jellyfin":
@@ -102,149 +126,303 @@ namespace Jellyfin.Plugin.CustomTheme
     background-image: url('data:image/svg+xml,%3Csvg xmlns=""http://www.w3.org/2000/svg"" viewBox=""0 0 512 512""%3E%3Cdefs%3E%3ClinearGradient id=""g"" x1=""0%25"" y1=""0%25"" x2=""100%25"" y2=""100%25""%3E%3Cstop offset=""0%25"" stop-color=""%23aa5cc3""/%3E%3Cstop offset=""100%25"" stop-color=""%2300a4dc""/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d=""M256 70c-54 0-103 28-140 72-37 44-56 102-56 152 0 36 22 72 56 100 37 30 86 48 140 48s103-18 140-48c34-28 56-64 56-100 0-50-19-108-56-152-37-44-86-72-140-72zm0 62c34 0 66 18 90 48 24 28 38 66 38 98 0 18-12 38-32 54-22 18-52 30-96 30s-74-12-96-30c-20-16-32-36-32-54 0-32 14-70 38-98 24-30 56-48 90-48zm0 84c-16 0-28 8-36 20-8 10-12 24-12 36 0 14 10 28 26 28s28-8 36-20c8-10 12-24 12-36 0-14-10-28-26-28z"" fill=""url(%23g)""/%3E%3C/svg%3E') !important;
     background-size: contain !important; background-repeat: no-repeat !important;
     width: 36px !important; height: 36px !important; display: inline-block !important;
-    text-shadow: none !important; font-size: 0 !important; }");
+    text-shadow: none !important; font-size: 0 !important;
+}");
                     break;
                 case "letter":
+                    var letter = SanitizeLetter(config.LogoLetter);
                     sb.AppendLine($@".headerLeft::before {{
-    content: '{config.LogoLetter}' !important; color: var(--accent-red) !important;
+    content: '{letter}' !important; color: var(--accent-red) !important;
     font-weight: 900 !important; font-size: 2.6rem !important; letter-spacing: -2px !important;
     text-shadow: 0 0 15px rgba(229,9,20,0.4) !important; display: flex !important;
     align-items: center !important; transform: scaleY(1.1) !important;
     font-family: var(--font-netflix) !important; width: auto !important; height: auto !important;
-    background: none !important; }}");
+    background: none !important;
+}}");
                     break;
-                case "custom" when !string.IsNullOrEmpty(config.CustomLogoUrl):
+                case "custom" when !string.IsNullOrWhiteSpace(config.CustomLogoUrl):
+                    var url = SanitizeUrl(config.CustomLogoUrl);
                     sb.AppendLine($@".headerLeft::before {{
-    content: '' !important; background-image: url({config.CustomLogoUrl}) !important;
+    content: '' !important; background-image: url('{url}') !important;
     background-size: contain !important; background-repeat: no-repeat !important;
-    width: 40px !important; height: 30px !important; display: inline-block !important; }}");
+    width: 40px !important; height: 30px !important; display: inline-block !important;
+    text-shadow: none !important; font-size: 0 !important;
+}}");
                     break;
                 case "none":
                     sb.AppendLine(".headerLeft::before { display: none !important; }");
                     break;
-                // "netflix" = default N, already in base CSS
+
+                // "netflix" — the base theme already renders the red 'N'.
+            }
+        }
+
+        private static void AppendElements(StringBuilder sb, PluginConfiguration config)
+        {
+            if (!config.ShowBadges)
+            {
+                sb.AppendLine(".indicator:not(.indicatorIcon) { display: none !important; }");
             }
 
-            // Element visibility
-            if (!config.ShowBadges)
-                sb.AppendLine(".indicator:not(.indicatorIcon) { display: none !important; }");
             if (!config.ShowPlayed)
+            {
                 sb.AppendLine(".indicatorIcon { display: none !important; }");
-            if (!config.ShowBackdrop)
-                sb.AppendLine(".backdropContainer { opacity: 0 !important; } .backgroundContainer.withBackdrop { background-image: none !important; background-color: var(--bg-dark) !important; }");
-            if (!config.RoundCast)
-                sb.AppendLine(".personCard .cardScalable { border-radius: 8px !important; } .personCard .cardImageContainer { border-radius: 8px !important; }");
-            if (!config.ShowDescription)
-                sb.AppendLine(".overview-text, .itemOverview { display: none !important; }");
-            if (!config.ShowTags)
-                sb.AppendLine(".itemTags { display: none !important; }");
-            if (!config.ShowExternalLinks)
-                sb.AppendLine(".itemExternalLinks { display: none !important; }");
-            if (!config.ShowSimilar)
-                sb.AppendLine(".similarSection { display: none !important; }");
+            }
 
-            // Spoiler mode
+            if (!config.ShowBackdrop)
+            {
+                sb.AppendLine(".backdropContainer { opacity: 0 !important; }");
+                sb.AppendLine(".backgroundContainer.withBackdrop { background-image: none !important; background-color: var(--bg-dark) !important; }");
+            }
+
+            if (!config.RoundCast)
+            {
+                sb.AppendLine(".personCard .cardScalable, .personCard .cardImageContainer { border-radius: 8px !important; }");
+            }
+
+            if (!config.ShowDescription)
+            {
+                sb.AppendLine(".overview-text, .itemOverview { display: none !important; }");
+            }
+
+            if (!config.ShowTags)
+            {
+                sb.AppendLine(".itemTags { display: none !important; }");
+            }
+
+            if (!config.ShowExternalLinks)
+            {
+                sb.AppendLine(".itemExternalLinks { display: none !important; }");
+            }
+
+            if (!config.ShowSimilar)
+            {
+                sb.AppendLine(".similarSection { display: none !important; }");
+            }
+
+            if (config.HeaderBlur)
+            {
+                sb.AppendLine(".skinHeader { backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }");
+            }
+
             if (config.SpoilerMode)
             {
-                sb.AppendLine(@".overview-text, .itemOverview { filter: blur(8px) !important; cursor: pointer !important; }
+                sb.AppendLine(@".overview-text, .itemOverview { filter: blur(8px) !important; cursor: pointer !important; transition: filter 0.3s ease !important; }
 .overview-text:hover, .itemOverview:hover { filter: none !important; }
-.card:not(:has(.indicatorIcon)) .cardImageContainer { filter: blur(10px) brightness(0.6) !important; }
+.card:not(:has(.indicatorIcon)) .cardImageContainer { filter: blur(10px) brightness(0.6) !important; transition: filter 0.3s ease !important; }
 .card:not(:has(.indicatorIcon)) .cardImageContainer:hover { filter: none !important; }");
             }
+        }
 
-            // Header
-            if (config.HeaderBlur)
-                sb.AppendLine(".skinHeader { backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; }");
-
-            // Buttons
+        private static void AppendButtons(StringBuilder sb, PluginConfiguration config)
+        {
             if (!config.ShowBtnWatched)
+            {
                 sb.AppendLine(".btnPlaystate { display: none !important; }");
-            if (!config.ShowBtnFavorite)
-                sb.AppendLine(".btnUserRating { display: none !important; }");
-            if (!config.ShowBtnMore)
-                sb.AppendLine(".btnMoreCommands { display: none !important; }");
+            }
 
+            if (!config.ShowBtnFavorite)
+            {
+                sb.AppendLine(".btnUserRating { display: none !important; }");
+            }
+
+            if (!config.ShowBtnMore)
+            {
+                sb.AppendLine(".btnMoreCommands { display: none !important; }");
+            }
+        }
+
+        private static void AppendLayout(StringBuilder sb, PluginConfiguration config)
+        {
             // Font size
             if (config.FontSize == "small")
+            {
                 sb.AppendLine("body { font-size: 14px !important; }");
+            }
             else if (config.FontSize == "large")
+            {
                 sb.AppendLine("body { font-size: 18px !important; }");
+            }
 
             // Title size
             if (config.TitleSize == "small")
+            {
                 sb.AppendLine(".itemName { font-size: 1.8rem !important; }");
+            }
             else if (config.TitleSize == "huge")
+            {
                 sb.AppendLine(".itemName { font-size: 4.5rem !important; }");
+            }
 
             // Card size
             if (config.CardSize == "small")
-                sb.AppendLine(".homeSectionsContainer .card.overflowPortraitCard:not(.personCard) { min-width: 120px !important; } .homeSectionsContainer .card.overflowBackdropCard { min-width: 240px !important; }");
+            {
+                sb.AppendLine(".homeSectionsContainer .card.overflowPortraitCard:not(.personCard) { min-width: 120px !important; }");
+                sb.AppendLine(".homeSectionsContainer .card.overflowBackdropCard { min-width: 240px !important; }");
+            }
             else if (config.CardSize == "large")
-                sb.AppendLine(".homeSectionsContainer .card.overflowPortraitCard:not(.personCard) { min-width: 200px !important; } .homeSectionsContainer .card.overflowBackdropCard { min-width: 420px !important; }");
+            {
+                sb.AppendLine(".homeSectionsContainer .card.overflowPortraitCard:not(.personCard) { min-width: 200px !important; }");
+                sb.AppendLine(".homeSectionsContainer .card.overflowBackdropCard { min-width: 420px !important; }");
+            }
 
             // Card style
             if (config.CardStyle == "portrait")
+            {
                 sb.AppendLine(".card.overflowBackdropCard .cardPadder { padding-bottom: 150% !important; }");
+                sb.AppendLine(".card.overflowBackdropCard .cardImageContainer { background-position: center !important; }");
+            }
             else if (config.CardStyle == "landscape")
+            {
                 sb.AppendLine(".card.overflowPortraitCard:not(.personCard) .cardPadder { padding-bottom: 56.25% !important; }");
+                sb.AppendLine(".card.overflowPortraitCard:not(.personCard) .cardImageContainer { background-position: center top !important; }");
+            }
 
-            // Card hover
+            // Card hover zoom
             if (!config.CardHoverScale)
+            {
                 sb.AppendLine(".card:hover { transform: none !important; box-shadow: none !important; }");
+            }
 
-            // Gradient
+            // Card info overlay
+            if (config.CardInfoOverlay)
+            {
+                sb.AppendLine(@".cardOverlayContainer { display: flex !important; flex-direction: column !important; justify-content: flex-end !important; padding: 10px 12px !important; }
+.card:hover .cardOverlayContainer { opacity: 1 !important; }
+.cardOverlayContainer .cardOverlayButtonContainer { margin-top: auto !important; }");
+            }
+
+            // Gradient strength
             if (config.GradientStrength == "light")
+            {
                 sb.AppendLine(".backgroundContainer.withBackdrop { background-image: linear-gradient(to top, var(--bg-dark) 0%, rgba(20,20,20,0.4) 15%, transparent 40%), linear-gradient(to right, rgba(20,20,20,0.5) 0%, transparent 25%) !important; }");
+            }
             else if (config.GradientStrength == "heavy")
+            {
                 sb.AppendLine(".backgroundContainer.withBackdrop { background-image: linear-gradient(to top, var(--bg-dark) 0%, rgba(20,20,20,0.85) 30%, rgba(20,20,20,0.5) 60%), linear-gradient(to right, rgba(20,20,20,0.95) 0%, transparent 45%), linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%) !important; }");
+            }
 
             // Animation speed
             if (config.AnimSpeed == "fast")
-                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer { transition-duration: 0.12s !important; }");
+            {
+                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer, .btnPlaystate, .btnUserRating, .btnMoreCommands { transition-duration: 0.12s !important; }");
+            }
             else if (config.AnimSpeed == "slow")
-                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer { transition-duration: 0.6s !important; }");
+            {
+                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer, .btnPlaystate, .btnUserRating, .btnMoreCommands { transition-duration: 0.6s !important; }");
+            }
             else if (config.AnimSpeed == "off")
-                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer { transition-duration: 0s !important; } .card:hover { transform: none !important; } .view-transition { animation: none !important; }");
+            {
+                sb.AppendLine(".card, .skinHeader, .cardOverlayContainer, .btnPlaystate, .btnUserRating, .btnMoreCommands { transition-duration: 0s !important; }");
+                sb.AppendLine(".card:hover { transform: none !important; }");
+                sb.AppendLine(".view-transition { animation: none !important; }");
+            }
 
-            // Sidebar
+            // Compact sidebar
             if (config.SidebarCompact)
-                sb.AppendLine(".mainDrawer { width: 60px !important; } .navMenuOption .navMenuOptionText { display: none !important; } .navMenuOption { justify-content: center !important; padding: 12px 0 !important; } .sidebarHeader { display: none !important; }");
+            {
+                sb.AppendLine(@".mainDrawer { width: 60px !important; }
+.navMenuOption .navMenuOptionText { display: none !important; }
+.navMenuOption { justify-content: center !important; padding: 12px 0 !important; }
+.navMenuOption .material-icons { margin: 0 !important; }
+.sidebarHeader { display: none !important; }");
+            }
 
             // Ambient glow
             if (config.AmbientGlow)
-                sb.AppendLine("body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.06) 0%, transparent 60%); pointer-events: none; z-index: 0; }");
+            {
+                sb.AppendLine("body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(229,9,20,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }");
+            }
+        }
 
-            // Settings overlay styles (for headerButton.js)
+        /// <summary>Styles for the slide-in settings panel created by headerButton.js.</summary>
+        private static void AppendPanelStyles(StringBuilder sb)
+        {
             sb.AppendLine(@"
-/* Settings Panel Overlay */
-.ct-overlay-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9998; opacity: 0; transition: opacity 0.3s ease; }
+/* Header settings button + slide-in panel */
+.ct-settings-btn { background: none !important; border: none !important; color: inherit !important; cursor: pointer; display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0 8px !important; opacity: 0.85; transition: opacity 0.2s ease; }
+.ct-settings-btn:hover { opacity: 1; }
+.ct-overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999998; opacity: 0; transition: opacity 0.3s ease; }
 .ct-overlay-bg.open { opacity: 1; }
-.ct-overlay { position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw; height: 100vh; background: #1a1a1a; z-index: 9999; overflow-y: auto; transition: right 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.5); }
+.ct-overlay { position: fixed; top: 0; right: -440px; width: 400px; max-width: 90vw; height: 100vh; background: #1a1a1a; color: #fff; z-index: 999999; overflow-y: auto; transition: right 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: -5px 0 30px rgba(0,0,0,0.5); font-family: var(--font-netflix); }
 .ct-overlay.open { right: 0; }
-.ct-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #333; position: sticky; top: 0; background: #1a1a1a; z-index: 1; }
-.ct-header h2 { margin: 0; font-size: 1.2rem; color: #fff; }
-.ct-close { background: none; border: none; color: #aaa; font-size: 28px; cursor: pointer; padding: 0; line-height: 1; }
+.ct-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; background: #1a1a1a; z-index: 1; }
+.ct-header h2 { margin: 0; font-size: 1.2rem; }
+.ct-close { background: none; border: none; color: #aaa; font-size: 28px; line-height: 1; cursor: pointer; padding: 0 4px; }
 .ct-close:hover { color: #fff; }
-.ct-body { padding: 12px 20px 40px; }
-.ct-sec { margin-bottom: 20px; }
-.ct-sec-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #2a2a2a; }
-.ct-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; color: #ddd; }
-.ct-row select { background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; }
-.ct-row input[type=color] { width: 36px; height: 28px; border: 2px solid #555; border-radius: 4px; cursor: pointer; padding: 0; }
-.ct-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.ct-body { padding: 12px 20px 48px; }
+.ct-sec { margin-bottom: 18px; }
+.ct-sec-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #2a2a2a; }
+.ct-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 0.9rem; color: #ddd; }
+.ct-row select { background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 0.8rem; max-width: 55%; }
+.ct-row input[type=text] { background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px 8px; font-size: 0.8rem; max-width: 55%; }
+.ct-row input[type=color] { width: 38px; height: 28px; border: 2px solid #555; border-radius: 4px; cursor: pointer; padding: 0; background: none; flex-shrink: 0; }
+.ct-switch { position: relative; width: 42px; height: 22px; flex-shrink: 0; }
 .ct-switch input { opacity: 0; width: 0; height: 0; }
-.ct-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #555; border-radius: 22px; cursor: pointer; transition: 0.2s; }
-.ct-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
-.ct-switch input:checked + .ct-slider { background: #E50914; }
-.ct-switch input:checked + .ct-slider::before { transform: translateX(18px); }
-.ct-save-btn { width: 100%; padding: 12px; background: #E50914; color: #fff; border: none; border-radius: 4px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 16px; }
-.ct-save-btn:hover { background: #ff0a16; }
-.ct-save-status { text-align: center; margin-top: 8px; font-size: 0.85rem; min-height: 20px; }
-");
+.ct-slider { position: absolute; inset: 0; background: #555; border-radius: 22px; cursor: pointer; transition: background 0.2s; }
+.ct-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+.ct-switch input:checked + .ct-slider { background: var(--accent-red); }
+.ct-switch input:checked + .ct-slider::before { transform: translateX(20px); }
+.ct-save-btn { width: 100%; padding: 12px; background: var(--accent-red); color: #fff; border: none; border-radius: 4px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 16px; font-family: var(--font-netflix); }
+.ct-save-btn:hover { background: var(--accent-red-hover); }
+.ct-save-status { text-align: center; margin-top: 10px; font-size: 0.85rem; min-height: 20px; }");
+        }
 
-            sb.AppendLine("/* === END GENERATED === */");
+        private static string LoadBaseCss()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream(BaseResource);
+            if (stream == null)
+            {
+                return string.Empty;
+            }
 
-            return sb.ToString();
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
+
+        /// <summary>Mixes a hex colour toward white by <paramref name="amount"/> (0..1). Returns the input unchanged if it is not a #RRGGBB string.</summary>
+        private static string Lighten(string hex, double amount)
+        {
+            if (string.IsNullOrEmpty(hex) || hex.Length != 7 || hex[0] != '#')
+            {
+                return hex;
+            }
+
+            if (!int.TryParse(hex.AsSpan(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var r) ||
+                !int.TryParse(hex.AsSpan(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var g) ||
+                !int.TryParse(hex.AsSpan(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
+            {
+                return hex;
+            }
+
+            r = (int)(r + ((255 - r) * amount));
+            g = (int)(g + ((255 - g) * amount));
+            b = (int)(b + ((255 - b) * amount));
+            return string.Create(CultureInfo.InvariantCulture, $"#{r:X2}{g:X2}{b:X2}");
+        }
+
+        private static string SanitizeLetter(string letter)
+        {
+            if (string.IsNullOrEmpty(letter))
+            {
+                return "N";
+            }
+
+            var c = letter[0];
+            return char.IsLetterOrDigit(c) ? c.ToString() : "N";
+        }
+
+        private static string SanitizeUrl(string url)
+        {
+            // Admin-only input, but keep it from breaking out of the url('...') context.
+            return url.Replace("'", string.Empty)
+                      .Replace("\"", string.Empty)
+                      .Replace("(", string.Empty)
+                      .Replace(")", string.Empty)
+                      .Replace("\n", string.Empty)
+                      .Replace("\r", string.Empty)
+                      .Trim();
         }
     }
 }
