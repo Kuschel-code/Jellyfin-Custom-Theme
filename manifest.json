@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.2.0.0",
+        "changelog": "Reliable script injection via the File Transformation plugin (replaces the unreliable middleware) so the header settings button and Netflix hero banner finally appear. Requires the File Transformation plugin (https://www.iamparadox.dev/jellyfin/plugins/manifest.json). The CSS theme works without it.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.2.0/custom-theme-v2.2.0.zip",
+        "checksum": "54997ccef4db6f0d299c93774fe0008a",
+        "timestamp": "2026-05-29T14:00:00"
+      },
+      {
         "version": "2.1.0.0",
         "changelog": "Settings now appear directly in the dashboard menu. Hardened script injection against ChunkLoadError (no-cache on the modified index, 200-only). Netflix design overhaul: hero billboard on the home page, refined card hover, polished detail page, custom scrollbar, English tooltips. Added MIT license and CI. Checksum is filled in automatically by the release workflow.",
         "targetAbi": "10.11.0.0",

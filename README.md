@@ -14,7 +14,7 @@ The plugin generates a complete stylesheet from your settings and writes it to J
 - there is **no client-side JavaScript runtime** driving the look;
 - changing a setting regenerates and re-applies the CSS instantly.
 
-An optional palette button in the header opens a quick settings panel. It is injected into the web UI on the fly by middleware, so it works even on read-only / Docker installs **without any volume mount**.
+An optional palette button in the header opens a quick settings panel, and a Netflix-style hero banner can appear on the home page. These are driven by a small script injected into the web UI. Injection is handled by the community [**File Transformation** plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation), which rewrites `index.html` at runtime — reliably, and without touching files on disk (works on Docker / read-only installs). **Install that plugin to get the header button and hero;** the CSS theme itself works without it.
 
 ## Features
 
@@ -42,7 +42,11 @@ An optional palette button in the header opens a quick settings panel. It is inj
    https://raw.githubusercontent.com/Kuschel-code/Jellyfin-Custom-Theme/main/manifest.json
    ```
 3. Open **Catalog** and install **Custom Theme**.
-4. Restart Jellyfin. The theme is applied automatically.
+4. *(Recommended)* Add the File Transformation repository and install it too, so the header button and hero banner work:
+   ```
+   https://www.iamparadox.dev/jellyfin/plugins/manifest.json
+   ```
+5. Restart Jellyfin. The theme is applied automatically.
 
 ### Manual
 
@@ -92,8 +96,8 @@ git tag v2.0.1 && git push origin v2.0.1
 Plugin.cs                  # Plugin entry; serves configPage.html and headerButton.js
 PluginConfiguration.cs     # Every setting, with defaults — fully consumed by CssGenerator
 CssGenerator.cs            # Builds the stylesheet from config (base CSS + :root overrides + option rules)
-EntryPoint.cs              # Hosted service: applies CSS on startup and whenever settings are saved
-ScriptInjectionStartup.cs  # Middleware that injects the header button script into the web index
+EntryPoint.cs              # Hosted service: applies CSS, registers the script injection on startup
+ThemeTransformation.cs     # Injects headerButton.js into index.html via the File Transformation plugin
 ServiceRegistrator.cs      # Registers the services with Jellyfin's DI container
 netflix.css                # Base skin stylesheet (embedded resource)
 configPage.html            # Dashboard settings page
@@ -107,6 +111,7 @@ LICENSE                    # MIT license
 ## Requirements
 
 - Jellyfin 10.11+
+- [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) — only for the header settings button and hero banner; the CSS theme works without it
 - .NET 9 SDK (only to build from source)
 
 ## License

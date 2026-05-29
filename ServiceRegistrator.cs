@@ -1,6 +1,5 @@
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.CustomTheme
@@ -13,7 +12,6 @@ namespace Jellyfin.Plugin.CustomTheme
         public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
         {
             serviceCollection.AddHostedService<EntryPoint>();
-            serviceCollection.AddTransient<IStartupFilter, ScriptInjectionStartup>();
         }
     }
 }
