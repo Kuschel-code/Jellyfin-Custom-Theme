@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Configuration;
+using MediaBrowser.Controller;
 using MediaBrowser.Model.Branding;
 using MediaBrowser.Model.Plugins;
 using Microsoft.Extensions.Hosting;
@@ -14,28 +16,36 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.CustomTheme
 {
     /// <summary>
-    /// On startup: regenerates the CSS (applied via branding CustomCss) and registers
-    /// the index.html script injection with the File Transformation plugin. The CSS part
-    /// works on its own; the script (header button + hero) needs File Transformation.
+    /// On startup: applies the generated CSS (via branding CustomCss) and makes the
+    /// header/hero script load. Script injection is self-contained — it writes the
+    /// script into index.html on disk. If the optional File Transformation plugin is
+    /// present, that cleaner runtime method is used instead (e.g. for read-only installs).
     /// </summary>
     public class EntryPoint : IHostedService
     {
-        // Stable id for our transformation registration.
         private const string TransformationId = "a3b8e7d2-1c4f-4a6b-9e8d-5f2a1b3c4d5e";
 
         private readonly IConfigurationManager _configManager;
+        private readonly IServerApplicationHost _appHost;
         private readonly ILogger<EntryPoint> _logger;
 
-        public EntryPoint(IConfigurationManager configManager, ILogger<EntryPoint> logger)
+        public EntryPoint(IConfigurationManager configManager, IServerApplicationHost appHost, ILogger<EntryPoint> logger)
         {
             _configManager = configManager;
+            _appHost = appHost;
             _logger = logger;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             ApplyCss();
-            RegisterFileTransformation();
+
+            // Prefer the clean runtime method if the File Transformation plugin is installed;
+            // otherwise fall back to writing the script into index.html ourselves.
+            if (!RegisterFileTransformation())
+            {
+                InjectIntoIndexHtml();
+            }
 
             if (Plugin.Instance is not null)
             {
@@ -90,12 +100,76 @@ namespace Jellyfin.Plugin.CustomTheme
             }
         }
 
-        /// <summary>
-        /// Registers an index.html transformation with the File Transformation plugin
-        /// (IAmParadox27/jellyfin-plugin-file-transformation) via reflection — plugins
-        /// load in separate contexts, so it cannot be referenced directly.
-        /// </summary>
-        private void RegisterFileTransformation()
+        // ---- Script injection: self-contained on-disk write ----
+
+        private void InjectIntoIndexHtml()
+        {
+            try
+            {
+                var indexPath = FindIndexHtml();
+                if (indexPath is null)
+                {
+                    _logger.LogWarning("[Custom Theme] Could not locate index.html; header button/hero will not load. CSS theme still works.");
+                    return;
+                }
+
+                var html = File.ReadAllText(indexPath);
+                if (html.Contains(ThemeTransformation.Marker, StringComparison.Ordinal))
+                {
+                    _logger.LogInformation("[Custom Theme] Script already present in index.html");
+                    return;
+                }
+
+                var injected = ThemeTransformation.InjectInto(html);
+                if (ReferenceEquals(injected, html) || injected == html)
+                {
+                    _logger.LogWarning("[Custom Theme] index.html has no </body>; could not inject script");
+                    return;
+                }
+
+                File.WriteAllText(indexPath, injected);
+                _logger.LogInformation("[Custom Theme] Injected script into {Path}", indexPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Custom Theme] Could not write to index.html (read-only filesystem?). For read-only/Docker installs, install the File Transformation plugin. CSS theme still works.");
+            }
+        }
+
+        private string? FindIndexHtml()
+        {
+            // Reflection on the app host first (most accurate), then common install paths.
+            var webPath = _appHost.GetType().GetProperty("WebPath")?.GetValue(_appHost) as string;
+            var candidates = new[]
+            {
+                webPath,
+                "/jellyfin/jellyfin-web",
+                "/usr/share/jellyfin/web",
+                "/usr/lib/jellyfin/web",
+                "/app/jellyfin/jellyfin-web"
+            };
+
+            foreach (var dir in candidates)
+            {
+                if (string.IsNullOrEmpty(dir))
+                {
+                    continue;
+                }
+
+                var path = Path.Combine(dir, "index.html");
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
+
+            return null;
+        }
+
+        // ---- Script injection: optional File Transformation plugin (clean, runtime) ----
+
+        /// <summary>Returns true if registration with the File Transformation plugin succeeded.</summary>
+        private bool RegisterFileTransformation()
         {
             try
             {
@@ -105,21 +179,16 @@ namespace Jellyfin.Plugin.CustomTheme
 
                 if (ftAssembly is null)
                 {
-                    _logger.LogWarning(
-                        "[Custom Theme] File Transformation plugin not found. The CSS theme still works, but the header settings button and hero banner need it. Install it from https://www.iamparadox.dev/jellyfin/plugins/manifest.json and restart.");
-                    return;
+                    return false;
                 }
 
                 var pluginInterface = ftAssembly.GetType("Jellyfin.Plugin.FileTransformation.PluginInterface");
                 var register = pluginInterface?.GetMethod("RegisterTransformation");
                 if (register is null)
                 {
-                    _logger.LogWarning("[Custom Theme] File Transformation found but RegisterTransformation is missing (incompatible version?)");
-                    return;
+                    return false;
                 }
 
-                // Build the registration payload as a JObject created from the *same*
-                // Newtonsoft.Json instance File Transformation uses, to keep type identity.
                 var ftContext = AssemblyLoadContext.GetLoadContext(ftAssembly);
                 var newtonsoft = (ftContext?.Assemblies ?? Enumerable.Empty<Assembly>())
                     .Concat(AssemblyLoadContext.All.SelectMany(c => c.Assemblies))
@@ -129,8 +198,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 var parse = jobjectType?.GetMethod("Parse", new[] { typeof(string) });
                 if (parse is null)
                 {
-                    _logger.LogWarning("[Custom Theme] Could not locate Newtonsoft.Json.Linq.JObject for the File Transformation payload");
-                    return;
+                    return false;
                 }
 
                 var payloadJson = JsonSerializer.Serialize(new
@@ -144,11 +212,13 @@ namespace Jellyfin.Plugin.CustomTheme
 
                 var payload = parse.Invoke(null, new object[] { payloadJson });
                 register.Invoke(null, new[] { payload });
-                _logger.LogInformation("[Custom Theme] Registered index.html injection with File Transformation");
+                _logger.LogInformation("[Custom Theme] Registered index.html injection with the File Transformation plugin");
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[Custom Theme] Failed to register with File Transformation");
+                _logger.LogWarning(ex, "[Custom Theme] File Transformation registration failed; using on-disk injection instead");
+                return false;
             }
         }
     }

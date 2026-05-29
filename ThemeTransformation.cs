@@ -1,12 +1,11 @@
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace Jellyfin.Plugin.CustomTheme
 {
     /// <summary>
     /// Shape the File Transformation plugin deserializes its <c>{ "contents": "..." }</c>
-    /// payload into. The plugin matches the property by name (case-insensitive).
+    /// payload into. Matched by property name (case-insensitive).
     /// </summary>
     public class FileTransformationPayload
     {
@@ -14,18 +13,25 @@ namespace Jellyfin.Plugin.CustomTheme
     }
 
     /// <summary>
-    /// Callback invoked by the File Transformation plugin every time <c>index.html</c>
-    /// is served. It injects the header button / hero script inline so no extra request,
-    /// MIME sniffing or auth is involved. Registration happens in <see cref="EntryPoint"/>.
+    /// Builds and injects the inline header/hero script into index.html.
+    /// Used two ways: as the callback for the File Transformation plugin
+    /// (<see cref="IndexHtml"/>), and for the self-contained on-disk fallback in
+    /// <see cref="EntryPoint"/>. Both paths are idempotent via the marker id.
     /// </summary>
     public static class ThemeTransformation
     {
-        private const string Marker = "custom-theme-script";
+        public const string Marker = "custom-theme-script";
         private static string? _cachedScript;
 
+        /// <summary>File Transformation callback: receives the current file, returns the modified file.</summary>
         public static string IndexHtml(FileTransformationPayload payload)
         {
-            var html = payload?.Contents ?? string.Empty;
+            return InjectInto(payload?.Contents ?? string.Empty);
+        }
+
+        /// <summary>Inserts the inline script before &lt;/body&gt; if not already present.</summary>
+        public static string InjectInto(string html)
+        {
             if (string.IsNullOrEmpty(html)
                 || html.Contains(Marker, StringComparison.Ordinal)
                 || !html.Contains("</body>", StringComparison.OrdinalIgnoreCase))
@@ -39,8 +45,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 return html;
             }
 
-            var tag = $"<script id=\"{Marker}\">\n{script}\n</script>\n</body>";
-            return html.Replace("</body>", tag, StringComparison.OrdinalIgnoreCase);
+            return html.Replace("</body>", $"<script id=\"{Marker}\">\n{script}\n</script>\n</body>", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string LoadScript()

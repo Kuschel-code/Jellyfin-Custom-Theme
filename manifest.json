@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.2.0.0",
-        "changelog": "Reliable script injection via the File Transformation plugin (replaces the unreliable middleware) so the header settings button and Netflix hero banner finally appear. Requires the File Transformation plugin (https://www.iamparadox.dev/jellyfin/plugins/manifest.json). The CSS theme works without it.",
+        "changelog": "Self-contained script injection: the plugin writes the header/hero script into index.html itself (no extra plugin needed), replacing the unreliable middleware. On read-only web dirs it uses the File Transformation plugin if installed. This makes the header settings button and Netflix hero banner appear.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.2.0/custom-theme-v2.2.0.zip",
-        "checksum": "54997ccef4db6f0d299c93774fe0008a",
+        "checksum": "2dfa647c43c3f2d4c5b540ec1c5d19d3",
         "timestamp": "2026-05-29T14:00:00"
       },
       {
