@@ -57,11 +57,15 @@
         // Single source of truth for every setting.
         var SECTIONS = [
             ['Netflix Features', [
-                ['HeroBillboard', 'toggle', 'Hero banner on the home page'],
-                ['PreviewClips', 'toggle', 'Autoplay preview clip on hover (streams ~30s from the middle, nothing stored)']
+                ['HoverPreviewCard', 'toggle', 'Hover expand card (grows + info panel with buttons)'],
+                ['PreviewClips', 'toggle', 'Autoplay preview clip on hover (streams ~30s from the middle, nothing stored)'],
+                ['TopTenRow', 'toggle', 'Top 10 rank numbers on the first content row'],
+                ['GlassEffect', 'toggle', 'Frosted-glass blur (header, dialogs, drawer)'],
+                ['OledBlack', 'toggle', 'OLED pure-black background'],
+                ['HeroBillboard', 'toggle', 'Built-in hero banner (leave off if you use the Media Bar)']
             ]],
             ['Colors', [
-                ['SeasonalTheme', 'select', 'Theme preset', [['default','Default'],['christmas','Christmas'],['halloween','Halloween'],['summer','Summer'],['ocean','Ocean']]],
+                ['SeasonalTheme', 'select', 'Theme preset', [['default','Default'],['monochrome','Monochrome'],['colorful','Colorful'],['christmas','Christmas'],['halloween','Halloween'],['summer','Summer'],['ocean','Ocean']]],
                 ['AccentColor', 'color', 'Accent color'],
                 ['BgColor', 'color', 'Background'],
                 ['TextColor', 'color', 'Text color'],

@@ -86,5 +86,17 @@ namespace Jellyfin.Plugin.CustomTheme
 
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
+
+        /// <summary>Netflix-style hover: the card grows and shows an info panel with action buttons.</summary>
+        public bool HoverPreviewCard { get; set; } = true;
+
+        /// <summary>Show big outlined rank numbers (1-10) on the first home row, like Netflix's Top 10.</summary>
+        public bool TopTenRow { get; set; }
+
+        /// <summary>Frosted-glass blur on the header, dialogs and panels.</summary>
+        public bool GlassEffect { get; set; }
+
+        /// <summary>Pure-black background for OLED screens.</summary>
+        public bool OledBlack { get; set; }
     }
 }

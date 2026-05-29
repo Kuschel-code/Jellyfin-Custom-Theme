@@ -15,11 +15,15 @@
     // Mirrors the dashboard configuration page.
     var SECTIONS = [
         ['Netflix Features', [
-            ['HeroBillboard', 'toggle', 'Hero banner (home)'],
-            ['PreviewClips', 'toggle', 'Autoplay preview on hover']
+            ['HoverPreviewCard', 'toggle', 'Hover expand card'],
+            ['PreviewClips', 'toggle', 'Autoplay preview on hover'],
+            ['TopTenRow', 'toggle', 'Top 10 numbers (first row)'],
+            ['GlassEffect', 'toggle', 'Glass blur'],
+            ['OledBlack', 'toggle', 'OLED pure black'],
+            ['HeroBillboard', 'toggle', 'Built-in hero (off if Media Bar)']
         ]],
         ['Colors', [
-            ['SeasonalTheme', 'select', 'Theme preset', [['default','Default'],['christmas','Christmas'],['halloween','Halloween'],['summer','Summer'],['ocean','Ocean']]],
+            ['SeasonalTheme', 'select', 'Theme preset', [['default','Default'],['monochrome','Monochrome'],['colorful','Colorful'],['christmas','Christmas'],['halloween','Halloween'],['summer','Summer'],['ocean','Ocean']]],
             ['AccentColor', 'color', 'Accent color'],
             ['BgColor', 'color', 'Background'],
             ['TextColor', 'color', 'Text color'],
@@ -357,10 +361,42 @@
         });
     }
 
+    // ============ Top 10 rank numbers ============
+    function setupTopTen() {
+        try {
+            if (cfg('TopTenRow', false) !== true) return;
+            if (!isHomePage()) return;
+            var container = activeHomeContainer();
+            if (!container) return;
+            // First content row that isn't the library ("My Media") section.
+            var sections = container.querySelectorAll('.verticalSection');
+            var target = null;
+            for (var s = 0; s < sections.length; s++) {
+                var firstCard = sections[s].querySelector('.card');
+                if (!firstCard) continue;
+                var t = (firstCard.getAttribute('data-type') || '').toLowerCase();
+                if (t === 'collectionfolder' || t === 'userview') continue;
+                target = sections[s];
+                break;
+            }
+            if (!target) return;
+            var cards = target.querySelectorAll('.card');
+            for (var i = 0; i < Math.min(10, cards.length); i++) {
+                if (cards[i].querySelector('.ct-rank')) continue;
+                cards[i].classList.add('ct-rank-card');
+                var rank = document.createElement('div');
+                rank.className = 'ct-rank';
+                rank.textContent = String(i + 1);
+                cards[i].insertBefore(rank, cards[i].firstChild);
+            }
+        } catch (e) {}
+    }
+
     // ============ Init ============
     function applyDynamic() {
         addButton();
         setupHero();
+        setupTopTen();
     }
 
     function init() {
