@@ -31,7 +31,9 @@ namespace Jellyfin.Plugin.CustomTheme
                 {
                     Name = "custom-theme-config",
                     EmbeddedResourcePath = GetType().Namespace + ".configPage.html",
-                    EnableInMainMenu = false
+                    DisplayName = "Custom Theme",
+                    MenuIcon = "palette",
+                    EnableInMainMenu = true
                 },
                 new PluginPageInfo
                 {

@@ -57,10 +57,14 @@ namespace Jellyfin.Plugin.CustomTheme
 
                     buffer.Seek(0, SeekOrigin.Begin);
 
+                    // Only touch a normal, uncompressed HTML 200 response. Anything else
+                    // (304 Not Modified, redirects, gzip, non-HTML) is forwarded byte-for-byte
+                    // so we never corrupt the document the browser relies on.
                     var isHtml = context.Response.ContentType?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true;
                     var isEncoded = !string.IsNullOrEmpty(context.Response.Headers.ContentEncoding);
+                    var canInject = isHtml && !isEncoded && context.Response.StatusCode == StatusCodes.Status200OK;
 
-                    if (isHtml && !isEncoded)
+                    if (canInject)
                     {
                         var html = await new StreamReader(buffer, Encoding.UTF8).ReadToEndAsync();
 
@@ -68,6 +72,13 @@ namespace Jellyfin.Plugin.CustomTheme
                             html.Contains("</body>", StringComparison.OrdinalIgnoreCase))
                         {
                             html = html.Replace("</body>", ScriptTag + "\n</body>", StringComparison.OrdinalIgnoreCase);
+
+                            // The body no longer matches the static file's validators, and it must
+                            // never be cached stale — otherwise it can reference web chunk hashes
+                            // that no longer exist after an update (ChunkLoadError). Force revalidation.
+                            context.Response.Headers.Remove("ETag");
+                            context.Response.Headers.Remove("Last-Modified");
+                            context.Response.Headers.CacheControl = "no-cache, no-store, must-revalidate";
                         }
 
                         var bytes = Encoding.UTF8.GetBytes(html);
@@ -76,7 +87,6 @@ namespace Jellyfin.Plugin.CustomTheme
                     }
                     else
                     {
-                        // Not HTML or already compressed — forward verbatim.
                         context.Response.ContentLength = buffer.Length;
                         await buffer.CopyToAsync(originalBody);
                     }

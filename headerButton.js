@@ -168,10 +168,94 @@
         });
     }
 
+    // ---- Hero billboard (home page only) ----
+    var heroBusy = false;
+
+    function isHomePage() {
+        var h = (location.hash || '').toLowerCase();
+        return h === '' || h === '#/' || h.indexOf('home.html') !== -1 || h.indexOf('/home') !== -1;
+    }
+
+    function activeHomeContainer() {
+        var pages = document.querySelectorAll('.homeSectionsContainer');
+        for (var i = 0; i < pages.length; i++) {
+            if (pages[i].offsetParent !== null) return pages[i];
+        }
+        return null;
+    }
+
+    function removeHero() {
+        var h = document.querySelector('.nf-hero');
+        if (h) h.remove();
+    }
+
+    function setupHero() {
+        try {
+            if (!isHomePage()) { removeHero(); return; }
+            if (heroBusy) return;
+            if (typeof ApiClient === 'undefined' || !ApiClient.getItems || !ApiClient.getCurrentUserId) return;
+            var container = activeHomeContainer();
+            if (!container || container.querySelector('.nf-hero')) return;
+
+            var userId = ApiClient.getCurrentUserId();
+            if (!userId) return;
+
+            heroBusy = true;
+            ApiClient.getItems(userId, {
+                SortBy: 'Random',
+                IncludeItemTypes: 'Movie,Series',
+                Recursive: true,
+                ImageTypes: 'Backdrop',
+                Limit: 1,
+                Fields: 'Overview'
+            }).then(function (res) {
+                heroBusy = false;
+                var item = res && res.Items && res.Items[0];
+                if (!item || !isHomePage()) return;
+                var c = activeHomeContainer();
+                if (c && !c.querySelector('.nf-hero')) renderHero(c, item);
+            }).catch(function () { heroBusy = false; });
+        } catch (e) { heroBusy = false; }
+    }
+
+    function renderHero(container, item) {
+        var backdropTag = item.BackdropImageTags && item.BackdropImageTags[0];
+        var bg = backdropTag
+            ? ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 1920, tag: backdropTag })
+            : '';
+        var serverId = item.ServerId || (ApiClient.serverId && ApiClient.serverId());
+        var detailUrl = '#/details?id=' + item.Id + (serverId ? '&serverId=' + serverId : '');
+
+        var titleHtml;
+        if (item.ImageTags && item.ImageTags.Logo) {
+            var logo = ApiClient.getScaledImageUrl(item.Id, { type: 'Logo', maxWidth: 480, tag: item.ImageTags.Logo });
+            titleHtml = '<img class="nf-hero-logo" src="' + logo + '" alt="' + esc(item.Name) + '">';
+        } else {
+            titleHtml = '<div class="nf-hero-title">' + esc(item.Name || '') + '</div>';
+        }
+
+        var overview = item.Overview ? '<div class="nf-hero-overview">' + esc(item.Overview) + '</div>' : '';
+
+        var hero = document.createElement('div');
+        hero.className = 'nf-hero';
+        hero.innerHTML =
+            '<div class="nf-hero-bg"' + (bg ? ' style="background-image:url(\'' + bg + '\')"' : '') + '></div>' +
+            '<div class="nf-hero-content">' + titleHtml + overview +
+                '<div class="nf-hero-actions">' +
+                    '<a class="nf-hero-btn nf-hero-play" href="' + detailUrl + '"><span class="material-icons" aria-hidden="true">play_arrow</span> Play</a>' +
+                    '<a class="nf-hero-btn nf-hero-info" href="' + detailUrl + '"><span class="material-icons" aria-hidden="true">info</span> More Info</a>' +
+                '</div>' +
+            '</div>';
+        container.insertBefore(hero, container.firstChild);
+    }
+
     function init() {
         addButton();
+        setupHero();
+        window.addEventListener('hashchange', setupHero);
         new MutationObserver(function () {
             if (!document.querySelector('.ct-settings-btn')) addButton();
+            setupHero();
         }).observe(document.body, { childList: true, subtree: true });
     }
 
