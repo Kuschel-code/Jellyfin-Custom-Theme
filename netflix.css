@@ -595,9 +595,9 @@ body, .mainDrawer, .dialog {
     z-index: 100 !important;
 }
 
-.btnPlaystate::after { content: 'Gesehen' !important; }
-.btnUserRating::after { content: 'Favorit' !important; }
-.btnMoreCommands::after { content: 'Mehr' !important; }
+.btnPlaystate::after { content: 'Watched' !important; }
+.btnUserRating::after { content: 'Favorite' !important; }
+.btnMoreCommands::after { content: 'More' !important; }
 
 .btnPlaystate:hover::after,
 .btnUserRating:hover::after,
@@ -1108,6 +1108,146 @@ body, .mainDrawer, .dialog {
     .mainDetailButtons { gap: 8px !important; }
     .btnPlay, .btnResume, .btnReplay { height: 38px !important; font-size: 1rem !important; padding: 8px 20px 8px 16px !important; }
     .btnPlaystate, .btnUserRating, .btnShare, .btnMoreCommands { width: 38px !important; height: 38px !important; min-width: 38px !important; }
+}
+
+/* =============================================
+   DESIGN REFINEMENTS (v2.1)
+   ============================================= */
+
+/* --- Custom scrollbar --- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.32); border: 2px solid transparent; background-clip: padding-box; }
+* { scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
+/* --- Header polish: cleaner active tab --- */
+.headerTabs .emby-tab-button-active {
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+}
+.skinHeader { transition: background 0.4s ease, backdrop-filter 0.4s ease !important; }
+
+/* --- Home: cinematic top vignette behind the first rows --- */
+.homeSectionsContainer::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 240px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: -1;
+}
+.sectionTitle .sectionTitleTextButton::after { content: ' \203A'; }
+
+/* --- Cards: smoother, deeper Netflix hover --- */
+.card { will-change: transform; }
+.cardImageContainer { transition: filter 0.3s ease, transform 0.35s cubic-bezier(0.33,1,0.68,1) !important; }
+.card:hover { transform: scale(1.09) translateY(-6px) !important; }
+.card:hover .cardScalable { box-shadow: 0 16px 38px rgba(0,0,0,0.85) !important; }
+.cardOverlayContainer { background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.25) 45%, transparent 65%) !important; }
+.cardOverlayButtonContainer .cardOverlayButton-br,
+.cardOverlayContainer .paper-icon-button-light {
+    transition: transform 0.2s ease, background 0.2s ease !important;
+}
+.cardOverlayContainer .paper-icon-button-light:hover { transform: scale(1.15) !important; }
+/* primary (play) overlay button — white circle */
+.cardOverlayContainer .btnPlay {
+    background: rgba(255,255,255,0.9) !important;
+    color: #000 !important;
+    border-radius: 50% !important;
+}
+.cardOverlayContainer .btnPlay:hover { background: #fff !important; }
+
+/* --- Detail page: richer backdrop + typography --- */
+.itemName { letter-spacing: -0.01em !important; }
+.detailPageContent .genreItems, .genreItems {
+    display: flex !important; flex-wrap: wrap !important; gap: 6px !important;
+}
+.genreItems .button-link {
+    background: rgba(255,255,255,0.08) !important;
+    border-radius: 16px !important;
+    padding: 3px 12px !important;
+    font-size: 0.8rem !important;
+    color: #ddd !important;
+    transition: background 0.2s ease !important;
+}
+.genreItems .button-link:hover { background: rgba(255,255,255,0.18) !important; }
+
+/* Overview / tagline readability over backdrop */
+.detailSectionContent .overview-text, .itemOverview {
+    font-size: 1.02rem !important;
+    line-height: 1.55 !important;
+    color: #d8d8d8 !important;
+    max-width: 680px !important;
+}
+
+/* Round cast images bigger with a soft ring */
+.personCard .cardImageContainer { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.06) !important; }
+.personCard .cardText-first { font-weight: 600 !important; color: var(--text-main) !important; }
+
+/* =============================================
+   HERO BILLBOARD (built by headerButton.js on the home page)
+   ============================================= */
+.nf-hero {
+    position: relative;
+    width: 100%;
+    height: 56vh;
+    min-height: 360px;
+    margin: calc(var(--nav-height) * -1 - 10px) 0 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+}
+.nf-hero-bg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center 18%;
+    z-index: 0;
+}
+.nf-hero::after {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+        linear-gradient(to top, var(--bg-dark) 2%, rgba(20,20,20,0.25) 35%, transparent 60%),
+        linear-gradient(to right, rgba(20,20,20,0.85) 0%, rgba(20,20,20,0.35) 35%, transparent 60%);
+}
+.nf-hero-content {
+    position: relative; z-index: 2;
+    padding: 0 4% 6vh;
+    max-width: 620px;
+}
+.nf-hero-logo { max-width: 60%; max-height: 130px; margin-bottom: 16px; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.7)); }
+.nf-hero-title {
+    font-family: var(--font-netflix);
+    font-size: 3.2rem; font-weight: 900; line-height: 1.04;
+    color: var(--text-main); text-shadow: 0 2px 14px rgba(0,0,0,0.8);
+    margin-bottom: 14px;
+}
+.nf-hero-overview {
+    font-family: var(--font-netflix);
+    font-size: 1rem; line-height: 1.5; color: #e2e2e2;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+    margin-bottom: 18px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.nf-hero-actions { display: flex; gap: 12px; }
+.nf-hero-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-netflix); font-weight: 700; font-size: 1.05rem;
+    padding: 11px 26px; border-radius: 4px; border: none; cursor: pointer;
+    text-decoration: none; transition: background 0.2s ease, transform 0.15s ease;
+}
+.nf-hero-btn:hover { transform: scale(1.03); }
+.nf-hero-play { background: #fff; color: #000; }
+.nf-hero-play:hover { background: rgba(255,255,255,0.8); }
+.nf-hero-info { background: rgba(109,109,110,0.65); color: #fff; }
+.nf-hero-info:hover { background: rgba(109,109,110,0.45); }
+
+@media (max-width: 768px) {
+    .nf-hero { height: 44vh; min-height: 260px; }
+    .nf-hero-title { font-size: 1.9rem; }
+    .nf-hero-overview { -webkit-line-clamp: 2; font-size: 0.9rem; }
+    .nf-hero-btn { font-size: 0.9rem; padding: 9px 18px; }
 }
 
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */
