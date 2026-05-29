@@ -2,6 +2,11 @@ using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.CustomTheme
 {
+    /// <summary>
+    /// All theme settings. Every property is consumed by <see cref="CssGenerator"/>,
+    /// so the generated stylesheet fully reflects this configuration. There is no
+    /// client-side runtime behaviour — the entire theme is plain CSS.
+    /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {
         // --- Colors ---
@@ -9,14 +14,23 @@ namespace Jellyfin.Plugin.CustomTheme
         public string BgColor { get; set; } = "#141414";
         public string TextColor { get; set; } = "#FFFFFF";
         public string MutedColor { get; set; } = "#B3B3B3";
-        public string ProgressColor { get; set; } = "red"; // red, green, blue, purple
+
+        /// <summary>Progress bar colour: accent, red, green, blue, purple.</summary>
+        public string ProgressColor { get; set; } = "accent";
+
+        /// <summary>Seasonal preset that overrides the four colours above: default, christmas, halloween, summer, ocean.</summary>
+        public string SeasonalTheme { get; set; } = "default";
 
         // --- Logo ---
-        public string LogoStyle { get; set; } = "jellyfin"; // netflix, jellyfin, letter, custom, none
+        /// <summary>jellyfin, netflix, letter, custom, none.</summary>
+        public string LogoStyle { get; set; } = "jellyfin";
         public string LogoLetter { get; set; } = "N";
-        public string CustomLogoUrl { get; set; } = "";
+        public string CustomLogoUrl { get; set; } = string.Empty;
 
-        // --- Elements visibility ---
+        // --- Header ---
+        public bool HeaderBlur { get; set; }
+
+        // --- Element visibility ---
         public bool ShowBadges { get; set; } = true;
         public bool ShowPlayed { get; set; } = true;
         public bool ShowBackdrop { get; set; } = true;
@@ -25,34 +39,41 @@ namespace Jellyfin.Plugin.CustomTheme
         public bool ShowTags { get; set; } = true;
         public bool ShowExternalLinks { get; set; } = true;
         public bool ShowSimilar { get; set; } = true;
-        public bool SpoilerMode { get; set; } = false;
+        public bool SpoilerMode { get; set; }
 
-        // --- Header ---
-        public bool HeaderBlur { get; set; } = false;
-        public bool AutoHideHeader { get; set; } = false;
-        public bool ShowClock { get; set; } = false;
-
-        // --- Buttons ---
+        // --- Detail page buttons ---
         public bool ShowBtnWatched { get; set; } = true;
         public bool ShowBtnFavorite { get; set; } = true;
         public bool ShowBtnMore { get; set; } = true;
 
         // --- Layout ---
+        /// <summary>One of the keys in <see cref="CssGenerator"/>'s font map.</summary>
         public string FontFamily { get; set; } = "inter";
-        public string FontSize { get; set; } = "normal"; // small, normal, large
+
+        /// <summary>small, normal, large.</summary>
+        public string FontSize { get; set; } = "normal";
+
         public int CardRadius { get; set; } = 4;
-        public string CardSize { get; set; } = "normal"; // small, normal, large
-        public string CardStyle { get; set; } = "mixed"; // mixed, portrait, landscape
+
+        /// <summary>small, normal, large.</summary>
+        public string CardSize { get; set; } = "normal";
+
+        /// <summary>mixed, portrait, landscape.</summary>
+        public string CardStyle { get; set; } = "mixed";
+
         public bool CardHoverScale { get; set; } = true;
         public bool CardInfoOverlay { get; set; } = true;
-        public string GradientStrength { get; set; } = "medium"; // light, medium, heavy
-        public string TitleSize { get; set; } = "large"; // small, large, huge
-        public string AnimSpeed { get; set; } = "normal"; // fast, normal, slow, off
-        public bool SidebarCompact { get; set; } = false;
-        public bool AmbientGlow { get; set; } = false;
-        public bool HeroBillboard { get; set; } = false;
 
-        // --- Theme preset ---
-        public string SeasonalTheme { get; set; } = "default"; // default, christmas, halloween, summer, ocean
+        /// <summary>light, medium, heavy.</summary>
+        public string GradientStrength { get; set; } = "medium";
+
+        /// <summary>small, large, huge.</summary>
+        public string TitleSize { get; set; } = "large";
+
+        /// <summary>fast, normal, slow, off.</summary>
+        public string AnimSpeed { get; set; } = "normal";
+
+        public bool SidebarCompact { get; set; }
+        public bool AmbientGlow { get; set; }
     }
 }

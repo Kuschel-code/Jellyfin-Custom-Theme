@@ -1,93 +1,97 @@
 # Jellyfin Custom Theme
 
-A Netflix-inspired custom skin plugin for **Jellyfin 10.11+** with server-side settings, 15 Google Fonts, and full customization. Install the plugin and everything works automatically.
+A Netflix-inspired skin for **Jellyfin 10.11+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
 
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11+-00A4DC?logo=jellyfin&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## How it works
+
+The plugin generates a complete stylesheet from your settings and writes it to Jellyfin's built-in **Custom CSS** (branding) configuration. Because the entire theme is plain CSS:
+
+- it works on **every client** that loads the web CSS — no per-device setup;
+- there is **no client-side JavaScript runtime** driving the look;
+- changing a setting regenerates and re-applies the CSS instantly.
+
+An optional palette button in the header opens a quick settings panel. It is injected into the web UI on the fly by middleware, so it works even on read-only / Docker installs **without any volume mount**.
+
 ## Features
 
 - Netflix-style dark UI with backdrop gradients and smooth animations
-- **Server-side settings** stored in plugin config (persist across all devices)
-- **Dashboard settings page** at Plugins > Custom Theme > Einstellungen
+- **Server-side settings** stored in the plugin configuration (persist across all devices)
+- **Dashboard settings page** at *Plugins → Custom Theme*
+- **Optional header settings button** (palette icon) with the same options
 - **15 Google Fonts** — Inter, Poppins, Montserrat, Roboto, Oswald, Raleway, Nunito, Bebas Neue, Lato, Source Sans, Ubuntu, Playfair Display, Quicksand, Comfortaa, Righteous
 - **Logo options** — Jellyfin (default), Netflix N, custom letter, custom image URL, or none
-- Round cast/crew images (Netflix-style)
-- Detail page with full backdrop overlay and Netflix triple gradient
-- Card hover zoom with shadow effects
-- Toggle visibility of badges, tags, external links, description, similar titles
-- Toggle detail page buttons (watched, favorite, more)
-- Adjustable card rounding, gradient strength, title size, font size, card size
-- Color customization (accent, background, text, muted text, progress bar)
-- Spoiler mode (hide unplayed episode thumbnails)
-- Ambient glow effect
-- Seasonal theme presets (Christmas, Halloween, Summer, Ocean)
-- Animation speed control
-- CSS auto-generated from settings — no manual CSS needed
+- **Seasonal presets** — Default, Christmas, Halloween, Summer, Ocean (override the colour palette)
+- Color customization — accent, background, text, muted text, progress bar
+- Round cast/crew images, full-backdrop detail page, card hover zoom
+- Toggle visibility of badges, watched marks, backdrop, description, tags, external links, similar titles
+- Toggle the detail-page circle buttons (watched, favorite, more)
+- Adjustable card rounding, card size & shape, gradient strength, title size, font size
+- Animation speed control, compact sidebar, ambient glow, spoiler mode
 
 ## Installation
 
-### Via Plugin Repository (Recommended)
+### Via plugin repository (recommended)
 
-1. In Jellyfin, go to **Dashboard > Plugins > Repositories**
-2. Add repository URL:
+1. In Jellyfin go to **Dashboard → Plugins → Repositories**.
+2. Add the repository URL:
    ```
    https://raw.githubusercontent.com/Kuschel-code/Jellyfin-Custom-Theme/main/manifest.json
    ```
-3. Go to **Catalog** and install **Custom Theme**
-4. Restart Jellyfin
-5. Done! The plugin automatically generates and applies the CSS.
+3. Open **Catalog** and install **Custom Theme**.
+4. Restart Jellyfin. The theme is applied automatically.
 
-### Settings
+### Manual
 
-Go to **Dashboard > Plugins > Custom Theme > Einstellungen** to customize the theme.
+Download `custom-theme-vX.Y.Z.zip` from the [releases](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases), extract it into `<config>/plugins/Custom Theme/`, and restart Jellyfin.
+
+## Settings
+
+Open **Dashboard → Plugins → Custom Theme**, or click the palette icon in the header.
 
 | Section | Options |
 |---------|---------|
-| Colors | Accent, background, text, muted text, progress bar color |
-| Logo | Jellyfin / Netflix N / Letter / Custom image / None |
+| Colors | Theme preset, accent, background, text, muted text, progress bar |
+| Logo & Header | Logo style (Jellyfin / Netflix N / letter / custom image / none), header blur |
 | Elements | Badges, watched marks, backdrop, round cast, description, tags, external links, similar titles, spoiler mode |
-| Buttons | Watched, favorite, more (detail page circle buttons) |
-| Layout | 15 fonts, font size, card radius, card size, gradient strength, title size, animation speed, hover zoom, card info overlay, ambient glow |
-| Theme | Default, Christmas, Halloween, Summer, Ocean |
+| Detail buttons | Watched, favorite, more |
+| Layout | 15 fonts, font size, card rounding, card size, card shape, hover zoom, info overlay, gradient strength, title size, animation speed, compact sidebar, ambient glow |
 
-### Optional: Header Settings Button
+After saving, reload the web page to see the new theme.
 
-To get a settings button directly in the header (palette icon), the plugin needs write access to `index.html`. In Docker, mount the web directory as a volume:
+## Build from source
 
-```yaml
-volumes:
-  - /path/on/host/jellyfin-web:/jellyfin/jellyfin-web
-```
-
-Without this, the theme works fully — you just access settings through the Dashboard instead.
-
-## Build from Source
+Requires the **.NET 9 SDK**.
 
 ```bash
 dotnet build -c Release
 # Output: bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll
 ```
 
-## Project Structure
+To package a release zip, bundle the built DLL together with `meta.json`.
+
+## Project structure
 
 ```
-Plugin.cs                  # Plugin entry, serves config page and JS as web pages
-PluginConfiguration.cs     # All settings as properties with defaults
-CssGenerator.cs            # Generates CSS from plugin config + base CSS
-EntryPoint.cs              # IHostedService — applies CSS on startup, injects script
-ServiceRegistrator.cs      # Registers EntryPoint with Jellyfin DI
-headerButton.js            # Settings button for header (optional, needs index.html access)
+Plugin.cs                  # Plugin entry; serves configPage.html and headerButton.js
+PluginConfiguration.cs     # Every setting, with defaults — fully consumed by CssGenerator
+CssGenerator.cs            # Builds the stylesheet from config (base CSS + :root overrides + option rules)
+EntryPoint.cs              # Hosted service: applies CSS on startup and whenever settings are saved
+ScriptInjectionStartup.cs  # Middleware that injects the header button script into the web index
+ServiceRegistrator.cs      # Registers the services with Jellyfin's DI container
+netflix.css                # Base skin stylesheet (embedded resource)
 configPage.html            # Dashboard settings page
-netflix.css                # Base skin stylesheet
-manifest.json              # Jellyfin plugin repository manifest
-meta.json                  # Plugin metadata
+headerButton.js            # Optional header button + slide-in settings panel
+manifest.json              # Plugin repository manifest
+meta.json                  # Plugin metadata (shipped inside the zip)
 ```
 
 ## Requirements
 
 - Jellyfin 10.11+
-- .NET 9 (for building from source)
+- .NET 9 SDK (only to build from source)
 
 ## License
 
