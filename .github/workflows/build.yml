@@ -43,29 +43,55 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Build & package release zip
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          dotnet build -c Release --nologo
-          mkdir -p dist
-          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll meta.json dist/
-          (cd dist && zip -q -X "custom-theme-v${VERSION}.zip" Jellyfin.Plugin.CustomTheme.dll meta.json)
-          MD5="$(md5sum "dist/custom-theme-v${VERSION}.zip" | cut -d' ' -f1)"
-          echo "MD5=$MD5" >> "$GITHUB_ENV"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "### Plugin checksum" >> "$GITHUB_STEP_SUMMARY"
-          echo "MD5 \`$MD5\` — copy this into manifest.json for v${VERSION}." >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Create GitHub release
+      - name: Build, package & publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            "dist/custom-theme-v${VERSION}.zip" \
+          set -e
+          VERSION="${GITHUB_REF_NAME#v}"
+          ZIP="custom-theme-v${VERSION}.zip"
+          dotnet build -c Release --nologo
+          mkdir -p dist
+          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll meta.json dist/
+          (cd dist && zip -q -X "$ZIP" Jellyfin.Plugin.CustomTheme.dll meta.json)
+          MD5="$(md5sum "dist/$ZIP" | cut -d' ' -f1)"
+          echo "### Plugin checksum" >> "$GITHUB_STEP_SUMMARY"
+          echo "MD5 \`$MD5\` for $ZIP" >> "$GITHUB_STEP_SUMMARY"
+
+          gh release create "$GITHUB_REF_NAME" "dist/$ZIP" \
             --title "v${VERSION}" \
-            --notes "Automated release. Plugin zip MD5: \`${MD5}\` (must match the checksum in manifest.json)."
+            --notes "Automated release. Plugin zip MD5: \`${MD5}\`."
+
+      - name: Pin checksum into manifest.json
+        env:
+          VERSION_REF: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION_REF#v}"
+          MD5="$(md5sum "dist/custom-theme-v${VERSION}.zip" | cut -d' ' -f1)"
+          python3 - "$VERSION" "$MD5" <<'PY'
+          import json, sys
+          version, md5 = sys.argv[1], sys.argv[2]
+          data = json.load(open('manifest.json'))
+          for pkg in data:
+              for ver in pkg.get('versions', []):
+                  if ver.get('version') in (version, version + '.0'):
+                      ver['checksum'] = md5
+          with open('manifest.json', 'w') as f:
+              json.dump(data, f, indent=2)
+              f.write('\n')
+          PY
+          if ! git diff --quiet manifest.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add manifest.json
+            git commit -m "Pin manifest checksum for ${VERSION_REF}"
+            git push origin HEAD:main || echo "::warning::Could not push manifest update (branch protection?). Copy the MD5 from the job summary into manifest.json manually."
+          fi
