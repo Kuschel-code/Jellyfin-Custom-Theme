@@ -13,7 +13,7 @@
         "changelog": "Settings now appear directly in the dashboard menu. Hardened script injection against ChunkLoadError (no-cache on the modified index, 200-only). Netflix design overhaul: hero billboard on the home page, refined card hover, polished detail page, custom scrollbar, English tooltips. Added MIT license and CI. Checksum is filled in automatically by the release workflow.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.1.0/custom-theme-v2.1.0.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "a4783f6d1b82e73f41ddbfed763a2fa6",
         "timestamp": "2026-05-29T12:00:00"
       },
       {
