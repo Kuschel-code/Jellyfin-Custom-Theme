@@ -66,9 +66,14 @@ jobs:
           echo "### Plugin checksum" >> "$GITHUB_STEP_SUMMARY"
           echo "MD5 \`$MD5\` for $ZIP" >> "$GITHUB_STEP_SUMMARY"
 
-          gh release create "$GITHUB_REF_NAME" "dist/$ZIP" \
+          # Idempotent: create the release if it doesn't exist yet, then
+          # (re-)upload the asset. Re-running a tag or a pre-created release
+          # no longer fails the job and always ends with the zip attached.
+          gh release create "$GITHUB_REF_NAME" \
             --title "v${VERSION}" \
-            --notes "Automated release. Plugin zip MD5: \`${MD5}\`."
+            --notes "Automated release. Plugin zip MD5: \`${MD5}\`." \
+            || echo "Release $GITHUB_REF_NAME already exists; uploading asset to it."
+          gh release upload "$GITHUB_REF_NAME" "dist/$ZIP" --clobber
 
       - name: Pin checksum into manifest.json
         env:
