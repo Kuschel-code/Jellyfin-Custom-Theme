@@ -98,5 +98,11 @@ namespace Jellyfin.Plugin.CustomTheme
 
         /// <summary>Pure-black background for OLED screens.</summary>
         public bool OledBlack { get; set; }
+
+        /// <summary>Left-align the header navigation (logo + tabs) like Netflix, instead of centering the tabs.</summary>
+        public bool NavLeft { get; set; } = true;
+
+        /// <summary>Show the community rating as a green "x% Match" like Netflix instead of a star value.</summary>
+        public bool MatchScore { get; set; } = true;
     }
 }

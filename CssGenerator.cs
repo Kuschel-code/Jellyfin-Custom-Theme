@@ -349,15 +349,35 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             if (config.HoverPreviewCard)
             {
-                // Card grows and the overlay becomes an info panel anchored to the bottom.
-                sb.AppendLine(@".card:hover { z-index: 50 !important; }
-.card:hover .cardScalable { transform: scale(1.18) !important; box-shadow: 0 18px 40px rgba(0,0,0,0.85) !important; border-radius: 6px !important; }
+                // Single scale on the inner element, and neighbours slide aside (Netflix-style)
+                // via :has() so the expanded card never overlaps them.
+                sb.AppendLine(@".card:hover { transform: none !important; box-shadow: none !important; z-index: 60 !important; }
+.card:hover .cardScalable { transform: scale(1.2) !important; transform-origin: center center !important; box-shadow: 0 18px 40px rgba(0,0,0,0.85) !important; border-radius: 6px !important; }
+.scrollSlider > .card:hover ~ .card, .itemsContainer > .card:hover ~ .card { transform: translateX(30px) !important; }
+.scrollSlider > .card:has(~ .card:hover), .itemsContainer > .card:has(~ .card:hover) { transform: translateX(-30px) !important; }
+.scrollSlider > .card:first-child:hover .cardScalable { transform-origin: left center !important; }
+.scrollSlider > .card:last-child:hover .cardScalable { transform-origin: right center !important; }
 .cardOverlayContainer { background: linear-gradient(to top, rgba(20,20,20,0.97) 0%, rgba(20,20,20,0.75) 40%, transparent 75%) !important; }
 .card:hover .cardOverlayContainer { opacity: 1 !important; }
 .cardOverlayButtonContainer { display: flex !important; align-items: center !important; gap: 6px !important; }
 .cardOverlayContainer .paper-icon-button-light { background: rgba(255,255,255,0.12) !important; border: 1px solid rgba(255,255,255,0.5) !important; border-radius: 50% !important; width: 30px !important; height: 30px !important; transition: transform 0.15s ease, background 0.15s ease !important; }
 .cardOverlayContainer .paper-icon-button-light:hover { transform: scale(1.15) !important; background: rgba(255,255,255,0.25) !important; }
 .cardOverlayContainer .cardOverlayButton-br .paper-icon-button-light { background: rgba(255,255,255,0.92) !important; color: #000 !important; }");
+            }
+
+            if (config.NavLeft)
+            {
+                // Logo + tabs pinned to the left like Netflix, instead of centered tabs.
+                sb.AppendLine(@".headerTabs.sectionTabs { position: static !important; left: auto !important; transform: none !important; margin: 0 0 0 10px !important; }
+.headerLeft { flex: 0 0 auto !important; }
+.skinHeader .headerLeft { margin-right: 8px !important; }");
+            }
+
+            if (config.MatchScore)
+            {
+                // Community rating is restyled green; headerButton.js rewrites the value to "x% Match".
+                sb.AppendLine(@".starRatingValue { color: #46d369 !important; font-weight: 700 !important; }
+.starIcon { display: none !important; }");
             }
 
             if (config.TopTenRow)
@@ -381,11 +401,20 @@ namespace Jellyfin.Plugin.CustomTheme
 .cardBox, .card .cardImageContainer { background-color: #0a0a0a !important; }");
             }
 
-            // Detail page polish (always on — lightweight).
-            sb.AppendLine(@".listItem:hover { background: rgba(255,255,255,0.06) !important; border-radius: 6px !important; }
+            // Detail page polish (always on — lightweight). Covers series: seasons + episode list.
+            sb.AppendLine(@".detailPagePrimaryContent .sectionTitle { font-size: 1.3rem !important; font-weight: 700 !important; }
+.castContent .card, .peopleCards .card { --card-radius: 50%; }
+/* Episode list rows */
+.listItem { border-radius: 8px !important; padding: 10px 12px !important; transition: background 0.2s ease !important; }
+.listItem:hover { background: rgba(255,255,255,0.07) !important; }
 .listItemImage { border-radius: 6px !important; }
-.detailPagePrimaryContent .sectionTitle { font-size: 1.3rem !important; font-weight: 700 !important; }
-.castContent .card, .peopleCards .card { --card-radius: 50%; }");
+.listItemBody .listItemBodyText { font-family: var(--font-netflix) !important; }
+.listItem .secondary, .listItemBodyText.secondary { color: var(--text-muted) !important; }
+/* Season selector / tabs on a series */
+.detailPageContent .emby-select, .seasonSelector { background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 6px !important; color: var(--text-main) !important; }
+.childrenItemsContainer .card { --card-radius: 6px; }
+/* Episode play progress + unplayed look consistent with cards */
+.listItem .itemProgressBar { border-radius: 4px !important; overflow: hidden !important; }");
         }
 
         /// <summary>Styles for the slide-in settings panel created by headerButton.js.</summary>

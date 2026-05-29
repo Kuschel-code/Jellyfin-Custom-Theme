@@ -18,6 +18,7 @@
             ['HoverPreviewCard', 'toggle', 'Hover expand card'],
             ['PreviewClips', 'toggle', 'Autoplay preview on hover'],
             ['TopTenRow', 'toggle', 'Top 10 numbers (first row)'],
+            ['MatchScore', 'toggle', 'Green "x% Match" rating'],
             ['GlassEffect', 'toggle', 'Glass blur'],
             ['OledBlack', 'toggle', 'OLED pure black'],
             ['HeroBillboard', 'toggle', 'Built-in hero (off if Media Bar)']
@@ -32,6 +33,7 @@
         ]],
         ['Logo & Header', [
             ['LogoStyle', 'select', 'Logo style', [['jellyfin','Jellyfin'],['netflix','Netflix N'],['letter','Letter'],['custom','Custom image'],['none','None']]],
+            ['NavLeft', 'toggle', 'Left-aligned nav (Netflix)'],
             ['HeaderBlur', 'toggle', 'Header blur effect']
         ]],
         ['Elements', [
@@ -392,11 +394,26 @@
         } catch (e) {}
     }
 
+    // ============ Green "x% Match" rating ============
+    function setupMatchScore() {
+        try {
+            if (cfg('MatchScore', true) !== true) return;
+            document.querySelectorAll('.starRatingValue').forEach(function (el) {
+                if (el.dataset.ctMatch) return;
+                var n = parseFloat((el.textContent || '').replace(',', '.'));
+                if (isNaN(n) || n < 0 || n > 10) return;
+                el.dataset.ctMatch = '1';
+                el.textContent = Math.round(n * 10) + '% Match';
+            });
+        } catch (e) {}
+    }
+
     // ============ Init ============
     function applyDynamic() {
         addButton();
         setupHero();
         setupTopTen();
+        setupMatchScore();
     }
 
     function init() {
