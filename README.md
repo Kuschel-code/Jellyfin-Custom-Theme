@@ -14,7 +14,9 @@ The plugin generates a complete stylesheet from your settings and writes it to J
 - there is **no client-side JavaScript runtime** driving the look;
 - changing a setting regenerates and re-applies the CSS instantly.
 
-A palette button in the header opens a quick settings panel, and a Netflix-style hero banner appears on the home page. These are driven by a small script the plugin injects into the web UI's `index.html` — **self-contained, no extra plugin required**. If the web directory is read-only (some Docker setups), the plugin instead uses the [**File Transformation** plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) when it is installed. The CSS theme always works regardless.
+The plugin also injects a small script that adds a **palette settings button** in the header and the **hover autoplay preview** on cards. For this to work reliably (especially on Docker / read-only installs) you should install the [**File Transformation** plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) — the plugin registers with it automatically, and falls back to writing the script into `index.html` itself when possible. The CSS theme always works regardless.
+
+> **Hero banner:** this theme deliberately does **not** add its own big top banner, because the excellent [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) already does it (backdrop slideshow, logo, rating, genres, trailer autoplay). Install the Media Bar for the Netflix-style hero; the two are designed to be used together. (A simple built-in banner can still be enabled in the settings if you don't use the Media Bar.)
 
 ## Features
 
@@ -109,7 +111,8 @@ LICENSE                    # MIT license
 ## Requirements
 
 - Jellyfin 10.11+
-- *(optional)* [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) — only needed for the header button / hero when the web directory is read-only
+- **[File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)** — recommended; needed for the header button + hover preview to load reliably (repo `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`)
+- *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big Netflix-style hero banner
 - .NET 9 SDK (only to build from source)
 
 ## License

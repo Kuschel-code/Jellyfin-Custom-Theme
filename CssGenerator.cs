@@ -34,7 +34,9 @@ namespace Jellyfin.Plugin.CustomTheme
             ["christmas"] = ("#C41E3A", "#1B2A1B", "#F0E6D3", "#8B9A7B"),
             ["halloween"] = ("#FF6600", "#1A1A0A", "#F5E6C8", "#8B8B6B"),
             ["summer"] = ("#FF9500", "#1A1520", "#FFF5E6", "#C4A882"),
-            ["ocean"] = ("#0099CC", "#0A1628", "#E0F0FF", "#7BA3C4")
+            ["ocean"] = ("#0099CC", "#0A1628", "#E0F0FF", "#7BA3C4"),
+            ["monochrome"] = ("#E5E5E5", "#0A0A0A", "#FFFFFF", "#808080"),
+            ["colorful"] = ("#8A2BE2", "#12101A", "#FFFFFF", "#A99BC4")
         };
 
         private static readonly Dictionary<string, string> Fonts = new()
@@ -77,6 +79,12 @@ namespace Jellyfin.Plugin.CustomTheme
                 muted = preset.Muted;
             }
 
+            // OLED pure black overrides the background.
+            if (config.OledBlack)
+            {
+                bg = "#000000";
+            }
+
             var font = Fonts.GetValueOrDefault(config.FontFamily, Fonts["inter"]);
             var progress = string.Equals(config.ProgressColor, "accent", System.StringComparison.OrdinalIgnoreCase)
                 ? accent
@@ -111,6 +119,7 @@ namespace Jellyfin.Plugin.CustomTheme
             AppendElements(sb, config);
             AppendButtons(sb, config);
             AppendLayout(sb, config);
+            AppendNetflixExtras(sb, config);
             AppendPanelStyles(sb);
 
             return sb.ToString();
@@ -333,6 +342,79 @@ namespace Jellyfin.Plugin.CustomTheme
             {
                 sb.AppendLine("body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(229,9,20,0.03) 0%, transparent 50%); pointer-events: none; z-index: 0; }");
             }
+        }
+
+        /// <summary>Netflix-style extras: hover preview cards, Top 10 numbers, glass, OLED, detail polish.</summary>
+        private static void AppendNetflixExtras(StringBuilder sb, PluginConfiguration config)
+        {
+            if (config.HoverPreviewCard)
+            {
+                // Single scale on the inner element, and neighbours slide aside (Netflix-style)
+                // via :has() so the expanded card never overlaps them.
+                sb.AppendLine(@".card:hover { transform: none !important; box-shadow: none !important; z-index: 60 !important; }
+.card:hover .cardScalable { transform: scale(1.2) !important; transform-origin: center center !important; box-shadow: 0 18px 40px rgba(0,0,0,0.85) !important; border-radius: 6px !important; }
+.scrollSlider > .card:hover ~ .card, .itemsContainer > .card:hover ~ .card { transform: translateX(30px) !important; }
+.scrollSlider > .card:has(~ .card:hover), .itemsContainer > .card:has(~ .card:hover) { transform: translateX(-30px) !important; }
+.scrollSlider > .card:first-child:hover .cardScalable { transform-origin: left center !important; }
+.scrollSlider > .card:last-child:hover .cardScalable { transform-origin: right center !important; }
+.cardOverlayContainer { background: linear-gradient(to top, rgba(20,20,20,0.97) 0%, rgba(20,20,20,0.75) 40%, transparent 75%) !important; }
+.card:hover .cardOverlayContainer { opacity: 1 !important; }
+.cardOverlayButtonContainer { display: flex !important; align-items: center !important; gap: 6px !important; }
+.cardOverlayContainer .paper-icon-button-light { background: rgba(255,255,255,0.12) !important; border: 1px solid rgba(255,255,255,0.5) !important; border-radius: 50% !important; width: 30px !important; height: 30px !important; transition: transform 0.15s ease, background 0.15s ease !important; }
+.cardOverlayContainer .paper-icon-button-light:hover { transform: scale(1.15) !important; background: rgba(255,255,255,0.25) !important; }
+.cardOverlayContainer .cardOverlayButton-br .paper-icon-button-light { background: rgba(255,255,255,0.92) !important; color: #000 !important; }");
+            }
+
+            if (config.NavLeft)
+            {
+                // Logo + tabs pinned to the left like Netflix, instead of centered tabs.
+                sb.AppendLine(@".headerTabs.sectionTabs { position: static !important; left: auto !important; transform: none !important; margin: 0 0 0 10px !important; }
+.headerLeft { flex: 0 0 auto !important; }
+.skinHeader .headerLeft { margin-right: 8px !important; }");
+            }
+
+            if (config.MatchScore)
+            {
+                // Community rating is restyled green; headerButton.js rewrites the value to "x% Match".
+                sb.AppendLine(@".starRatingValue { color: #46d369 !important; font-weight: 700 !important; }
+.starIcon { display: none !important; }");
+            }
+
+            if (config.TopTenRow)
+            {
+                // Styling for rank numbers injected by headerButton.js.
+                sb.AppendLine(@".ct-rank { position: absolute; left: -6px; bottom: -6px; z-index: 1; font-family: 'Bebas Neue', var(--font-netflix); font-size: 5.5rem; font-weight: 900; line-height: 0.8; color: #1a1a1a; -webkit-text-stroke: 3px var(--text-muted); pointer-events: none; }
+.ct-rank-card { display: flex !important; align-items: flex-end !important; }
+.ct-rank-card .cardScalable { margin-left: 42% !important; }");
+            }
+
+            if (config.GlassEffect)
+            {
+                sb.AppendLine(@".skinHeader { backdrop-filter: blur(16px) saturate(140%) !important; -webkit-backdrop-filter: blur(16px) saturate(140%) !important; background: rgba(10,10,10,0.55) !important; }
+.dialog, .formDialog, .actionSheet, .ct-overlay { backdrop-filter: blur(20px) saturate(160%) !important; -webkit-backdrop-filter: blur(20px) saturate(160%) !important; background: rgba(26,26,26,0.78) !important; }
+.mainDrawer { backdrop-filter: blur(18px) !important; -webkit-backdrop-filter: blur(18px) !important; background: rgba(10,10,10,0.6) !important; }");
+            }
+
+            if (config.OledBlack)
+            {
+                sb.AppendLine(@":root { --bg-darker: #000000; }
+.cardBox, .card .cardImageContainer { background-color: #0a0a0a !important; }");
+            }
+
+            // Detail page polish (always on — lightweight). Covers series: seasons + episode list.
+            sb.AppendLine(@".detailPagePrimaryContent .sectionTitle { font-size: 1.3rem !important; font-weight: 700 !important; }
+.castContent .card, .peopleCards .card { --card-radius: 50%; }
+/* Episode list rows */
+.listItem { border-radius: 8px !important; padding: 10px 12px !important; transition: background 0.2s ease !important; }
+.listItem:hover { background: rgba(255,255,255,0.07) !important; }
+.listItemImage { border-radius: 6px !important; }
+.listItemBody .listItemBodyText { font-family: var(--font-netflix) !important; }
+.listItem .secondary, .listItemBodyText.secondary { color: var(--text-muted) !important; }
+/* Season selector / tabs on a series */
+.detailPageContent .emby-select, .seasonSelector { background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.18) !important; border-radius: 6px !important; color: var(--text-main) !important; }
+.childrenItemsContainer .card { --card-radius: 6px; }
+/* Episode play progress + unplayed look consistent with cards */
+.listItem .itemProgressBar { border-radius: 4px !important; overflow: hidden !important; }");
         }
 
         /// <summary>Styles for the slide-in settings panel created by headerButton.js.</summary>

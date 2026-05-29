@@ -75,5 +75,34 @@ namespace Jellyfin.Plugin.CustomTheme
 
         public bool SidebarCompact { get; set; }
         public bool AmbientGlow { get; set; }
+
+        // --- Netflix features (need the injected script) ---
+        /// <summary>
+        /// Show our own simple hero banner on the home page. Off by default: if the
+        /// Jellyfin Media Bar plugin is installed it already provides a richer hero,
+        /// and our banner skips itself when an existing hero/media bar is detected.
+        /// </summary>
+        public bool HeroBillboard { get; set; }
+
+        /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
+        public bool PreviewClips { get; set; } = true;
+
+        /// <summary>Netflix-style hover: the card grows and shows an info panel with action buttons.</summary>
+        public bool HoverPreviewCard { get; set; } = true;
+
+        /// <summary>Show big outlined rank numbers (1-10) on the first home row, like Netflix's Top 10.</summary>
+        public bool TopTenRow { get; set; }
+
+        /// <summary>Frosted-glass blur on the header, dialogs and panels.</summary>
+        public bool GlassEffect { get; set; }
+
+        /// <summary>Pure-black background for OLED screens.</summary>
+        public bool OledBlack { get; set; }
+
+        /// <summary>Left-align the header navigation (logo + tabs) like Netflix, instead of centering the tabs.</summary>
+        public bool NavLeft { get; set; } = true;
+
+        /// <summary>Show the community rating as a green "x% Match" like Netflix instead of a star value.</summary>
+        public bool MatchScore { get; set; } = true;
     }
 }

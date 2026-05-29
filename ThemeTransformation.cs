@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Jellyfin.Plugin.CustomTheme
 {
@@ -46,6 +47,20 @@ namespace Jellyfin.Plugin.CustomTheme
             }
 
             return html.Replace("</body>", $"<script id=\"{Marker}\">\n{script}\n</script>\n</body>", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>Removes any previously injected script (ours or from older versions) so injection stays single.</summary>
+        public static string StripInjected(string html)
+        {
+            if (string.IsNullOrEmpty(html))
+            {
+                return html;
+            }
+
+            html = Regex.Replace(html, "<script id=\"" + Marker + "\">.*?</script>\\s*", string.Empty, RegexOptions.Singleline);
+            html = html.Replace("<!-- Custom Theme -->", string.Empty, StringComparison.Ordinal);
+            html = Regex.Replace(html, "<script[^>]*custom-theme-headerjs[^>]*>\\s*</script>\\s*", string.Empty, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            return html;
         }
 
         private static string LoadScript()
