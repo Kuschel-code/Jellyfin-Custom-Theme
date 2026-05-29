@@ -34,12 +34,6 @@ namespace Jellyfin.Plugin.CustomTheme
                     DisplayName = "Custom Theme",
                     MenuIcon = "palette",
                     EnableInMainMenu = true
-                },
-                new PluginPageInfo
-                {
-                    Name = "custom-theme-headerjs",
-                    EmbeddedResourcePath = GetType().Namespace + ".headerButton.js",
-                    EnableInMainMenu = false
                 }
             };
         }
