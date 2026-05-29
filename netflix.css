@@ -1186,6 +1186,21 @@ body, .mainDrawer, .dialog {
 .personCard .cardImageContainer { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.06) !important; }
 .personCard .cardText-first { font-weight: 600 !important; color: var(--text-main) !important; }
 
+/* --- Hover autoplay preview clip (built by headerButton.js) --- */
+.cardImageContainer { position: relative; }
+.ct-preview-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    background: #000;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+.ct-preview-video[src] { opacity: 1; }
+
 /* =============================================
    HERO BILLBOARD (built by headerButton.js on the home page)
    ============================================= */

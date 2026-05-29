@@ -75,5 +75,16 @@ namespace Jellyfin.Plugin.CustomTheme
 
         public bool SidebarCompact { get; set; }
         public bool AmbientGlow { get; set; }
+
+        // --- Netflix features (need the injected script) ---
+        /// <summary>
+        /// Show our own simple hero banner on the home page. Off by default: if the
+        /// Jellyfin Media Bar plugin is installed it already provides a richer hero,
+        /// and our banner skips itself when an existing hero/media bar is detected.
+        /// </summary>
+        public bool HeroBillboard { get; set; }
+
+        /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
+        public bool PreviewClips { get; set; } = true;
     }
 }

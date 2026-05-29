@@ -42,9 +42,15 @@ namespace Jellyfin.Plugin.CustomTheme
 
             // Prefer the clean runtime method if the File Transformation plugin is installed;
             // otherwise fall back to writing the script into index.html ourselves.
-            if (!RegisterFileTransformation())
+            if (RegisterFileTransformation())
             {
-                InjectIntoIndexHtml();
+                // File Transformation injects at serve time, so remove any stale on-disk
+                // copy left by an earlier version to avoid a doubled script.
+                WriteIndexHtml(inject: false);
+            }
+            else
+            {
+                WriteIndexHtml(inject: true);
             }
 
             if (Plugin.Instance is not null)
@@ -102,37 +108,47 @@ namespace Jellyfin.Plugin.CustomTheme
 
         // ---- Script injection: self-contained on-disk write ----
 
-        private void InjectIntoIndexHtml()
+        /// <summary>
+        /// Normalises index.html on disk: strips any previously injected script (ours or
+        /// from older versions) and, when <paramref name="inject"/> is true, injects exactly
+        /// one fresh copy. When false it only cleans (used when File Transformation handles
+        /// injection at serve time, to avoid a doubled script).
+        /// </summary>
+        private void WriteIndexHtml(bool inject)
         {
             try
             {
                 var indexPath = FindIndexHtml();
                 if (indexPath is null)
                 {
-                    _logger.LogWarning("[Custom Theme] Could not locate index.html; header button/hero will not load. CSS theme still works.");
+                    if (inject)
+                    {
+                        _logger.LogWarning("[Custom Theme] Could not locate index.html; header button/hero will not load. CSS theme still works.");
+                    }
+
                     return;
                 }
 
                 var html = File.ReadAllText(indexPath);
-                if (html.Contains(ThemeTransformation.Marker, StringComparison.Ordinal))
+                var cleaned = ThemeTransformation.StripInjected(html);
+                var result = inject ? ThemeTransformation.InjectInto(cleaned) : cleaned;
+
+                if (result == html)
                 {
-                    _logger.LogInformation("[Custom Theme] Script already present in index.html");
-                    return;
+                    return; // nothing changed
                 }
 
-                var injected = ThemeTransformation.InjectInto(html);
-                if (ReferenceEquals(injected, html) || injected == html)
-                {
-                    _logger.LogWarning("[Custom Theme] index.html has no </body>; could not inject script");
-                    return;
-                }
-
-                File.WriteAllText(indexPath, injected);
-                _logger.LogInformation("[Custom Theme] Injected script into {Path}", indexPath);
+                File.WriteAllText(indexPath, result);
+                _logger.LogInformation(inject
+                    ? "[Custom Theme] Injected script into {Path}"
+                    : "[Custom Theme] Removed stale on-disk script from {Path}", indexPath);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "[Custom Theme] Could not write to index.html (read-only filesystem?). For read-only/Docker installs, install the File Transformation plugin. CSS theme still works.");
+                if (inject)
+                {
+                    _logger.LogWarning(ex, "[Custom Theme] Could not write to index.html (read-only filesystem?). For read-only/Docker installs, install the File Transformation plugin. CSS theme still works.");
+                }
             }
         }
 

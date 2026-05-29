@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.3.0.0",
+        "changelog": "Hover autoplay preview: hovering a card streams a muted ~30s clip from the middle of the title on the fly (nothing stored). Fixed the doubled hero: our own banner is now off by default and skips when a hero/Media Bar is already present. Robust de-duplication of the injected script. New settings for the hover preview and built-in banner. README notes the File Transformation and Media Bar companion plugins.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.3.0/custom-theme-v2.3.0.zip",
+        "checksum": "df67ed9a70ec1701d0c93d096631a62e",
+        "timestamp": "2026-05-29T16:00:00"
+      },
+      {
         "version": "2.2.0.0",
         "changelog": "Self-contained script injection: the plugin writes the header/hero script into index.html itself (no extra plugin needed), replacing the unreliable middleware. On read-only web dirs it uses the File Transformation plugin if installed. This makes the header settings button and Netflix hero banner appear.",
         "targetAbi": "10.11.0.0",
