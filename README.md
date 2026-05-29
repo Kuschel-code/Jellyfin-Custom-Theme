@@ -3,7 +3,8 @@
 A Netflix-inspired skin for **Jellyfin 10.11+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
 
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11+-00A4DC?logo=jellyfin&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+[![Build](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml/badge.svg)](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ## How it works
 
@@ -70,7 +71,20 @@ dotnet build -c Release
 # Output: bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll
 ```
 
-To package a release zip, bundle the built DLL together with `meta.json`.
+To package a release zip manually, bundle the built DLL together with `meta.json`.
+
+### Releasing (maintainers)
+
+Every push and pull request to `main` is built by the
+[Build workflow](.github/workflows/build.yml). Pushing a `vX.Y.Z` tag additionally
+builds the plugin, packages `custom-theme-vX.Y.Z.zip`, and creates a matching
+GitHub release. The workflow prints the zip's MD5 in the job summary — copy it
+into the corresponding version entry in `manifest.json` so the plugin catalog can
+verify the download.
+
+```bash
+git tag v2.0.1 && git push origin v2.0.1
+```
 
 ## Project structure
 
@@ -86,6 +100,8 @@ configPage.html            # Dashboard settings page
 headerButton.js            # Optional header button + slide-in settings panel
 manifest.json              # Plugin repository manifest
 meta.json                  # Plugin metadata (shipped inside the zip)
+LICENSE                    # MIT license
+.github/workflows/build.yml # CI: build on push/PR, package & release on tags
 ```
 
 ## Requirements
@@ -95,4 +111,4 @@ meta.json                  # Plugin metadata (shipped inside the zip)
 
 ## License
 
-MIT
+[MIT](LICENSE) © Kuschel-code
