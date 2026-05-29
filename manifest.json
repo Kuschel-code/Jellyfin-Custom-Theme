@@ -13,24 +13,8 @@
         "changelog": "Closer to Netflix: left-aligned header navigation, neighbouring cards slide aside on hover so the expanded card never overlaps, community rating shown as a green 'x% Match', and polished series/episode detail pages (season selector, episode rows, round cast). All toggleable.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.0/custom-theme-v2.5.0.zip",
-        "checksum": "ab939e770219db73ce06b400cd6a2807",
+        "checksum": "cff0e5449508bd8533a1caaba4bf4224",
         "timestamp": "2026-05-29T18:00:00"
-      },
-      {
-        "version": "2.4.0.0",
-        "changelog": "More Netflix: hover-expand cards (grow + info panel with buttons), optional Top 10 rank numbers on the first content row, frosted-glass blur option, OLED pure-black option, Monochrome/Colorful colour presets, and detail-page polish (round cast, list hover). All toggleable in the settings.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.4.0/custom-theme-v2.4.0.zip",
-        "checksum": "c36137ea28e76074397b4436977c1fa1",
-        "timestamp": "2026-05-29T17:00:00"
-      },
-      {
-        "version": "2.3.0.0",
-        "changelog": "Hover autoplay preview: hovering a card streams a muted ~30s clip from the middle of the title on the fly (nothing stored). Fixed the doubled hero: our own banner is now off by default and skips when a hero/Media Bar is already present. Robust de-duplication of the injected script. New settings for the hover preview and built-in banner. README notes the File Transformation and Media Bar companion plugins.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.3.0/custom-theme-v2.3.0.zip",
-        "checksum": "df67ed9a70ec1701d0c93d096631a62e",
-        "timestamp": "2026-05-29T16:00:00"
       },
       {
         "version": "2.2.0.0",
