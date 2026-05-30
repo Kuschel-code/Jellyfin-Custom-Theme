@@ -223,8 +223,9 @@ body, .mainDrawer, .dialog {
     padding: 0 !important;
 }
 
-/* Hide empty home sections that have no cards */
-.homeSectionsContainer .verticalSection:not(:has(.card)):not(:has(.listItem)) {
+/* Hide empty home sections that have no cards (but never our own Continue
+   Watching / genre rows — their cards use .nf-cw-card, not .card). */
+.homeSectionsContainer .verticalSection:not(:has(.card)):not(:has(.listItem)):not(.nf-cw-section):not(.nf-genre-section) {
     display: none !important;
     margin: 0 !important;
 }
