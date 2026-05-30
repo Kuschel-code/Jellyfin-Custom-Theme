@@ -90,6 +90,13 @@ namespace Jellyfin.Plugin.CustomTheme
         /// <summary>Show Netflix-style top navigation tabs (Home + libraries) in the header (replaces the Custom Tabs plugin).</summary>
         public bool NavTabs { get; set; } = true;
 
+        /// <summary>
+        /// Take over the home page for a clean Netflix layout: hide native / other-plugin
+        /// rows + the page tab bar and show only our hero, a sharp Continue Watching row
+        /// and the genre rows. Turn off to keep Jellyfin's native home sections.
+        /// </summary>
+        public bool CleanHome { get; set; } = true;
+
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
 

@@ -1396,4 +1396,43 @@ body, .mainDrawer, .dialog {
 .nf-pop-genres span:not(:last-child)::after { content: '•'; margin: 0 7px; color: #777; }
 @media (max-width: 768px) { .nf-pop { display: none; } }
 
+/* =============================================
+   HOME TAKEOVER (managed by headerButton.js) — clean, Netflix-only home
+   Once our own rows exist the container gets .nf-owned and every foreign row
+   (native sections, Media Bar / Home Sections / other plugins) is hidden, so
+   there is no blur, no duplication and no empty gaps. The page tab bar is
+   hidden only on the home page (html.nf-home) so library pages keep their tabs.
+   ============================================= */
+.homeSectionsContainer.nf-owned > *:not(.nf-hero):not(.nf-cw-section):not(.nf-genre-section) { display: none !important; }
+html.nf-home .skinHeader .headerTabs { display: none !important; }
+
+/* Continue Watching row — own sharp landscape cards with progress (no blurhash) */
+.nf-cw-section { margin: 0 0 2.4vw; }
+.nf-cw-section .sectionTitle { padding-left: 4%; font-size: clamp(1.05rem, 1.35vw, 1.45rem); font-weight: 700; color: #e5e5e5; letter-spacing: 0.2px; margin: 0 0 0.5em; }
+.nf-cw-scroll { overflow-x: auto; overflow-y: visible; scrollbar-width: none; -ms-overflow-style: none; padding: 6px 4% 22px; }
+.nf-cw-scroll::-webkit-scrollbar { display: none; }
+.nf-cw-track { display: flex; gap: 0.5vw; align-items: flex-start; }
+.nf-cw-card { flex: 0 0 auto; width: clamp(220px, 19vw, 340px); text-decoration: none; }
+.nf-cw-thumb {
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    border-radius: 5px; overflow: hidden;
+    background: #222 center / cover no-repeat;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transition: outline 0.15s ease;
+}
+.nf-cw-card:hover .nf-cw-thumb { outline: 2px solid #fff; }
+.nf-cw-play {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(0,0,0,0.55); border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s ease;
+}
+.nf-cw-card:hover .nf-cw-play { opacity: 1; }
+.nf-cw-play .material-icons { color: #fff; font-size: 26px; }
+.nf-cw-prog { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,0.25); }
+.nf-cw-prog > i { display: block; height: 100%; background: var(--accent-red, #E50914); }
+.nf-cw-title { margin-top: 7px; font-size: 0.85rem; color: #d2d2d2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 768px) { .nf-cw-card { width: 60vw; } }
+
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */

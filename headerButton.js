@@ -15,6 +15,7 @@
     // Mirrors the dashboard configuration page.
     var SECTIONS = [
         ['Netflix Features', [
+            ['CleanHome', 'toggle', 'Clean Netflix home (hide native rows)'],
             ['HeroBillboard', 'toggle', 'Hero carousel (replaces Media Bar)'],
             ['GenreRows', 'toggle', 'Genre rows (replaces Home Sections)'],
             ['NavTabs', 'toggle', 'Top nav tabs (replaces Custom Tabs)'],
@@ -466,6 +467,80 @@
         } catch (e) { genreBusy = false; }
     }
 
+    // ============ Continue Watching row (home page) — own sharp landscape cards ============
+    var cwBusy = false;
+
+    function cwImage(item) {
+        var t = item.ImageTags || {};
+        if (item.BackdropImageTags && item.BackdropImageTags.length) return ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 500, tag: item.BackdropImageTags[0] });
+        if (t.Thumb) return ApiClient.getScaledImageUrl(item.Id, { type: 'Thumb', maxWidth: 500, tag: t.Thumb });
+        if (item.ParentBackdropItemId && item.ParentBackdropImageTags && item.ParentBackdropImageTags.length) return ApiClient.getScaledImageUrl(item.ParentBackdropItemId, { type: 'Backdrop', maxWidth: 500, tag: item.ParentBackdropImageTags[0] });
+        if (t.Primary) return ApiClient.getScaledImageUrl(item.Id, { type: 'Primary', maxWidth: 500, tag: t.Primary });
+        return '';
+    }
+
+    function setupContinueWatching() {
+        try {
+            if (cfg('CleanHome', true) !== true) { return; }
+            if (!isHomePage()) { return; }
+            if (cwBusy) { return; }
+            if (typeof ApiClient === 'undefined' || !ApiClient.getItems || !ApiClient.getCurrentUserId) { return; }
+            var container = activeHomeContainer();
+            if (!container || container.getAttribute('data-nf-cw') === '1') { return; }
+            var userId = ApiClient.getCurrentUserId();
+            if (!userId) { return; }
+
+            cwBusy = true;
+            container.setAttribute('data-nf-cw', '1');
+            var sid = ApiClient.serverId && ApiClient.serverId();
+
+            ApiClient.getItems(userId, {
+                Filters: 'IsResumable', SortBy: 'DatePlayed', SortOrder: 'Descending',
+                Recursive: true, MediaTypes: 'Video', Limit: 12,
+                ImageTypeLimit: 1, EnableImageTypes: 'Thumb,Backdrop,Primary'
+            }).then(function (res) {
+                cwBusy = false;
+                var items = (res && res.Items) || [];
+                if (!items.length || !isHomePage()) { return; }
+                var c = activeHomeContainer();
+                if (!c || c.getAttribute('data-nf-cw') !== '1') { return; }
+                var cards = items.map(function (item) {
+                    var pct = (item.UserData && item.UserData.PlayedPercentage) || 0;
+                    var name = item.Type === 'Episode' ? (item.SeriesName || item.Name) : item.Name;
+                    var href = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
+                    return '<a class="nf-cw-card" href="' + href + '">' +
+                        '<div class="nf-cw-thumb" style="background-image:url(\'' + cwImage(item) + '\')">' +
+                            '<div class="nf-cw-play"><span class="material-icons" aria-hidden="true">play_arrow</span></div>' +
+                            '<div class="nf-cw-prog"><i style="width:' + Math.max(2, Math.min(100, pct)) + '%"></i></div>' +
+                        '</div>' +
+                        '<div class="nf-cw-title">' + esc(name || '') + '</div></a>';
+                }).join('');
+                var sec = document.createElement('div');
+                sec.className = 'verticalSection nf-cw-section';
+                sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Weiterschauen</h2>' +
+                    '<div class="nf-cw-scroll"><div class="nf-cw-track">' + cards + '</div></div>';
+                var hero = c.querySelector('.nf-hero');
+                if (hero && hero.nextSibling) { c.insertBefore(sec, hero.nextSibling); }
+                else { c.insertBefore(sec, c.firstChild); }
+            }).catch(function () { cwBusy = false; });
+        } catch (e) { cwBusy = false; }
+    }
+
+    // Take ownership of the home page: tag the container so CSS hides native / other-plugin
+    // rows + the page tab bar — but only once OUR rows exist, so a slow/failed build never
+    // leaves an empty home. Also toggles html.nf-home for header-tab hiding scoped to home.
+    function markHomeOwned() {
+        try {
+            var onHome = isHomePage();
+            document.documentElement.classList.toggle('nf-home', onHome);
+            if (cfg('CleanHome', true) !== true || !onHome) { return; }
+            var c = activeHomeContainer();
+            if (c && (c.querySelector('.nf-genre-section') || c.querySelector('.nf-cw-section'))) {
+                c.classList.add('nf-owned');
+            }
+        } catch (e) {}
+    }
+
     // ============ Netflix hover-expand popup (card preview) ============
     // On card hover, float a larger preview card over the row: backdrop (with a
     // muted ~30s autoplay clip), action buttons, title, % match, rating, genres.
@@ -674,7 +749,9 @@
         addButton();
         setupNavTabs();
         setupHero();
+        setupContinueWatching();
         setupGenreRows();
+        markHomeOwned();
         setupTopTen();
         setupMatchScore();
     }
