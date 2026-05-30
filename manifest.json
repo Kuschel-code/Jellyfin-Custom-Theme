@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.2.0",
+        "changelog": "Fix: the home page now reliably shows the built-in genre rows and top nav tabs (they were only attempted once on load before the home had rendered). The hero carousel also actively hides a detected Media Bar so there is never a double hero — the built-in Netflix look is now fully self-contained.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.2/custom-theme-v2.5.2.zip",
+        "checksum": "0000000000000000000000000000000000",
+        "timestamp": "2026-05-30T15:00:00"
+      },
+      {
         "version": "2.5.1.0",
         "changelog": "Self-contained Netflix experience — no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
         "targetAbi": "10.11.0.0",
