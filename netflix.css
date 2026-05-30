@@ -1357,4 +1357,43 @@ body, .mainDrawer, .dialog {
 .nf-hero-content { transition: opacity 0.5s ease; }
 .nf-hero-slide:not(.active) .nf-hero-content { opacity: 0; }
 
+/* =============================================
+   NETFLIX HOVER-EXPAND POPUP (built by headerButton.js)
+   Floating preview card on card hover: backdrop+clip, action buttons, meta.
+   ============================================= */
+.nf-pop {
+    position: fixed; z-index: 9999;
+    border-radius: 6px; overflow: hidden;
+    background: #181818;
+    box-shadow: 0 12px 45px rgba(0,0,0,0.8);
+    font-family: var(--font-netflix);
+    opacity: 0; transform: scale(0.92); transform-origin: center bottom;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.nf-pop.show { opacity: 1; transform: scale(1); }
+.nf-pop-media { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000 center / cover no-repeat; }
+.nf-pop-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.nf-pop-fade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, #181818 2%, transparent 55%); }
+.nf-pop-info { padding: 8px 16px 16px; }
+.nf-pop-actions { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.nf-pop-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5); background: rgba(42,42,42,0.55); color: #fff;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    text-decoration: none; transition: border-color 0.15s ease, background 0.15s ease;
+}
+.nf-pop-btn .material-icons { font-size: 22px; }
+.nf-pop-btn.play { background: #fff; color: #000; border-color: #fff; }
+.nf-pop-btn.play:hover { background: rgba(255,255,255,0.8); }
+.nf-pop-btn:hover { border-color: #fff; background: rgba(60,60,60,0.8); }
+.nf-pop-btn.more { margin-left: auto; }
+.nf-pop-btn.nf-pop-list.active .material-icons { color: #46d369; }
+.nf-pop-title { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 7px; line-height: 1.2; }
+.nf-pop-meta { display: flex; align-items: center; gap: 9px; font-size: 0.82rem; color: #ddd; margin-bottom: 7px; flex-wrap: wrap; }
+.nf-pop-match { color: #46d369; font-weight: 700; }
+.nf-pop-rating { border: 1px solid rgba(255,255,255,0.4); padding: 0 5px; border-radius: 3px; font-size: 0.72rem; }
+.nf-pop-genres { font-size: 0.82rem; color: #ccc; }
+.nf-pop-genres span:not(:last-child)::after { content: '•'; margin: 0 7px; color: #777; }
+@media (max-width: 768px) { .nf-pop { display: none; } }
+
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */

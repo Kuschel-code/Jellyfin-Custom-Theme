@@ -466,21 +466,31 @@
         } catch (e) { genreBusy = false; }
     }
 
-    // ============ Hover autoplay preview clips ============
-    // Streams a muted ~30s clip from the middle of the real title on the fly. Nothing is stored.
-    var previewCard = null;
-    var previewTimer = null;
+    // ============ Netflix hover-expand popup (card preview) ============
+    // On card hover, float a larger preview card over the row: backdrop (with a
+    // muted ~30s autoplay clip), action buttons, title, % match, rating, genres.
+    var popCard = null;
+    var popTimer = null;
+    var popEl = null;
+    var popHideTimer = null;
+    var POP_DELAY = 500;
     var PREVIEW_SECONDS = 30;
-    var HOVER_DELAY = 1200;
+
+    function destroyPopEl() {
+        if (!popEl) { return; }
+        var el = popEl;
+        popEl = null;
+        var v = el.querySelector('video');
+        if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} if (v._stopTimer) { clearTimeout(v._stopTimer); } }
+        el.classList.remove('show');
+        setTimeout(function () { if (el.parentNode) { el.remove(); } }, 180);
+    }
 
     function clearPreview() {
-        if (previewTimer) { clearTimeout(previewTimer); previewTimer = null; }
-        document.querySelectorAll('.ct-preview-video').forEach(function (v) {
-            try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
-            if (v._stopTimer) clearTimeout(v._stopTimer);
-            v.remove();
-        });
-        previewCard = null;
+        if (popTimer) { clearTimeout(popTimer); popTimer = null; }
+        if (popHideTimer) { clearTimeout(popHideTimer); popHideTimer = null; }
+        destroyPopEl();
+        popCard = null;
     }
 
     function eligibleCard(card) {
@@ -495,62 +505,123 @@
         return true;
     }
 
-    function startPreview(card) {
+    // Stream a muted ~30s clip from the middle of the title into the popup. Nothing is stored.
+    function streamClipInto(pop, item) {
+        if (cfg('PreviewClips', true) === false) return;
+        var ticks = item.RunTimeTicks || 0;
+        if (ticks < 1200000000) return; // < ~2 min: skip
+        var media = pop.querySelector('.nf-pop-media');
+        if (!media) return;
+        var startTicks = Math.floor(ticks * 0.4); // mid-ish, past most intros
+        var url = ApiClient.serverAddress() + '/Videos/' + item.Id + '/stream.mp4'
+            + '?Static=false&videoCodec=h264&audioCodec=aac&maxWidth=640&videoBitRate=2000000'
+            + '&startTimeTicks=' + startTicks
+            + '&api_key=' + ApiClient.accessToken();
+        var video = document.createElement('video');
+        video.muted = true; video.defaultMuted = true; video.autoplay = true;
+        video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
+        video.src = url;
+        media.insertBefore(video, media.firstChild);
+        var play = video.play();
+        if (play && play.catch) { play.catch(function () {}); }
+        video._stopTimer = setTimeout(function () { try { video.pause(); } catch (e) {} }, PREVIEW_SECONDS * 1000);
+    }
+
+    function buildPop(card) {
         if (typeof ApiClient === 'undefined' || !ApiClient.getItem) return;
         var id = card.getAttribute('data-id');
-        var holder = card.querySelector('.cardImageContainer') || card.querySelector('.cardScalable');
-        if (!id || !holder) return;
-        var userId = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
+        if (!id) return;
+        var sid = card.getAttribute('data-serverid') || (ApiClient.serverId && ApiClient.serverId());
+        var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
 
-        ApiClient.getItem(userId, id).then(function (item) {
-            if (previewCard !== card || !item) return;
-            var ticks = item.RunTimeTicks || 0;
-            if (ticks < 1200000000) return; // < ~2 min: skip
-            var startTicks = Math.floor(ticks * 0.4); // mid-ish, past most intros
+        ApiClient.getItem(uid, id).then(function (item) {
+            if (popCard !== card || !item) return;
+            var cr = card.getBoundingClientRect();
+            if (!cr.width) return;
+            var vw = window.innerWidth;
+            var Wp = Math.max(cr.width * 1.6, 300);
+            var left = Math.min(Math.max(cr.left + cr.width / 2 - Wp / 2, 8), vw - Wp - 8);
+            var top = Math.max(cr.top - 36, 72);
 
-            var url = ApiClient.serverAddress() + '/Videos/' + id + '/stream.mp4'
-                + '?Static=false&videoCodec=h264&audioCodec=aac&maxWidth=640&videoBitRate=2000000'
-                + '&startTimeTicks=' + startTicks
-                + '&api_key=' + ApiClient.accessToken();
+            var bd = item.BackdropImageTags && item.BackdropImageTags[0];
+            var media = bd
+                ? ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 640, tag: bd })
+                : (item.ImageTags && item.ImageTags.Primary ? ApiClient.getScaledImageUrl(item.Id, { type: 'Primary', maxWidth: 640, tag: item.ImageTags.Primary }) : '');
+            var detailUrl = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
+            var match = item.CommunityRating ? '<span class="nf-pop-match">' + Math.round(item.CommunityRating * 10) + '% Match</span>' : '';
+            var rating = item.OfficialRating ? '<span class="nf-pop-rating">' + esc(item.OfficialRating) + '</span>' : '';
+            var extra = item.ChildCount ? ('<span>' + item.ChildCount + ' Staffel' + (item.ChildCount > 1 ? 'n' : '') + '</span>')
+                : (item.ProductionYear ? '<span>' + item.ProductionYear + '</span>' : '');
+            var genres = (item.Genres || []).slice(0, 3).map(function (g) { return '<span>' + esc(g) + '</span>'; }).join('');
 
-            var video = document.createElement('video');
-            video.className = 'ct-preview-video';
-            video.muted = true;
-            video.defaultMuted = true;
-            video.autoplay = true;
-            video.setAttribute('playsinline', '');
-            video.setAttribute('preload', 'auto');
-            video.src = url;
-            holder.appendChild(video);
+            var pop = document.createElement('div');
+            pop.className = 'nf-pop';
+            pop.style.left = left + 'px'; pop.style.top = top + 'px'; pop.style.width = Wp + 'px';
+            pop.innerHTML =
+                '<div class="nf-pop-media"' + (media ? ' style="background-image:url(\'' + media + '\')"' : '') + '><div class="nf-pop-fade"></div></div>' +
+                '<div class="nf-pop-info">' +
+                    '<div class="nf-pop-actions">' +
+                        '<a class="nf-pop-btn play" href="' + detailUrl + '" title="Abspielen"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
+                        '<button type="button" class="nf-pop-btn nf-pop-list" title="Meine Liste"><span class="material-icons" aria-hidden="true">add</span></button>' +
+                        '<a class="nf-pop-btn more" href="' + detailUrl + '" title="Mehr Infos"><span class="material-icons" aria-hidden="true">expand_more</span></a>' +
+                    '</div>' +
+                    '<div class="nf-pop-title">' + esc(item.Name || '') + '</div>' +
+                    '<div class="nf-pop-meta">' + match + rating + extra + '</div>' +
+                    (genres ? '<div class="nf-pop-genres">' + genres + '</div>' : '') +
+                '</div>';
 
-            var play = video.play();
-            if (play && play.catch) { play.catch(function () {}); }
+            pop.addEventListener('mouseenter', function () { if (popHideTimer) { clearTimeout(popHideTimer); popHideTimer = null; } });
+            pop.addEventListener('mouseleave', function () { clearPreview(); });
 
-            video._stopTimer = setTimeout(function () {
-                video.style.opacity = '0';
-                setTimeout(function () { if (video.parentNode) video.remove(); }, 400);
-            }, PREVIEW_SECONDS * 1000);
+            var listBtn = pop.querySelector('.nf-pop-list');
+            if (listBtn && item.UserData && item.UserData.IsFavorite) {
+                listBtn.classList.add('active');
+                listBtn.querySelector('.material-icons').textContent = 'check';
+            }
+            if (listBtn) {
+                listBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    if (!uid || !ApiClient.updateFavoriteStatus) return;
+                    var nowFav = !listBtn.classList.contains('active');
+                    ApiClient.updateFavoriteStatus(uid, item.Id, nowFav).then(function () {
+                        listBtn.classList.toggle('active', nowFav);
+                        listBtn.querySelector('.material-icons').textContent = nowFav ? 'check' : 'add';
+                    }).catch(function () {});
+                });
+            }
+
+            destroyPopEl();
+            popEl = pop;
+            document.body.appendChild(pop);
+            requestAnimationFrame(function () { pop.classList.add('show'); });
+            streamClipInto(pop, item);
         }).catch(function () {});
     }
 
     function setupCardPreviews() {
         document.body.addEventListener('mouseover', function (e) {
-            if (cfg('PreviewClips', true) === false) return;
+            if (cfg('HoverPreviewCard', true) === false) return;
+            if (popEl && popEl.contains(e.target)) return; // inside the popup
             var card = e.target.closest && e.target.closest('.card');
-            if (!card || card === previewCard) return;
+            if (!card || card === popCard) return;
             if (!eligibleCard(card)) return;
-            clearPreview();
-            previewCard = card;
-            previewTimer = setTimeout(function () {
-                if (previewCard === card) startPreview(card);
-            }, HOVER_DELAY);
+            if (popHideTimer) { clearTimeout(popHideTimer); popHideTimer = null; }
+            if (popTimer) { clearTimeout(popTimer); popTimer = null; }
+            destroyPopEl();
+            popCard = card;
+            popTimer = setTimeout(function () { if (popCard === card) buildPop(card); }, POP_DELAY);
         });
         document.body.addEventListener('mouseout', function (e) {
-            if (!previewCard) return;
+            var card = e.target.closest && e.target.closest('.card');
+            var inPop = popEl && popEl.contains(e.target);
+            if (!card && !inPop) return;
             var to = e.relatedTarget;
-            if (to && previewCard.contains && previewCard.contains(to)) return;
-            clearPreview();
+            if (to && ((card && card.contains(to)) || (popEl && popEl.contains(to)))) return;
+            if (popTimer) { clearTimeout(popTimer); popTimer = null; }
+            if (popHideTimer) { clearTimeout(popHideTimer); }
+            popHideTimer = setTimeout(clearPreview, 140);
         });
+        window.addEventListener('scroll', function () { clearPreview(); }, true);
     }
 
     // ============ Top 10 rank numbers ============
