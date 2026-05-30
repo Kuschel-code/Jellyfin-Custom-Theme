@@ -1,9 +1,9 @@
 {
   "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
   "name": "Custom Theme",
-  "version": "2.5.0.0",
-  "description": "Netflix-style custom skin with server-side settings, 15 fonts, and full customization.",
-  "overview": "Netflix-inspired skin for Jellyfin with built-in settings panel",
+  "version": "2.5.1.0",
+  "description": "Self-contained Netflix experience: rotating hero carousel, curated genre rows, top nav tabs, hover previews, settings panel and 15 fonts — no Media Bar / Home Sections / Custom Tabs plugins needed.",
+  "overview": "Self-contained Netflix-style skin for Jellyfin: hero carousel, genre rows, nav tabs and settings panel built in",
   "owner": "Kuschel-code",
   "category": "General",
   "targetAbi": "10.11.0.0"

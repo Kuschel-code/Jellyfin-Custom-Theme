@@ -78,11 +78,17 @@ namespace Jellyfin.Plugin.CustomTheme
 
         // --- Netflix features (need the injected script) ---
         /// <summary>
-        /// Show our own simple hero banner on the home page. Off by default: if the
-        /// Jellyfin Media Bar plugin is installed it already provides a richer hero,
-        /// and our banner skips itself when an existing hero/media bar is detected.
+        /// Rotating auto-play hero billboard carousel on the home page (own implementation —
+        /// replaces the Jellyfin Media Bar plugin). On by default so the Netflix look is
+        /// self-contained out of the box.
         /// </summary>
-        public bool HeroBillboard { get; set; }
+        public bool HeroBillboard { get; set; } = true;
+
+        /// <summary>Build curated genre rows on the home page (replaces the Home Screen Sections plugin).</summary>
+        public bool GenreRows { get; set; } = true;
+
+        /// <summary>Show Netflix-style top navigation tabs (Home + libraries) in the header (replaces the Custom Tabs plugin).</summary>
+        public bool NavTabs { get; set; } = true;
 
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
