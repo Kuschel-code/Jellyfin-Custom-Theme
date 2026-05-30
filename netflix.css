@@ -1344,4 +1344,17 @@ body, .mainDrawer, .dialog {
 .nf-nav-tab.active { color: var(--text-main); font-weight: 700; opacity: 1; }
 @media (max-width: 768px) { .nf-nav-tabs { display: none; } }
 
+/* =============================================
+   SELF-ENFORCING HERO — neutralize a co-installed Media Bar
+   When OUR hero is present, undo the top offset / margin a Media Bar pushes onto
+   the home container (it sets top:<heroHeight> inline). Stylesheet !important
+   beats the inline value regardless of timing, so there is never a gap or a
+   double hero. Scoped with :has() so it only applies when our hero is active. */
+.homeSectionsContainer:has(> .nf-hero) { top: 0 !important; margin-top: 0 !important; }
+
+/* Crossfade polish: fade each slide's text/logo with the slide so two slides'
+   content never overlap during the 1s background crossfade. */
+.nf-hero-content { transition: opacity 0.5s ease; }
+.nf-hero-slide:not(.active) .nf-hero-content { opacity: 0; }
+
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */
