@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.6.0",
-        "changelog": "Fix: the Continue Watching ('Weiterschauen') row now shows on the clean home — an older 'hide empty sections' rule was hiding it because its cards use a different class. Home is now hero + Continue Watching + genre rows, all sharp.",
+        "changelog": "Fix: the Continue Watching ('Weiterschauen') row now shows on the clean home \u2014 an older 'hide empty sections' rule was hiding it because its cards use a different class. Home is now hero + Continue Watching + genre rows, all sharp.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.6/custom-theme-v2.5.6.zip",
-        "checksum": "0000000000000000000000000000000000",
+        "checksum": "242d3090a1a1322e5d0a3b9ae138d984",
         "timestamp": "2026-05-30T17:30:00"
       },
       {
