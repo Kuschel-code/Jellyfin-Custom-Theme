@@ -13,7 +13,7 @@
         "changelog": "Hero polish: when a Jellyfin Media Bar is also installed, the built-in hero now sits flush at the top (neutralizes the offset Media Bar pushes onto the home page) so there is no gap or double hero. Smoother crossfade so two slides' titles never overlap during the transition.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.3/custom-theme-v2.5.3.zip",
-        "checksum": "0000000000000000000000000000000000",
+        "checksum": "b18b513240aabae8e88be1fcbbbd6ab3",
         "timestamp": "2026-05-30T15:30:00"
       },
       {
@@ -26,7 +26,7 @@
       },
       {
         "version": "2.5.1.0",
-        "changelog": "Self-contained Netflix experience — no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
+        "changelog": "Self-contained Netflix experience \u2014 no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.1/custom-theme-v2.5.1.zip",
         "checksum": "0000000000000000000000000000000000",
