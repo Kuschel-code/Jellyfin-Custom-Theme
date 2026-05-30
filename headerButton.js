@@ -278,10 +278,21 @@
         });
     }
 
+    // We are the hero now: hide a detected external billboard (e.g. the Jellyfin
+    // Media Bar) and undo the top margin it adds to the home container, so there is
+    // never a double hero. Lets our hero fully replace Media Bar without uninstalling it.
+    function suppressExternalHero(container) {
+        var ext = document.querySelectorAll('#slides-container, [id*="slideshow" i], [class*="mediabar" i]');
+        if (!ext.length) return;
+        ext.forEach(function (el) { if (!el.closest || !el.closest('.nf-hero')) el.style.display = 'none'; });
+        if (container) { container.style.marginTop = '0px'; }
+    }
+
     function setupHero() {
         try {
             if (cfg('HeroBillboard', true) !== true) { removeHero(); return; }
             if (!isHomePage()) { removeHero(); return; }
+            suppressExternalHero(activeHomeContainer());
             if (heroBusy) return;
             if (typeof ApiClient === 'undefined' || !ApiClient.getItems || !ApiClient.getCurrentUserId) return;
             var container = activeHomeContainer();
@@ -601,10 +612,17 @@
         setupCardPreviews();
         applyDynamic();
         window.addEventListener('hashchange', function () { clearPreview(); setupHero(); renderNavTabs(); });
-        new MutationObserver(function () {
-            if (!document.querySelector('.ct-settings-btn')) addButton();
-            setupHero();
-        }).observe(document.body, { childList: true, subtree: true });
+
+        // Coalesce the SPA's mutation bursts into one applyDynamic per frame so
+        // EVERY feature (nav tabs, hero, genre rows, ...) gets retried as the
+        // home page renders asynchronously — not just on the single init() pass.
+        var dynScheduled = false;
+        function scheduleDynamic() {
+            if (dynScheduled) return;
+            dynScheduled = true;
+            requestAnimationFrame(function () { dynScheduled = false; applyDynamic(); });
+        }
+        new MutationObserver(scheduleDynamic).observe(document.body, { childList: true, subtree: true });
 
         // Load feature flags (hero / previews) once, then refresh.
         if (typeof ApiClient !== 'undefined' && ApiClient.getPluginConfiguration) {
