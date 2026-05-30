@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.1.0",
-        "changelog": "Self-contained Netflix experience — no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
+        "changelog": "Self-contained Netflix experience \u2014 no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.1/custom-theme-v2.5.1.zip",
-        "checksum": "0000000000000000000000000000000000",
+        "checksum": "f37f19464dc69a520b1866432ae10e96",
         "timestamp": "2026-05-30T14:00:00"
       },
       {
