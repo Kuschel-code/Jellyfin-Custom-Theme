@@ -17,6 +17,7 @@
         ['Netflix Features', [
             ['CleanHome', 'toggle', 'Clean Netflix home (hide native rows)'],
             ['TrendingRow', 'toggle', 'Top 10 trending row (AniList)'],
+            ['OwnInjection', 'toggle', 'Self-contained inject (no File Transformation)'],
             ['HeroBillboard', 'toggle', 'Hero carousel (replaces Media Bar)'],
             ['GenreRows', 'toggle', 'Genre rows (replaces Home Sections)'],
             ['NavTabs', 'toggle', 'Top nav tabs (replaces Custom Tabs)'],
