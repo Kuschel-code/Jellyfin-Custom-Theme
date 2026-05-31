@@ -16,6 +16,7 @@
     var SECTIONS = [
         ['Netflix Features', [
             ['CleanHome', 'toggle', 'Clean Netflix home (hide native rows)'],
+            ['TrendingRow', 'toggle', 'Top 10 trending row (AniList)'],
             ['HeroBillboard', 'toggle', 'Hero carousel (replaces Media Bar)'],
             ['GenreRows', 'toggle', 'Genre rows (replaces Home Sections)'],
             ['NavTabs', 'toggle', 'Top nav tabs (replaces Custom Tabs)'],
@@ -245,8 +246,10 @@
             if (!document.querySelector('.headerLeft')) return;
             if (navViews) { renderNavTabs(); return; }
             if (navFetching) return;
+            var navUid = ApiClient.getCurrentUserId();
+            if (!navUid) return; // not logged in yet — avoid GET /Users/null/Views -> 400
             navFetching = true;
-            ApiClient.getUserViews({ UserId: ApiClient.getCurrentUserId() }).then(function (res) {
+            ApiClient.getUserViews({ UserId: navUid }).then(function (res) {
                 navFetching = false;
                 navViews = (res && res.Items) || [];
                 renderNavTabs();
@@ -633,7 +636,7 @@
             pop.className = 'nf-pop';
             pop.style.left = left + 'px'; pop.style.top = top + 'px'; pop.style.width = Wp + 'px';
             pop.innerHTML =
-                '<div class="nf-pop-media"' + (media ? ' style="background-image:url(\'' + media + '\')"' : '') + '><div class="nf-pop-fade"></div></div>' +
+                '<a class="nf-pop-media" href="' + detailUrl + '"' + (media ? ' style="background-image:url(\'' + media + '\')"' : '') + '><div class="nf-pop-fade"></div></a>' +
                 '<div class="nf-pop-info">' +
                     '<div class="nf-pop-actions">' +
                         '<a class="nf-pop-btn play" href="' + detailUrl + '" title="Abspielen"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
@@ -744,12 +747,98 @@
         } catch (e) {}
     }
 
+    // ============ Top 10 trending row — real hype data (AniList), matched to library ============
+    // Fetches the currently-trending anime from AniList (public GraphQL, CORS-enabled,
+    // no key) and shows the ones you actually have, ranked 1-10. Anime-focused because
+    // the typical library here is anime; movies/series trending (TMDB) needs an API key.
+    var trendBusy = false;
+    function nfNorm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+
+    function setupTrendingRow() {
+        try {
+            if (cfg('TrendingRow', true) !== true) return;
+            if (!isHomePage()) return;
+            if (trendBusy) return;
+            if (typeof ApiClient === 'undefined' || !ApiClient.getItems || !ApiClient.getCurrentUserId) return;
+            var container = activeHomeContainer();
+            if (!container || container.getAttribute('data-nf-trend') === '1') return;
+            var uid = ApiClient.getCurrentUserId();
+            if (!uid) return;
+            trendBusy = true;
+            container.setAttribute('data-nf-trend', '1');
+            var sid = ApiClient.serverId && ApiClient.serverId();
+
+            ApiClient.getItems(uid, {
+                IncludeItemTypes: 'Movie,Series', Recursive: true, Limit: 800,
+                Fields: 'OriginalTitle', ImageTypeLimit: 1, EnableImageTypes: 'Primary'
+            }).then(function (res) {
+                var items = (res && res.Items) || [];
+                var byName = {};
+                items.forEach(function (it) {
+                    if (!(it.ImageTags && it.ImageTags.Primary)) return;
+                    byName[nfNorm(it.Name)] = it;
+                    if (it.OriginalTitle) byName[nfNorm(it.OriginalTitle)] = it;
+                });
+                var q = 'query{Page(perPage:50){media(sort:TRENDING_DESC,type:ANIME){title{romaji english}}}}';
+                return fetch('https://graphql.anilist.co', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ query: q })
+                }).then(function (r) { return r.json(); }).then(function (j) {
+                    trendBusy = false;
+                    var media = (((j || {}).data || {}).Page || {}).media || [];
+                    var matched = [], seen = {};
+                    media.forEach(function (m) {
+                        if (matched.length >= 10) return;
+                        var cand = [m.title && m.title.english, m.title && m.title.romaji];
+                        for (var i = 0; i < cand.length; i++) {
+                            var n = nfNorm(cand[i]);
+                            if (n && byName[n] && !seen[byName[n].Id]) { seen[byName[n].Id] = 1; matched.push(byName[n]); break; }
+                        }
+                    });
+                    if (matched.length < 1 || !isHomePage()) return;
+                    var c = activeHomeContainer();
+                    if (!c || c.getAttribute('data-nf-trend') !== '1') return;
+                    var cards = matched.map(function (it, idx) {
+                        return '<div class="nf-trend-item"><span class="nf-trend-rank">' + (idx + 1) + '</span>' + buildCardHtml(it, sid) + '</div>';
+                    }).join('');
+                    var sec = document.createElement('div');
+                    sec.className = 'verticalSection nf-genre-section nf-trend-section';
+                    sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Top 10 Anime heute</h2>' +
+                        '<div class="nf-row-scroll"><div class="nf-row-track nf-trend-track">' + cards + '</div></div>';
+                    var anchor = c.querySelector('.nf-cw-section') || c.querySelector('.nf-hero');
+                    if (anchor && anchor.nextSibling) { c.insertBefore(sec, anchor.nextSibling); }
+                    else { c.insertBefore(sec, c.firstChild); }
+                });
+            }).catch(function () { trendBusy = false; });
+        } catch (e) { trendBusy = false; }
+    }
+
+    // ============ Logo -> Home ============
+    // The Netflix "N" logo sits on the (non-clickable) page-title element. Make it
+    // navigate home like Netflix by delegating to Jellyfin's own home button.
+    function setupLogoHome() {
+        try {
+            var logo = document.querySelector('.skinHeader .pageTitleWithLogo, .skinHeader .pageTitle');
+            if (!logo || logo.getAttribute('data-nf-home') === '1') return;
+            logo.setAttribute('data-nf-home', '1');
+            logo.style.cursor = 'pointer';
+            logo.addEventListener('click', function (e) {
+                e.preventDefault();
+                var home = document.querySelector('.headerHomeButton');
+                if (home) { home.click(); } else { window.location.hash = '#/home.html'; }
+            });
+        } catch (e) {}
+    }
+
     // ============ Init ============
     function applyDynamic() {
         addButton();
         setupNavTabs();
+        setupLogoHome();
         setupHero();
         setupContinueWatching();
+        setupTrendingRow();
         setupGenreRows();
         markHomeOwned();
         setupTopTen();

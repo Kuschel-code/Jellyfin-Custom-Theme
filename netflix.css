@@ -291,9 +291,14 @@ body, .mainDrawer, .dialog {
     padding: 2px !important;
 }
 
-/* Horizontal scroll — Netflix-style edge arrows */
-.emby-scroller { overflow: visible !important; }
-.scrollSlider { padding-bottom: 25px !important; margin-bottom: -25px !important; }
+/* Horizontal scroll — Netflix-style edge arrows.
+   SCOPED to the home container only: globally forcing emby-scroller to
+   overflow:visible breaks horizontal scrolling on detail/search/library pages
+   (their card rows expand to full width and blow out the page). Our own home
+   rows use .nf-row-scroll / .nf-cw-scroll, so this only affects (hidden) native
+   home scrollers and never leaks to other pages. */
+.homeSectionsContainer .emby-scroller { overflow: visible !important; }
+.homeSectionsContainer .scrollSlider { padding-bottom: 25px !important; margin-bottom: -25px !important; }
 .emby-scrollbuttons-button {
     background: rgba(20,20,20,0.7) !important;
     color: white !important;
@@ -1372,7 +1377,7 @@ body, .mainDrawer, .dialog {
     transition: opacity 0.18s ease, transform 0.18s ease;
 }
 .nf-pop.show { opacity: 1; transform: scale(1); }
-.nf-pop-media { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000 center / cover no-repeat; }
+.nf-pop-media { display: block; text-decoration: none; position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000 center / cover no-repeat; }
 .nf-pop-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .nf-pop-fade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, #181818 2%, transparent 55%); }
 .nf-pop-info { padding: 8px 16px 16px; }
@@ -1435,5 +1440,46 @@ html.nf-home .skinHeader .headerTabs { display: none !important; }
 .nf-cw-prog > i { display: block; height: 100%; background: var(--accent-red, #E50914); }
 .nf-cw-title { margin-top: 7px; font-size: 0.85rem; color: #d2d2d2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 768px) { .nf-cw-card { width: 60vw; } }
+
+/* =============================================
+   NETFLIX-STYLE LOADING ANIMATION (self-contained, CSS only)
+   Recolors Jellyfin's own spinner to Netflix red + a clean red ring, and gives
+   the initial preloader a Netflix-black backdrop. Branding CSS loads early, so
+   this also covers the very first app load — no companion plugin needed.
+   ============================================= */
+/* Initial preloader / loading screen background */
+html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, #000) !important; }
+
+/* Material spinner arcs -> Netflix red */
+.mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: var(--accent-red, #E50914) !important; }
+.mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: var(--accent-red, #E50914) !important; }
+
+/* Our own clean Netflix-red ring spinner overlaid on the standard loaders */
+.docspinner, .loadingSpinner, .mainAnimatedPages > .loading {
+    position: relative;
+}
+.docspinner::after, .loadingSpinner::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 54px; height: 54px; margin: -27px 0 0 -27px;
+    border: 4px solid rgba(229,9,20,0.25);
+    border-top-color: var(--accent-red, #E50914);
+    border-radius: 50%;
+    animation: nf-spin 0.8s linear infinite;
+    z-index: 2;
+}
+@keyframes nf-spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   TOP 10 TRENDING ROW (built by headerButton.js, AniList data) — big rank numbers
+   ============================================= */
+.nf-trend-track { gap: 0.2vw !important; align-items: flex-end !important; }
+.nf-trend-item { display: flex; align-items: flex-end; flex: 0 0 auto; }
+.nf-trend-rank {
+    font-family: var(--font-netflix); font-weight: 900;
+    font-size: clamp(64px, 8.5vw, 150px); line-height: 0.78;
+    color: #0b0b0b; -webkit-text-stroke: 3px #6d6d6e;
+    margin-right: -1vw; user-select: none; flex: 0 0 auto;
+}
+.nf-trend-item .nf-card { width: clamp(110px, 11vw, 180px); }
 
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */

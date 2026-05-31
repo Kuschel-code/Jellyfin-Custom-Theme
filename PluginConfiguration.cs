@@ -97,6 +97,9 @@ namespace Jellyfin.Plugin.CustomTheme
         /// </summary>
         public bool CleanHome { get; set; } = true;
 
+        /// <summary>Show a "Top 10 trending" row built from live AniList trending data, limited to titles present in the library.</summary>
+        public bool TrendingRow { get; set; } = true;
+
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
 
