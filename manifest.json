@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.8.0",
+        "changelog": "Completes the overflow fix from 2.5.7: the global .verticalSection overflow:visible rule (which the detail/search horizontal scroll containers also carry) was still blowing those pages out to extreme width. Removed it so native scrolling stands — detail, episode and search pages now lay out correctly.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.8/custom-theme-v2.5.8.zip",
+        "checksum": "0000000000000000000000000000000000",
+        "timestamp": "2026-05-31T20:30:00"
+      },
+      {
         "version": "2.5.7.0",
         "changelog": "Live-test bug fixes + new features. Fixes: detail/search/episode pages no longer blow out to extreme width (horizontal scrollers were globally forced to overflow:visible) \u2014 rows scroll again; the card hover popup poster is now clickable (opens the title); the Netflix 'N' logo navigates home; removed a stray /Users/null/Views 400 before login. New: Netflix-style red loading animation (recolors Jellyfin's spinner, self-contained); a 'Top 10 Anime heute' row built from live AniList trending data, limited to titles you actually have. Both toggleable.",
         "targetAbi": "10.11.0.0",

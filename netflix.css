@@ -161,7 +161,10 @@ body, .mainDrawer, .dialog {
 .verticalSection {
     margin-bottom: 0.8rem !important;
     padding: 0 4% !important;
-    overflow: visible !important;
+    /* NOTE: do NOT force overflow:visible here — on detail/search pages the
+       horizontal scroll container itself carries the .verticalSection class, and
+       forcing it visible stops it clipping/scrolling and blows the page width out.
+       Native overflow (auto) must stand. Home rows use their own .nf-row-scroll. */
 }
 
 .sectionTitle {
