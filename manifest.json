@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.7.0",
-        "changelog": "Live-test bug fixes + new features. Fixes: detail/search/episode pages no longer blow out to extreme width (horizontal scrollers were globally forced to overflow:visible) — rows scroll again; the card hover popup poster is now clickable (opens the title); the Netflix 'N' logo navigates home; removed a stray /Users/null/Views 400 before login. New: Netflix-style red loading animation (recolors Jellyfin's spinner, self-contained); a 'Top 10 Anime heute' row built from live AniList trending data, limited to titles you actually have. Both toggleable.",
+        "changelog": "Live-test bug fixes + new features. Fixes: detail/search/episode pages no longer blow out to extreme width (horizontal scrollers were globally forced to overflow:visible) \u2014 rows scroll again; the card hover popup poster is now clickable (opens the title); the Netflix 'N' logo navigates home; removed a stray /Users/null/Views 400 before login. New: Netflix-style red loading animation (recolors Jellyfin's spinner, self-contained); a 'Top 10 Anime heute' row built from live AniList trending data, limited to titles you actually have. Both toggleable.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.7/custom-theme-v2.5.7.zip",
-        "checksum": "0000000000000000000000000000000000",
+        "checksum": "559e267c9383b7983d0a5c2910412419",
         "timestamp": "2026-05-31T20:00:00"
       },
       {
