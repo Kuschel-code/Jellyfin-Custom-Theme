@@ -300,7 +300,12 @@ body, .mainDrawer, .dialog {
    (their card rows expand to full width and blow out the page). Our own home
    rows use .nf-row-scroll / .nf-cw-scroll, so this only affects (hidden) native
    home scrollers and never leaks to other pages. */
-.homeSectionsContainer .emby-scroller { overflow: visible !important; }
+/* Jellyfin's .emby-scroller defaults to overflow:visible here (it scrolls via JS),
+   and our theme never restored clipping -> detail/search/episode card rows expanded
+   to full width and blew the page out to 9000px+. Force horizontal auto-scroll
+   globally; home is unaffected (its rows use .nf-row-scroll / .nf-cw-scroll, and
+   native home sections are hidden). VERIFIED live: detail docWidth back to viewport. */
+.emby-scroller { overflow-x: auto !important; }
 .homeSectionsContainer .scrollSlider { padding-bottom: 25px !important; margin-bottom: -25px !important; }
 .emby-scrollbuttons-button {
     background: rgba(20,20,20,0.7) !important;

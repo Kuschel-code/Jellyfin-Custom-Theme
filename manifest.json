@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.9.0",
+        "changelog": "Real fix for the wide detail/search/episode pages: Jellyfin's .emby-scroller defaults to overflow:visible (it scrolls via JS) and nothing restored clipping, so card rows expanded to 9000px+. Now forces .emby-scroller to overflow-x:auto globally — rows scroll, pages lay out correctly. Verified live. Home is unaffected (own row containers).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.9/custom-theme-v2.5.9.zip",
+        "checksum": "0000000000000000000000000000000000",
+        "timestamp": "2026-05-31T21:00:00"
+      },
+      {
         "version": "2.5.8.0",
         "changelog": "Completes the overflow fix from 2.5.7: the global .verticalSection overflow:visible rule (which the detail/search horizontal scroll containers also carry) was still blowing those pages out to extreme width. Removed it so native scrolling stands \u2014 detail, episode and search pages now lay out correctly.",
         "targetAbi": "10.11.0.0",
