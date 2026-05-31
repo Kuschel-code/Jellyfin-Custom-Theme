@@ -40,9 +40,19 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             ApplyCss();
 
-            // Prefer the clean runtime method if the File Transformation plugin is installed;
-            // otherwise fall back to writing the script into index.html ourselves.
-            if (RegisterFileTransformation())
+            // Injection strategy:
+            //  - OwnInjection ON (default): our built-in IndexInjectionMiddleware injects at
+            //    serve time. We do NOT ask the File Transformation plugin to inject (no double
+            //    inject, no dependency on it) and we strip any stale on-disk copy.
+            //  - OwnInjection OFF: fall back to the File Transformation plugin if present,
+            //    else write the script into index.html on disk.
+            var ownInjection = Plugin.Instance?.Configuration?.OwnInjection ?? true;
+            if (ownInjection)
+            {
+                _logger.LogInformation("[Custom Theme] Built-in middleware handles index.html injection (OwnInjection on); File Transformation not registered.");
+                WriteIndexHtml(inject: false);
+            }
+            else if (RegisterFileTransformation())
             {
                 // File Transformation injects at serve time, so remove any stale on-disk
                 // copy left by an earlier version to avoid a doubled script.
