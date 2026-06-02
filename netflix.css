@@ -1243,12 +1243,21 @@ body, .mainDrawer, .dialog {
     position: absolute; inset: 0;
     background-size: cover;
     background-position: center 15%;
+    transform: scale(1.01);
+}
+/* Ken Burns slow zoom on the visible slide (Media Bar technique) */
+.nf-hero-slide.active .nf-hero-bg {
+    animation: nf-kenburns 16s ease-out forwards;
+}
+@keyframes nf-kenburns {
+    from { transform: scale(1.01); }
+    to   { transform: scale(1.1); }
 }
 .nf-hero-slide::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
     background:
         linear-gradient(to top, var(--bg-dark) 0%, rgba(20,20,20,0.5) 22%, transparent 50%),
-        linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.4) 32%, transparent 58%);
+        linear-gradient(130deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 38%, transparent 62%);
 }
 .nf-hero-content {
     position: absolute; left: 0; bottom: 0; z-index: 3;

@@ -865,6 +865,22 @@
         }
         new MutationObserver(scheduleDynamic).observe(document.body, { childList: true, subtree: true });
 
+        // SPA-survival (learned from jellyfin-plugin-custom-tabs): Jellyfin recreates the
+        // header/home on client-side navigation, which can drop our button/tabs/takeover.
+        // Patch history + listen to nav events and re-apply (with a short settle delay).
+        function reapply() { setTimeout(scheduleDynamic, 250); }
+        ['pushState', 'replaceState'].forEach(function (m) {
+            var orig = history[m];
+            if (typeof orig === 'function' && !orig.__ctPatched) {
+                var patched = function () { var r = orig.apply(this, arguments); reapply(); return r; };
+                patched.__ctPatched = true;
+                try { history[m] = patched; } catch (e) {}
+            }
+        });
+        ['popstate', 'pageshow', 'focus', 'visibilitychange'].forEach(function (ev) {
+            window.addEventListener(ev, reapply);
+        });
+
         // Load feature flags (hero / previews) once, then refresh.
         if (typeof ApiClient !== 'undefined' && ApiClient.getPluginConfiguration) {
             ApiClient.getPluginConfiguration(PLUGIN_ID).then(function (c) {

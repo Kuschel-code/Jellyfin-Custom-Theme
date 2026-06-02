@@ -46,8 +46,13 @@ namespace Jellyfin.Plugin.CustomTheme
                 return html;
             }
 
-            return html.Replace("</body>", $"<script id=\"{Marker}\">\n{script}\n</script>\n</body>", StringComparison.OrdinalIgnoreCase);
+            // The version attribute changes index.html's bytes on every plugin update, so its
+            // ETag changes and browsers refetch instead of serving a stale cached page.
+            return html.Replace("</body>", $"<script id=\"{Marker}\" data-ct-version=\"{Version}\">\n{script}\n</script>\n</body>", StringComparison.OrdinalIgnoreCase);
         }
+
+        private static string Version =>
+            typeof(ThemeTransformation).Assembly.GetName().Version?.ToString() ?? "0";
 
         /// <summary>Removes any previously injected script (ours or from older versions) so injection stays single.</summary>
         public static string StripInjected(string html)
@@ -57,7 +62,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 return html;
             }
 
-            html = Regex.Replace(html, "<script id=\"" + Marker + "\">.*?</script>\\s*", string.Empty, RegexOptions.Singleline);
+            html = Regex.Replace(html, "<script id=\"" + Marker + "\"[^>]*>.*?</script>\\s*", string.Empty, RegexOptions.Singleline);
             html = html.Replace("<!-- Custom Theme -->", string.Empty, StringComparison.Ordinal);
             html = Regex.Replace(html, "<script[^>]*custom-theme-headerjs[^>]*>\\s*</script>\\s*", string.Empty, RegexOptions.Singleline | RegexOptions.IgnoreCase);
             return html;
