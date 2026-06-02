@@ -40,6 +40,10 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             ApplyCss();
 
+            // Resolve index.html once so the middleware can serve it directly (read + inject
+            // in memory) — the self-contained path that works on read-only Docker web roots.
+            IndexInjectionMiddleware.WebIndexHtmlPath = FindIndexHtml();
+
             // Touch the bundled File Transformation provider so its assembly is loaded into
             // our plugin context and other plugins (e.g. the Media Bar) can discover it and
             // register their index.html transformations — no separate File Transformation

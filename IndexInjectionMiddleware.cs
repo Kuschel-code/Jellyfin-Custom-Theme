@@ -46,6 +46,15 @@ namespace Jellyfin.Plugin.CustomTheme
     {
         private readonly RequestDelegate _next;
 
+        /// <summary>
+        /// Absolute path to the web client's index.html, resolved once at startup by
+        /// <see cref="EntryPoint"/>. When set, the middleware reads and serves this file
+        /// itself (transformed in memory) instead of capturing the downstream response —
+        /// the only self-contained mechanism that injects on read-only Docker web roots,
+        /// where SendFileAsync bypasses response-body capture and on-disk writes fail.
+        /// </summary>
+        public static volatile string? WebIndexHtmlPath;
+
         public IndexInjectionMiddleware(RequestDelegate next)
         {
             _next = next;
@@ -92,6 +101,53 @@ namespace Jellyfin.Plugin.CustomTheme
             {
                 await _next(context).ConfigureAwait(false);
                 return;
+            }
+
+            // Preferred path: serve index.html ourselves — read straight from disk and
+            // transform in memory. This is the ONLY self-contained mechanism that injects on
+            // read-only Docker web roots, where the static-file middleware uses SendFileAsync
+            // (bypassing response-body capture) and on-disk writes fail. Restricted to the
+            // actual index document (/web/index.html and the /web/ default) so the SPA base
+            // path stays correct; the bare /web redirect is left to Jellyfin. Any failure
+            // falls through to the capture-based path below.
+            var reqPath = context.Request.Path.Value ?? string.Empty;
+            var indexPath = WebIndexHtmlPath;
+            var isDirectServe = reqPath.Equals("/web/index.html", StringComparison.OrdinalIgnoreCase)
+                || reqPath.Equals("/web/", StringComparison.OrdinalIgnoreCase);
+            if (ownInjection && isDirectServe && indexPath != null
+                && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)))
+            {
+                try
+                {
+                    var raw = await File.ReadAllTextAsync(indexPath).ConfigureAwait(false);
+                    if (raw.IndexOf("</body>", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        var working = ThemeTransformation.InjectInto(ThemeTransformation.StripInjected(raw));
+                        if (provideFt)
+                        {
+                            working = ApplyRegisteredTransformations(working);
+                        }
+
+                        var directBytes = Encoding.UTF8.GetBytes(working);
+                        context.Response.StatusCode = 200;
+                        context.Response.ContentType = "text/html; charset=utf-8";
+                        context.Response.Headers.Remove("ETag");
+                        context.Response.Headers.Remove("Last-Modified");
+                        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                        context.Response.ContentLength = directBytes.Length;
+                        if (HttpMethods.IsHead(context.Request.Method))
+                        {
+                            return;
+                        }
+
+                        await context.Response.Body.WriteAsync(directBytes).ConfigureAwait(false);
+                        return;
+                    }
+                }
+                catch
+                {
+                    // Fall through to the capture-based path / normal serving on any error.
+                }
             }
 
             var originalBodyFeature = context.Features.Get<IHttpResponseBodyFeature>();
