@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.18.0",
-        "changelog": "Self-contained injection now works on read-only / Docker web roots too — no File Transformation plugin needed anywhere. The built-in middleware serves index.html itself (reads it and injects in memory) instead of relying on response capture (bypassed by SendFileAsync) or on-disk writes (blocked by a read-only web dir). Enable via the 'Self-contained inject' setting.",
+        "changelog": "Self-contained injection now works on read-only / Docker web roots too \u2014 no File Transformation plugin needed anywhere. The built-in middleware serves index.html itself (reads it and injects in memory) instead of relying on response capture (bypassed by SendFileAsync) or on-disk writes (blocked by a read-only web dir). Enable via the 'Self-contained inject' setting.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.18/custom-theme-v2.5.18.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "913ac471e4040eaca68dbab09d6c9512",
         "timestamp": "2026-06-02T23:30:00"
       },
       {
