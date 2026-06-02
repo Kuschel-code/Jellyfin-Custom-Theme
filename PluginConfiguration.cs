@@ -108,6 +108,14 @@ namespace Jellyfin.Plugin.CustomTheme
         /// </summary>
         public bool OwnInjection { get; set; } = true;
 
+        /// <summary>
+        /// Provide the File Transformation service to OTHER plugins (e.g. the Media Bar) so
+        /// they work without installing the separate File Transformation plugin. Our
+        /// middleware applies their registered index.html transformations. Turn off if you
+        /// run the real File Transformation plugin to avoid two providers.
+        /// </summary>
+        public bool ProvideFileTransformation { get; set; } = true;
+
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
 

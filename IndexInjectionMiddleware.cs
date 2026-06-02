@@ -1,6 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -54,17 +59,23 @@ namespace Jellyfin.Plugin.CustomTheme
                 || p.Equals("/web", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool Enabled()
+        private static bool OwnInjectionEnabled()
         {
             try
             {
-                var plugin = Plugin.Instance;
-                if (plugin?.Configuration == null)
-                {
-                    return false;
-                }
+                return Plugin.Instance?.Configuration?.OwnInjection ?? false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                return plugin.Configuration.OwnInjection;
+        private static bool ProvideFtEnabled()
+        {
+            try
+            {
+                return Plugin.Instance?.Configuration?.ProvideFileTransformation ?? false;
             }
             catch
             {
@@ -74,7 +85,10 @@ namespace Jellyfin.Plugin.CustomTheme
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!IsIndexRequest(context.Request.Path) || !Enabled())
+            var ownInjection = OwnInjectionEnabled();
+            var provideFt = ProvideFtEnabled();
+
+            if (!IsIndexRequest(context.Request.Path) || (!ownInjection && !provideFt))
             {
                 await _next(context).ConfigureAwait(false);
                 return;
@@ -120,10 +134,24 @@ namespace Jellyfin.Plugin.CustomTheme
             {
                 try
                 {
-                    var injected = ThemeTransformation.InjectInto(ThemeTransformation.StripInjected(html));
-                    if (!string.Equals(injected, html, StringComparison.Ordinal))
+                    var working = html;
+
+                    // 1) Our own header/hero script.
+                    if (ownInjection)
                     {
-                        output = injected;
+                        working = ThemeTransformation.InjectInto(ThemeTransformation.StripInjected(working));
+                    }
+
+                    // 2) Transformations registered by other plugins (e.g. Media Bar) through
+                    //    the bundled File Transformation provider.
+                    if (provideFt)
+                    {
+                        working = ApplyRegisteredTransformations(working);
+                    }
+
+                    if (!string.Equals(working, html, StringComparison.Ordinal))
+                    {
+                        output = working;
                     }
                 }
                 catch
@@ -143,6 +171,89 @@ namespace Jellyfin.Plugin.CustomTheme
 
             context.Response.ContentLength = bytes.Length;
             await context.Response.Body.WriteAsync(bytes).ConfigureAwait(false);
+        }
+
+        /// <summary>Applies every transformation other plugins registered through the bundled provider.</summary>
+        private static string ApplyRegisteredTransformations(string html)
+        {
+            foreach (var reg in Jellyfin.Plugin.FileTransformation.PluginInterface.GetRegistrations())
+            {
+                try
+                {
+                    if (!MatchesIndex(reg.FileNamePattern))
+                    {
+                        continue;
+                    }
+
+                    var transformed = InvokeCallback(reg, html);
+                    if (!string.IsNullOrEmpty(transformed))
+                    {
+                        html = transformed;
+                    }
+                }
+                catch
+                {
+                    // One bad transformation must never break the page.
+                }
+            }
+
+            return html;
+        }
+
+        private static bool MatchesIndex(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern))
+            {
+                return true;
+            }
+
+            try
+            {
+                return Regex.IsMatch("index.html", pattern, RegexOptions.IgnoreCase);
+            }
+            catch
+            {
+                return pattern.IndexOf("index", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+        }
+
+        private static string? InvokeCallback(Jellyfin.Plugin.FileTransformation.TransformationRegistration reg, string html)
+        {
+            var want = reg.CallbackAssembly;
+            var asm = AssemblyLoadContext.All.SelectMany(c => c.Assemblies).FirstOrDefault(a =>
+                string.Equals(a.FullName, want, StringComparison.Ordinal)
+                || string.Equals(a.GetName().Name, want, StringComparison.Ordinal)
+                || (want != null && want.StartsWith(a.GetName().Name + ",", StringComparison.Ordinal)));
+
+            var type = asm?.GetType(reg.CallbackClass);
+            var method = type?.GetMethod(reg.CallbackMethod, BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+            if (method is null)
+            {
+                return null;
+            }
+
+            var parameters = method.GetParameters();
+            if (parameters.Length != 1)
+            {
+                return null;
+            }
+
+            object arg;
+            var paramType = parameters[0].ParameterType;
+            if (paramType == typeof(string))
+            {
+                arg = html;
+            }
+            else
+            {
+                // The real File Transformation plugin passes { "contents": "..." } and
+                // deserializes it into the callback's own payload type. Mirror that.
+                var payloadJson = JsonSerializer.Serialize(new { contents = html });
+                arg = JsonSerializer.Deserialize(payloadJson, paramType, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+
+            var target = method.IsStatic ? null : Activator.CreateInstance(type);
+            return method.Invoke(target, new[] { arg }) as string;
         }
     }
 }

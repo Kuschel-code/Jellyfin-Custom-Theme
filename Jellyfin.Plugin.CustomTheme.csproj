@@ -6,10 +6,21 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Jellyfin.Plugin.CustomTheme</AssemblyName>
     <RootNamespace>Jellyfin.Plugin.CustomTheme</RootNamespace>
-    <Version>2.5.11.0</Version>
-    <AssemblyVersion>2.5.11.0</AssemblyVersion>
-    <FileVersion>2.5.11.0</FileVersion>
+    <Version>2.5.13.0</Version>
+    <AssemblyVersion>2.5.13.0</AssemblyVersion>
+    <FileVersion>2.5.13.0</FileVersion>
   </PropertyGroup>
+
+  <!-- The bundled File Transformation provider is a separate assembly so its name
+       contains ".FileTransformation"; exclude its sources from this project and
+       reference it instead. -->
+  <ItemGroup>
+    <Compile Remove="FileTransformation/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="FileTransformation/CustomTheme.FileTransformation.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Jellyfin.Model" Version="10.11.0" />

@@ -56,6 +56,10 @@
 
         // Single source of truth for every setting.
         var SECTIONS = [
+            ['Injection', [
+                ['OwnInjection', 'toggle', 'Self-contained injection via built-in middleware (no File Transformation plugin needed)'],
+                ['ProvideFileTransformation', 'toggle', 'Provide File Transformation to other plugins (e.g. Media Bar) so they work without the separate plugin']
+            ]],
             ['Netflix Features', [
                 ['HoverPreviewCard', 'toggle', 'Hover expand card (grows + info panel with buttons)'],
                 ['PreviewClips', 'toggle', 'Autoplay preview clip on hover (streams ~30s from the middle, nothing stored)'],

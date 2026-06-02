@@ -14,9 +14,9 @@ The plugin generates a complete stylesheet from your settings and writes it to J
 - there is **no client-side JavaScript runtime** driving the look;
 - changing a setting regenerates and re-applies the CSS instantly.
 
-The plugin also injects a small script that adds a **palette settings button** in the header and the **hover autoplay preview** on cards. For this to work reliably (especially on Docker / read-only installs) you should install the [**File Transformation** plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) — the plugin registers with it automatically, and falls back to writing the script into `index.html` itself when possible. The CSS theme always works regardless.
+The plugin also injects a small script that adds a **palette settings button** in the header and the **hover autoplay preview** on cards. This is **fully self-contained** — a built-in ASP.NET middleware injects it into `index.html` at serve time, so **no File Transformation plugin is required** (works on Docker / read-only installs too). The CSS theme always works regardless.
 
-> **Hero banner:** this theme deliberately does **not** add its own big top banner, because the excellent [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) already does it (backdrop slideshow, logo, rating, genres, trailer autoplay). Install the Media Bar for the Netflix-style hero; the two are designed to be used together. (A simple built-in banner can still be enabled in the settings if you don't use the Media Bar.)
+> **Bundled File Transformation:** this plugin also *provides* the File Transformation service to other plugins. So companion plugins like the [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) (the big hero banner) work **without** installing the separate File Transformation plugin — Custom Theme applies their `index.html` transformations for them. (If you already run the real File Transformation plugin, turn this off in the settings to avoid two providers.)
 
 ## Features
 
@@ -46,7 +46,7 @@ The plugin also injects a small script that adds a **palette settings button** i
 3. Open **Catalog** and install **Custom Theme**.
 4. Restart Jellyfin. The theme is applied automatically.
 
-> If the header button / hero don't appear and the log shows the web directory is read-only, install the [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) (repo `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`) — the plugin will then inject via that instead.
+> The header button and previews are injected by the plugin's own middleware — nothing else to install. If you prefer, you can turn the built-in injection off in the settings and use the separate [File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) instead.
 
 ### Manual
 
@@ -96,12 +96,14 @@ git tag v2.0.1 && git push origin v2.0.1
 Plugin.cs                  # Plugin entry; serves configPage.html and headerButton.js
 PluginConfiguration.cs     # Every setting, with defaults — fully consumed by CssGenerator
 CssGenerator.cs            # Builds the stylesheet from config (base CSS + :root overrides + option rules)
-EntryPoint.cs              # Hosted service: applies CSS, registers the script injection on startup
-ThemeTransformation.cs     # Injects headerButton.js into index.html via the File Transformation plugin
+EntryPoint.cs              # Hosted service: applies CSS, sets up injection on startup
+IndexInjectionMiddleware.cs# Built-in middleware: injects the script + applies other plugins' transformations
+ThemeTransformation.cs     # Builds/strips the inline headerButton.js injection
+FileTransformation/        # Bundled File Transformation provider (separate CustomTheme.FileTransformation.dll)
 ServiceRegistrator.cs      # Registers the services with Jellyfin's DI container
 netflix.css                # Base skin stylesheet (embedded resource)
 configPage.html            # Dashboard settings page
-headerButton.js            # Optional header button + slide-in settings panel
+headerButton.js            # Header button + slide-in settings panel + hero/preview/Top 10
 manifest.json              # Plugin repository manifest
 meta.json                  # Plugin metadata (shipped inside the zip)
 LICENSE                    # MIT license
@@ -111,8 +113,8 @@ LICENSE                    # MIT license
 ## Requirements
 
 - Jellyfin 10.11+
-- **[File Transformation plugin](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)** — recommended; needed for the header button + hover preview to load reliably (repo `https://www.iamparadox.dev/jellyfin/plugins/manifest.json`)
-- *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big Netflix-style hero banner
+- *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big Netflix-style hero banner; works without the separate File Transformation plugin because Custom Theme provides that service
+- No File Transformation plugin required (it is bundled/provided by this plugin)
 - .NET 9 SDK (only to build from source)
 
 ## License
