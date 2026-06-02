@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.23.0",
+        "changelog": "Clip robustness: clips now fade in only once they actually start playing (a stalled/loading clip no longer shows a black box over the backdrop — the image stays). Intro skip is now a small fixed ~2-minute jump (only on longer titles) instead of a deep percentage seek, so the clip starts faster and more reliably.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.23/custom-theme-v2.5.23.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-03T02:00:00"
+      },
+      {
         "version": "2.5.22.0",
         "changelog": "Preview clips now skip the intro \u2014 they start about a quarter into the title instead of at the very beginning (hover, hero and detail). New: opening a title ('Mehr Infos' / detail page) now plays a muted, looping clip of the title over the top backdrop. Top 10 entries you own still open their detail page (playable); the rest open on AniList.",
         "targetAbi": "10.11.0.0",

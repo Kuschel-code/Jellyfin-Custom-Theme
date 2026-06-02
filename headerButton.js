@@ -393,7 +393,7 @@
             v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
             v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
             v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
-            v.addEventListener('loadeddata', function () { v.classList.add('show'); });
+            v.addEventListener('playing', function () { v.classList.add('show'); });
             v.src = nfClipUrl(playId, msId, ticks);
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
@@ -659,10 +659,14 @@
     // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
     // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
     function nfClipUrl(playId, msId, ticks) {
+        // Skip the intro by jumping ~2 min in, but only when the title is long enough. A small
+        // FIXED offset (intros are ~constant length, not proportional to runtime) keeps the
+        // copy-remux fast and reliable to start — a deep percentage seek can stall the stream.
+        var skip = (ticks && ticks > 2400000000) ? 1200000000 : 0; // >4min -> start at 2min
         return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
             + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
             + (msId ? '&mediaSourceId=' + msId : '')
-            + (ticks ? '&startTimeTicks=' + Math.floor(ticks * 0.25) : '')
+            + (skip ? '&startTimeTicks=' + skip : '')
             + '&api_key=' + ApiClient.accessToken();
     }
     function makeClip(pop, playId, msId, ticks) {
@@ -977,7 +981,7 @@
                 v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
                 v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
                 v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
-                v.addEventListener('loadeddata', function () { v.classList.add('show'); });
+                v.addEventListener('playing', function () { v.classList.add('show'); });
                 v.src = nfClipUrl(playId, msId, ticks);
                 backdrop.appendChild(v);
                 var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
