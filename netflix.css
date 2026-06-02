@@ -1462,30 +1462,23 @@ html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, 
 .mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: var(--accent-red, #E50914) !important; }
 .mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: var(--accent-red, #E50914) !important; }
 
-/* Our own clean Netflix-red ring spinner, centered on the whole screen */
-.docspinner {
-    position: fixed !important;
-    inset: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-.loadingSpinner, .mainAnimatedPages > .loading {
-    position: relative;
-}
-.docspinner::after, .loadingSpinner::after {
+/* Our own clean Netflix-red ring spinner. The ring itself is position:fixed and
+   centered on the viewport, so it sits dead-centre no matter where (or how small)
+   its container is — fixes the spinner stuck in the top-left corner. */
+.docspinner, .loadingSpinner, .mainAnimatedPages > .loading { background-color: var(--bg-darker, #000) !important; }
+.docspinner::after, .loadingSpinner::after, .mainAnimatedPages > .loading::after {
     content: '';
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
     width: 54px; height: 54px;
+    margin: -27px 0 0 -27px !important;
     border: 4px solid rgba(229,9,20,0.25);
     border-top-color: var(--accent-red, #E50914);
     border-radius: 50%;
     animation: nf-spin 0.8s linear infinite;
-    z-index: 2;
+    z-index: 100000;
 }
-/* Full-screen loader: ring centered by flex (no offset math needed) */
-.docspinner::after { position: static; margin: 0; }
-/* Inline loaders: keep ring centered within their own box */
-.loadingSpinner::after { position: absolute; top: 50%; left: 50%; margin: -27px 0 0 -27px; }
 @keyframes nf-spin { to { transform: rotate(360deg); } }
 
 /* =============================================

@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.15.0",
+        "changelog": "Injection reliability: the plugin now prefers the File Transformation plugin when installed (its Harmony file-provider hook is the only thing that injects on read-only Docker web dirs), and otherwise uses the built-in middleware PLUS an on-disk write as a fallback. Fixes the missing header/settings button. Also: the loading spinner is now reliably centered on screen (was stuck top-left).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.15/custom-theme-v2.5.15.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T15:00:00"
+      },
+      {
         "version": "2.5.14.0",
         "changelog": "Version consistency fix: meta.json, csproj and manifest are all 2.5.14.0 (the 2.5.13 build shipped meta.json 2.5.12.0, causing a perpetual 'update available'). Same features as 2.5.13 \u2014 bundled File Transformation provider (Media Bar works without the separate plugin), self-contained injection, centered loading animation.",
         "targetAbi": "10.11.0.0",

@@ -57,23 +57,25 @@ namespace Jellyfin.Plugin.CustomTheme
                 _logger.LogWarning(ex, "[Custom Theme] Could not initialise the bundled File Transformation provider");
             }
 
-            // Injection strategy:
-            //  - OwnInjection ON (default): our built-in IndexInjectionMiddleware injects at
-            //    serve time. We do NOT ask the File Transformation plugin to inject (no double
-            //    inject, no dependency on it) and we strip any stale on-disk copy.
-            //  - OwnInjection OFF: fall back to the File Transformation plugin if present,
-            //    else write the script into index.html on disk.
+            // Injection strategy, most reliable first:
+            //  1. The real File Transformation plugin (Harmony file-provider hook) is the only
+            //     mechanism that reliably injects on read-only web dirs (e.g. some Docker), where
+            //     neither response-interception middleware nor on-disk writes work. If it's
+            //     installed, register our script with it.
+            //  2. Otherwise use our built-in middleware AND write the script into index.html on
+            //     disk as a belt-and-suspenders. The marker dedupes, so it is never doubled; the
+            //     on-disk copy covers setups where the middleware's response capture is bypassed
+            //     (SendFileAsync, caches, iPad Safari, ...).
             var ownInjection = Plugin.Instance?.Configuration?.OwnInjection ?? true;
-            if (ownInjection)
+            if (RegisterFileTransformation())
             {
-                _logger.LogInformation("[Custom Theme] Built-in middleware handles index.html injection (OwnInjection on); File Transformation not registered.");
+                _logger.LogInformation("[Custom Theme] Injecting via the File Transformation plugin (most reliable, works on read-only web dirs).");
                 WriteIndexHtml(inject: false);
             }
-            else if (RegisterFileTransformation())
+            else if (ownInjection)
             {
-                // File Transformation injects at serve time, so remove any stale on-disk
-                // copy left by an earlier version to avoid a doubled script.
-                WriteIndexHtml(inject: false);
+                _logger.LogInformation("[Custom Theme] No File Transformation plugin found; using the built-in middleware plus on-disk injection.");
+                WriteIndexHtml(inject: true);
             }
             else
             {
@@ -216,9 +218,17 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             try
             {
+                // Find the REAL File Transformation plugin — never our own bundled provider
+                // (CustomTheme.FileTransformation), which would just loop back into our middleware.
                 var ftAssembly = AssemblyLoadContext.All
                     .SelectMany(c => c.Assemblies)
-                    .FirstOrDefault(a => a.FullName?.Contains(".FileTransformation", StringComparison.Ordinal) == true);
+                    .FirstOrDefault(a =>
+                    {
+                        var name = a.GetName().Name;
+                        return name is not null
+                            && name.Contains("FileTransformation", StringComparison.Ordinal)
+                            && !name.Equals("CustomTheme.FileTransformation", StringComparison.Ordinal);
+                    });
 
                 if (ftAssembly is null)
                 {
