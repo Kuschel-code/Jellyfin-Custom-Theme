@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.19.0",
-        "changelog": "Hover preview now actually plays a video (it was showing only the image): the clip is a fast copy-remux to MP4 (h264/aac) instead of a forced downscale transcode — the old params triggered the server's hardware encoder, which failed (ffmpeg 187), and MPEG-TS sources can't direct-play. Series/seasons now stream a representative episode. New loading animation: a centered rotating red ring.",
+        "changelog": "Hover preview now actually plays a video (it was showing only the image): the clip is a fast copy-remux to MP4 (h264/aac) instead of a forced downscale transcode \u2014 the old params triggered the server's hardware encoder, which failed (ffmpeg 187), and MPEG-TS sources can't direct-play. Series/seasons now stream a representative episode. New loading animation: a centered rotating red ring.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.19/custom-theme-v2.5.19.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "496f48270a79682ba45bb966fed32487",
         "timestamp": "2026-06-02T23:55:00"
       },
       {
