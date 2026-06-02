@@ -2,8 +2,8 @@
   "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
   "name": "Custom Theme",
   "version": "2.5.17.0",
-  "description": "Self-contained Netflix experience: rotating hero carousel, curated genre rows, top nav tabs, hover previews, settings panel and 15 fonts \u2014 no Media Bar / Home Sections / Custom Tabs plugins needed.",
-  "overview": "Self-contained Netflix-style skin for Jellyfin: hero carousel, genre rows, nav tabs and settings panel built in",
+  "description": "Netflix-style skin for Jellyfin: rotating hero carousel, genre rows, top nav tabs, native hover previews, settings panel and 15 fonts. Self-contained on most installs (no Media Bar / Home Sections / Custom Tabs needed); on read-only / Docker web roots, install the File Transformation plugin so the header button loads.",
+  "overview": "Netflix-style skin: hero carousel, genre rows, nav tabs, settings panel, 15 fonts. On read-only/Docker installs the File Transformation plugin is recommended.",
   "owner": "Kuschel-code",
   "category": "General",
   "targetAbi": "10.11.0.0"

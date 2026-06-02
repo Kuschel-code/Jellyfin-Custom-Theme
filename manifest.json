@@ -2,8 +2,8 @@
   {
     "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
     "name": "Custom Theme",
-    "description": "Netflix-style custom skin with settings panel, multiple fonts, and full customization. Install and everything works automatically.",
-    "overview": "Netflix-inspired skin for Jellyfin with built-in settings panel",
+    "description": "Netflix-style skin for Jellyfin: hero carousel, genre rows, nav tabs, native hover previews, settings panel and 15 fonts. Self-contained on most installs; on read-only / Docker web roots, install the File Transformation plugin so the header button loads.",
+    "overview": "Netflix-inspired skin for Jellyfin with hero, genre rows, nav tabs and a built-in settings panel",
     "owner": "Kuschel-code",
     "category": "General",
     "imageUrl": "",
