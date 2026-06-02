@@ -13,7 +13,7 @@
         "changelog": "Version consistency fix: meta.json, csproj and manifest are all 2.5.14.0 (the 2.5.13 build shipped meta.json 2.5.12.0, causing a perpetual 'update available'). Same features as 2.5.13 \u2014 bundled File Transformation provider (Media Bar works without the separate plugin), self-contained injection, centered loading animation.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.14/custom-theme-v2.5.14.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "c75ab88cc325c03991b009917b2dc7ea",
         "timestamp": "2026-06-02T13:00:00"
       },
       {
