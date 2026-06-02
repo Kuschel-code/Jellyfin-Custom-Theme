@@ -1464,12 +1464,15 @@ html.nf-home .skinHeader .headerTabs { display: none !important; }
    the initial preloader a Netflix-black backdrop. Branding CSS loads early, so
    this also covers the very first app load — no companion plugin needed.
    ============================================= */
-/* Initial preloader / loading screen background */
-html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, #000) !important; }
+/* Initial preloader / loading screen background — the full-page backdrop only.
+   NOTE: the spinner element (.docspinner) is deliberately NOT given a background here,
+   otherwise it paints a small black square next to our centered ring. */
+html.preload, #loadingSpinner { background-color: var(--bg-darker, #000) !important; }
 
-/* Material spinner arcs -> Netflix red */
-.mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: var(--accent-red, #E50914) !important; }
-.mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: var(--accent-red, #E50914) !important; }
+/* Hide Jellyfin's native Material spinner arcs and box — our ::after ring replaces them
+   (otherwise a black 122px square / a second spinner shows behind the ring). */
+.mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: transparent !important; }
+.mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: transparent !important; }
 
 /* Netflix-style loading spinner — a centered rotating ring (user-supplied design).
    position:fixed so it sits dead-centre regardless of its container (fixes the loader
@@ -1477,7 +1480,8 @@ html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, 
    margins. Arcs use the accent red — the original #000 would be invisible on the black
    loading backdrop. Pure CSS, self-contained (no JS / companion plugin). */
 .docspinner, .loadingSpinner, .mainAnimatedPages > .loading {
-    background-color: var(--bg-darker, #000) !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 .docspinner::after, .loadingSpinner::after, .mainAnimatedPages > .loading::after {
     content: '';
