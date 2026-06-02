@@ -1537,4 +1537,44 @@ html.preload, #loadingSpinner { background-color: var(--bg-darker, #000) !import
 .nf-trend-item:hover .nf-trend-poster { transform: scale(1.05); }
 .nf-trend-item .nf-card { width: clamp(110px, 11vw, 180px); }
 
+/* =============================================
+   DESIGN POLISH — frosted-glass surfaces, softer depth, smoother hovers.
+   CSS-only, additive (inspired by Jamfin / Abyss / Jellyfin-Better-Styles).
+   ============================================= */
+/* Frosted-glass slide-in settings panel */
+.ct-overlay {
+    background: rgba(18, 18, 20, 0.72) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    backdrop-filter: blur(22px) saturate(150%);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: -12px 0 48px rgba(0, 0, 0, 0.6);
+}
+/* Frosted hover-preview popup with deeper, softer shadow */
+.nf-pop {
+    background: rgba(24, 24, 26, 0.82) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+}
+.nf-pop-media { border-radius: 8px 8px 0 0; }
+/* Softer, lifted card hover (depth in addition to the existing scale) */
+.card .cardScalable {
+    transition: transform .28s cubic-bezier(.2, .7, .2, 1), box-shadow .28s ease !important;
+}
+.card:hover .cardScalable {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+    border-radius: 6px;
+}
+/* Micro-interactions on the round action buttons */
+.nf-hero-btn, .nf-pop-btn {
+    transition: transform .15s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.nf-hero-btn:hover { transform: translateY(-1px); }
+.nf-pop-btn:hover { transform: scale(1.08); }
+/* Slightly glassy genre/trend section headers */
+.nf-genre-section .sectionTitle, .nf-cw-section .sectionTitle {
+    letter-spacing: .2px;
+}
+
 /* === END OF BASE THEME — runtime options are appended by CssGenerator === */
