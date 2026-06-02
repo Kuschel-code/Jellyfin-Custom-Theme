@@ -13,7 +13,7 @@
         "changelog": "Fixes clips that ended on hover / didn't play on the detail page: only ONE clip remux now runs at a time across the whole UI (rotating hero + hover + detail no longer pile up and saturate the server transcoder). The hero also rotates slower (14s) and pauses while you're hovering a card, so a hover/detail clip gets the transcoder to itself and actually plays.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.25/custom-theme-v2.5.25.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "29dca251dcc522827a7d860616088c47",
         "timestamp": "2026-06-03T02:45:00"
       },
       {
