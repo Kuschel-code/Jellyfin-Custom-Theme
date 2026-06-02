@@ -375,10 +375,58 @@
         var cur = 0, paused = false;
         var slideEls = hero.querySelectorAll('.nf-hero-slide');
         var dotEls = hero.querySelectorAll('.nf-hero-dot');
+        var clipTimer = null;
+
+        // Self-contained hero clip: a muted, looping REMUX of the actual title (the file
+        // itself, not a YouTube trailer) fades in over the backdrop of the active slide.
+        function stopClip() {
+            if (clipTimer) { clearTimeout(clipTimer); clipTimer = null; }
+            hero.querySelectorAll('.nf-hero-video').forEach(function (v) {
+                try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+                v.remove();
+            });
+        }
+        function attachClip(slideEl, playId, msId) {
+            if (!slideEl || !slideEl.classList.contains('active') || !document.body.contains(slideEl)) return;
+            var v = document.createElement('video');
+            v.className = 'nf-hero-video';
+            v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
+            v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+            v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
+            v.addEventListener('loadeddata', function () { v.classList.add('show'); });
+            v.src = ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
+                + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
+                + (msId ? '&mediaSourceId=' + msId : '') + '&api_key=' + ApiClient.accessToken();
+            var bg = slideEl.querySelector('.nf-hero-bg');
+            slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
+            var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+        }
+        function playClip(idx) {
+            if (cfg('PreviewClips', true) === false) return;
+            var item = items[idx], slideEl = slideEls[idx];
+            if (!item || !slideEl) return;
+            var type = item.Type || '';
+            if (type === 'Series' || type === 'Season' || item.IsFolder) {
+                var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
+                if (!uid || !ApiClient.getItems) return;
+                ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources' }).then(function (res) {
+                    if (!slideEl.classList.contains('active')) return;
+                    var ep = res && res.Items && res.Items[0]; if (!ep) return;
+                    attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id);
+                }).catch(function () {});
+            } else {
+                attachClip(slideEl, item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id);
+            }
+        }
+        function scheduleClip() {
+            stopClip();
+            clipTimer = setTimeout(function () { playClip(cur); }, 1800);
+        }
         function go(n) {
             cur = (n + slideEls.length) % slideEls.length;
             for (var i = 0; i < slideEls.length; i++) { slideEls[i].classList.toggle('active', i === cur); }
             for (var j = 0; j < dotEls.length; j++) { dotEls[j].classList.toggle('active', j === cur); }
+            scheduleClip();
         }
 
         if (slideEls.length > 1) {
@@ -410,6 +458,9 @@
                 }).catch(function () {});
             });
         });
+
+        // Start the clip for the first slide (subsequent slides are handled by go()).
+        scheduleClip();
     }
 
     // ============ Curated genre rows (home page) — replaces Home Screen Sections ============
@@ -822,11 +873,14 @@
                 var items = (res && res.Items) || [];
                 var byName = {};
                 items.forEach(function (it) {
-                    if (!(it.ImageTags && it.ImageTags.Primary)) return;
                     byName[nfNorm(it.Name)] = it;
                     if (it.OriginalTitle) byName[nfNorm(it.OriginalTitle)] = it;
                 });
-                var q = 'query{Page(perPage:50){media(sort:TRENDING_DESC,type:ANIME){title{romaji english}}}}';
+                // Global anime hype list (AniList, public GraphQL, no key). We show the real
+                // Top 10 regardless of library size; titles you OWN link to their detail page
+                // (playable), the rest link out to AniList. (Films/series/music trending would
+                // need a keyed source like TMDB — not added here to stay key-free.)
+                var q = 'query{Page(perPage:10){media(sort:TRENDING_DESC,type:ANIME){id title{romaji english} coverImage{large} siteUrl}}}';
                 return fetch('https://graphql.anilist.co', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -834,24 +888,32 @@
                 }).then(function (r) { return r.json(); }).then(function (j) {
                     trendBusy = false;
                     var media = (((j || {}).data || {}).Page || {}).media || [];
-                    var matched = [], seen = {};
-                    media.forEach(function (m) {
-                        if (matched.length >= 10) return;
-                        var cand = [m.title && m.title.english, m.title && m.title.romaji];
-                        for (var i = 0; i < cand.length; i++) {
-                            var n = nfNorm(cand[i]);
-                            if (n && byName[n] && !seen[byName[n].Id]) { seen[byName[n].Id] = 1; matched.push(byName[n]); break; }
-                        }
-                    });
-                    if (matched.length < 1 || !isHomePage()) return;
+                    if (!media.length || !isHomePage()) return;
                     var c = activeHomeContainer();
                     if (!c || c.getAttribute('data-nf-trend') !== '1') return;
-                    var cards = matched.map(function (it, idx) {
-                        return '<div class="nf-trend-item"><span class="nf-trend-rank">' + (idx + 1) + '</span>' + buildCardHtml(it, sid) + '</div>';
+                    var cards = media.slice(0, 10).map(function (m, idx) {
+                        var en = m.title && m.title.english, ro = m.title && m.title.romaji;
+                        var name = en || ro || '';
+                        var lib = byName[nfNorm(en)] || byName[nfNorm(ro)];
+                        var href, target = '', img;
+                        if (lib) {
+                            href = '#/details?id=' + lib.Id + (sid ? '&serverId=' + sid : '');
+                            img = (lib.ImageTags && lib.ImageTags.Primary)
+                                ? ApiClient.getScaledImageUrl(lib.Id, { type: 'Primary', maxWidth: 240, tag: lib.ImageTags.Primary })
+                                : ((m.coverImage && m.coverImage.large) || '');
+                        } else {
+                            href = m.siteUrl || '#'; target = '_blank';
+                            img = (m.coverImage && m.coverImage.large) || '';
+                        }
+                        return '<a class="nf-trend-item' + (lib ? ' nf-trend-inlib' : '') + '" href="' + href + '"'
+                            + (target ? ' target="_blank" rel="noopener"' : '') + ' title="' + esc(name) + '">'
+                            + '<span class="nf-trend-rank">' + (idx + 1) + '</span>'
+                            + '<div class="nf-trend-poster"' + (img ? ' style="background-image:url(\'' + img + '\')"' : '') + '></div>'
+                            + '</a>';
                     }).join('');
                     var sec = document.createElement('div');
                     sec.className = 'verticalSection nf-genre-section nf-trend-section';
-                    sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Top 10 Anime heute</h2>' +
+                    sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Top 10 Anime – im Trend</h2>' +
                         '<div class="nf-row-scroll"><div class="nf-row-track nf-trend-track">' + cards + '</div></div>';
                     var anchor = c.querySelector('.nf-cw-section') || c.querySelector('.nf-hero');
                     if (anchor && anchor.nextSibling) { c.insertBefore(sec, anchor.nextSibling); }
