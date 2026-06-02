@@ -2,12 +2,36 @@
   {
     "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
     "name": "Custom Theme",
-    "description": "Netflix-style custom skin with settings panel, multiple fonts, and full customization. Install and everything works automatically.",
-    "overview": "Netflix-inspired skin for Jellyfin with built-in settings panel",
+    "description": "Netflix-style skin for Jellyfin: hero carousel, genre rows, nav tabs, native hover previews, settings panel and 15 fonts. Self-contained on most installs; on read-only / Docker web roots, install the File Transformation plugin so the header button loads.",
+    "overview": "Netflix-inspired skin for Jellyfin with hero, genre rows, nav tabs and a built-in settings panel",
     "owner": "Kuschel-code",
     "category": "General",
     "imageUrl": "",
     "versions": [
+      {
+        "version": "2.5.17.0",
+        "changelog": "Home rows now use Jellyfin's native card markup (title + year text, hover play overlay, data-action delegation) so cards look native and click/play work natively \u2014 without fragile minified-bundle patching.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.17/custom-theme-v2.5.17.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T18:00:00"
+      },
+      {
+        "version": "2.5.16.0",
+        "changelog": "Applied lessons from IAmParadox27's plugins: hero uses the Media Bar's quality filters (HasOverview, IsPlayed=false) so no empty slides; Ken Burns zoom + diagonal gradient on the hero; SPA-survival (Custom Tabs technique) - patches history.pushState/replaceState and listens to nav events so the settings button / nav tabs / home takeover survive client-side navigation; the injected script now carries a version attribute so index.html busts browser cache on every update.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.16/custom-theme-v2.5.16.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T17:00:00"
+      },
+      {
+        "version": "2.5.15.0",
+        "changelog": "Injection reliability: prefer the File Transformation plugin when installed (its Harmony file-provider hook injects even on read-only Docker web dirs), otherwise built-in middleware PLUS on-disk write. Fixes the missing header/settings button. Loading screen reworked into a centered Netflix-style progress bar (inspired by the Media Bar) \u2014 fixes the loader stuck in the top-left corner.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.15/custom-theme-v2.5.15.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T15:00:00"
+      },
       {
         "version": "2.5.14.0",
         "changelog": "Version consistency fix: meta.json, csproj and manifest are all 2.5.14.0 (the 2.5.13 build shipped meta.json 2.5.12.0, causing a perpetual 'update available'). Same features as 2.5.13 \u2014 bundled File Transformation provider (Media Bar works without the separate plugin), self-contained injection, centered loading animation.",

@@ -313,6 +313,8 @@
                 IncludeItemTypes: 'Movie,Series',
                 Recursive: true,
                 ImageTypes: 'Backdrop',
+                HasOverview: true,   // Media Bar's quality filters: only good-looking slides
+                IsPlayed: false,
                 Limit: 30,
                 Fields: 'Overview,Genres,ProductionYear,CommunityRating'
             }).then(function (res) {
@@ -418,10 +420,25 @@
         var ptag = item.ImageTags && item.ImageTags.Primary;
         var img = ptag ? ApiClient.getScaledImageUrl(item.Id, { type: 'Primary', fillWidth: 300, quality: 96, tag: ptag }) : '';
         var href = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
+        var year = item.ProductionYear || '';
+        // Mirror Jellyfin's native overflow card markup so it inherits native styling and
+        // event delegation: data-action="link" navigates, data-action="resume" plays.
         return '<div data-id="' + item.Id + '" data-serverid="' + (sid || '') + '" data-type="' + item.Type + '" data-mediatype="Video" data-isfolder="false" class="card overflowPortraitCard card-hoverable card-withuserdata nf-card">' +
-            '<div class="cardBox"><div class="cardScalable"><div class="cardPadder cardPadder-overflowPortrait"></div>' +
-            '<a href="' + href + '" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="' + esc(item.Name) + '" style="background-image:url(\'' + img + '\')"></a>' +
-            '<div class="cardOverlayContainer"></div></div></div></div>';
+            '<div class="cardBox cardBox-bottompadded">' +
+              '<div class="cardScalable">' +
+                '<div class="cardPadder cardPadder-overflowPortrait"></div>' +
+                '<a href="' + href + '" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="' + esc(item.Name) + '" style="background-image:url(\'' + img + '\')"></a>' +
+                '<div class="cardOverlayContainer itemAction" data-action="link">' +
+                  '<a href="' + href + '" data-action="link" class="cardImageContainer"></a>' +
+                  '<div class="cardOverlayButtonContainer cardOverlayButtonContainer-centered">' +
+                    '<button type="button" is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-hover itemAction paper-icon-button-light" data-action="resume" title="Abspielen"><span class="material-icons cardOverlayButtonIcon" aria-hidden="true">play_arrow</span></button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="cardText cardTextCentered cardText-first"><bdi>' + esc(item.Name) + '</bdi></div>' +
+              (year ? '<div class="cardText cardTextCentered cardText-secondary"><bdi>' + esc(year) + '</bdi></div>' : '') +
+            '</div>' +
+          '</div>';
     }
 
     function setupGenreRows() {
@@ -862,6 +879,22 @@
             requestAnimationFrame(function () { dynScheduled = false; applyDynamic(); });
         }
         new MutationObserver(scheduleDynamic).observe(document.body, { childList: true, subtree: true });
+
+        // SPA-survival (learned from jellyfin-plugin-custom-tabs): Jellyfin recreates the
+        // header/home on client-side navigation, which can drop our button/tabs/takeover.
+        // Patch history + listen to nav events and re-apply (with a short settle delay).
+        function reapply() { setTimeout(scheduleDynamic, 250); }
+        ['pushState', 'replaceState'].forEach(function (m) {
+            var orig = history[m];
+            if (typeof orig === 'function' && !orig.__ctPatched) {
+                var patched = function () { var r = orig.apply(this, arguments); reapply(); return r; };
+                patched.__ctPatched = true;
+                try { history[m] = patched; } catch (e) {}
+            }
+        });
+        ['popstate', 'pageshow', 'focus', 'visibilitychange'].forEach(function (ev) {
+            window.addEventListener(ev, reapply);
+        });
 
         // Load feature flags (hero / previews) once, then refresh.
         if (typeof ApiClient !== 'undefined' && ApiClient.getPluginConfiguration) {
