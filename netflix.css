@@ -1471,10 +1471,11 @@ html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, 
 .mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: var(--accent-red, #E50914) !important; }
 .mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: var(--accent-red, #E50914) !important; }
 
-/* Netflix-style loading screen (inspired by the Media Bar's centered progress bar).
-   A centered indeterminate bar, position:fixed so it sits dead-centre on the
-   viewport no matter where its container is — fixes the loader stuck top-left.
-   Pure CSS, self-contained (no JS / companion plugin). */
+/* Netflix-style loading spinner — a centered rotating ring (user-supplied design).
+   position:fixed so it sits dead-centre regardless of its container (fixes the loader
+   stuck top-left); the rotate animation overrides transforms so we center via negative
+   margins. Arcs use the accent red — the original #000 would be invisible on the black
+   loading backdrop. Pure CSS, self-contained (no JS / companion plugin). */
 .docspinner, .loadingSpinner, .mainAnimatedPages > .loading {
     background-color: var(--bg-darker, #000) !important;
 }
@@ -1483,20 +1484,17 @@ html.preload, .docspinner, #loadingSpinner { background-color: var(--bg-darker, 
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
-    width: 250px; height: 5px;
-    margin: -2.5px 0 0 -125px !important;
-    border-radius: 2px;
-    background-color: #686868;
-    background-image: linear-gradient(to right, var(--accent-red, #E50914), var(--accent-red, #E50914));
-    background-repeat: no-repeat;
-    background-size: 40% 100%;
-    animation: nf-loadbar 1.1s ease-in-out infinite;
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px !important;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: var(--accent-red, #E50914) transparent;
+    animation: nf-loadspin 1s infinite;
     z-index: 100000;
 }
-@keyframes nf-loadbar {
-    0%   { background-position: -65% 0; }
-    100% { background-position: 165% 0; }
-}
+@keyframes nf-loadspin { to { transform: rotate(.5turn); } }
 
 /* =============================================
    TOP 10 TRENDING ROW (built by headerButton.js, AniList data) — big rank numbers

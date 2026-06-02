@@ -602,26 +602,54 @@
         return true;
     }
 
-    // Stream a muted ~30s clip from the middle of the title into the popup. Nothing is stored.
-    function streamClipInto(pop, item) {
-        if (cfg('PreviewClips', true) === false) return;
-        var ticks = item.RunTimeTicks || 0;
-        if (ticks < 1200000000) return; // < ~2 min: skip
+    // Build a muted preview <video> into the popup. We REMUX (copy h264+aac into a
+    // fragmented mp4) rather than force a downscale transcode: forcing maxWidth/videoBitRate
+    // makes the server re-encode via its hardware encoder, which fails (ffmpeg code 187) for
+    // these short on-the-fly clips, and source containers like MPEG-TS can't direct-play in
+    // the browser. Copy-remux to mp4 plays everywhere and is light on the server.
+    function makeClip(pop, playId, msId) {
         var media = pop.querySelector('.nf-pop-media');
-        if (!media) return;
-        var startTicks = Math.floor(ticks * 0.4); // mid-ish, past most intros
-        var url = ApiClient.serverAddress() + '/Videos/' + item.Id + '/stream.mp4'
-            + '?Static=false&videoCodec=h264&audioCodec=aac&maxWidth=640&videoBitRate=2000000'
-            + '&startTimeTicks=' + startTicks
+        if (!media || popEl !== pop) return;
+        var url = ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
+            + '?videoCodec=h264&audioCodec=aac'
+            + '&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
+            + (msId ? '&mediaSourceId=' + msId : '')
             + '&api_key=' + ApiClient.accessToken();
         var video = document.createElement('video');
         video.muted = true; video.defaultMuted = true; video.autoplay = true;
         video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
+        video.addEventListener('error', function () { try { video.remove(); } catch (e) {} });
         video.src = url;
         media.insertBefore(video, media.firstChild);
         var play = video.play();
         if (play && play.catch) { play.catch(function () {}); }
         video._stopTimer = setTimeout(function () { try { video.pause(); } catch (e) {} }, PREVIEW_SECONDS * 1000);
+    }
+
+    // Decide what to stream for the hovered item. Movies/episodes stream themselves; a
+    // Series/Season has no own runtime, so we fetch one representative episode and stream that.
+    function streamClipInto(pop, item) {
+        if (cfg('PreviewClips', true) === false) return;
+        var type = item.Type || '';
+        if (type !== 'Series' && type !== 'Season' && (item.RunTimeTicks || 0) >= 1200000000) {
+            var msId = item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id;
+            makeClip(pop, item.Id, msId);
+            return;
+        }
+        if (type === 'Series' || type === 'Season' || item.IsFolder) {
+            var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
+            if (!uid || !ApiClient.getItems) return;
+            ApiClient.getItems(uid, {
+                ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true,
+                Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources'
+            }).then(function (res) {
+                if (popEl !== pop) return;
+                var ep = res && res.Items && res.Items[0];
+                if (!ep) return;
+                var emsId = ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id;
+                makeClip(pop, ep.Id, emsId);
+            }).catch(function () {});
+        }
     }
 
     function buildPop(card) {
