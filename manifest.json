@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.26.0",
-        "changelog": "Design polish (incorporating ideas from popular Jellyfin themes): frosted-glass settings panel and hover-preview popup (backdrop blur), softer/deeper card-hover shadow, and smoother micro-interactions on the hero/popup action buttons. Visual only — no behaviour change.",
+        "changelog": "Design polish (incorporating ideas from popular Jellyfin themes): frosted-glass settings panel and hover-preview popup (backdrop blur), softer/deeper card-hover shadow, and smoother micro-interactions on the hero/popup action buttons. Visual only \u2014 no behaviour change.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.26/custom-theme-v2.5.26.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "936693b3cb777d405a620f0531a1e043",
         "timestamp": "2026-06-03T03:05:00"
       },
       {
