@@ -398,6 +398,7 @@
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
             var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+            nfClipWatch(v);
         }
         function playClip(idx) {
             if (cfg('PreviewClips', true) === false) return;
@@ -669,6 +670,20 @@
             + (skip ? '&startTimeTicks=' + skip : '')
             + '&api_key=' + ApiClient.accessToken();
     }
+    // Stall watchdog: if a clip hasn't actually started progressing within ~10s (slow or
+    // failed on-the-fly remux), drop it so the static backdrop/poster image stays instead of
+    // a frozen or endlessly-loading video box.
+    function nfClipWatch(v) {
+        setTimeout(function () {
+            try {
+                if (!v) return;
+                if (v.currentTime < 0.3 || v.readyState < 3) {
+                    try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+                    v.remove();
+                }
+            } catch (e) {}
+        }, 10000);
+    }
     function makeClip(pop, playId, msId, ticks) {
         var media = pop.querySelector('.nf-pop-media');
         if (!media || popEl !== pop) return;
@@ -682,6 +697,7 @@
         var play = video.play();
         if (play && play.catch) { play.catch(function () {}); }
         video._stopTimer = setTimeout(function () { try { video.pause(); } catch (e) {} }, PREVIEW_SECONDS * 1000);
+        nfClipWatch(video);
     }
 
     // Decide what to stream for the hovered item. Movies/episodes stream themselves; a
@@ -985,6 +1001,7 @@
                 v.src = nfClipUrl(playId, msId, ticks);
                 backdrop.appendChild(v);
                 var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+                nfClipWatch(v);
             }
             ApiClient.getItem(uid, id).then(function (item) {
                 if (!item || !stillHere()) return;
