@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.22.0",
+        "changelog": "Preview clips now skip the intro — they start about a quarter into the title instead of at the very beginning (hover, hero and detail). New: opening a title ('Mehr Infos' / detail page) now plays a muted, looping clip of the title over the top backdrop. Top 10 entries you own still open their detail page (playable); the rest open on AniList.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.22/custom-theme-v2.5.22.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-03T01:40:00"
+      },
+      {
         "version": "2.5.21.0",
         "changelog": "Hero now plays a self-contained autoplay clip of the actual title \u2014 a copy-remux of the file itself (not an external YouTube trailer like the Media Bar) \u2014 fading in over the backdrop on the active slide; series resolve to a representative episode. Top 10 trending now shows the real global AniList anime hype list (no longer filtered to your library, so it is never empty), ranked 1-10: titles you own link to their detail page, the rest open on AniList.",
         "targetAbi": "10.11.0.0",

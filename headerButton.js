@@ -316,7 +316,7 @@
                 HasOverview: true,   // Media Bar's quality filters: only good-looking slides
                 IsPlayed: false,
                 Limit: 30,
-                Fields: 'Overview,Genres,ProductionYear,CommunityRating'
+                Fields: 'Overview,Genres,ProductionYear,CommunityRating,RunTimeTicks'
             }).then(function (res) {
                 heroBusy = false;
                 var items = ((res && res.Items) || []).filter(function (i) {
@@ -386,7 +386,7 @@
                 v.remove();
             });
         }
-        function attachClip(slideEl, playId, msId) {
+        function attachClip(slideEl, playId, msId, ticks) {
             if (!slideEl || !slideEl.classList.contains('active') || !document.body.contains(slideEl)) return;
             var v = document.createElement('video');
             v.className = 'nf-hero-video';
@@ -394,9 +394,7 @@
             v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
             v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
             v.addEventListener('loadeddata', function () { v.classList.add('show'); });
-            v.src = ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
-                + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
-                + (msId ? '&mediaSourceId=' + msId : '') + '&api_key=' + ApiClient.accessToken();
+            v.src = nfClipUrl(playId, msId, ticks);
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
             var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
@@ -409,13 +407,13 @@
             if (type === 'Series' || type === 'Season' || item.IsFolder) {
                 var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
                 if (!uid || !ApiClient.getItems) return;
-                ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources' }).then(function (res) {
+                ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
                     if (!slideEl.classList.contains('active')) return;
                     var ep = res && res.Items && res.Items[0]; if (!ep) return;
-                    attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id);
+                    attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id, ep.RunTimeTicks || 0);
                 }).catch(function () {});
             } else {
-                attachClip(slideEl, item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id);
+                attachClip(slideEl, item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id, item.RunTimeTicks || 0);
             }
         }
         function scheduleClip() {
@@ -658,14 +656,19 @@
     // makes the server re-encode via its hardware encoder, which fails (ffmpeg code 187) for
     // these short on-the-fly clips, and source containers like MPEG-TS can't direct-play in
     // the browser. Copy-remux to mp4 plays everywhere and is light on the server.
-    function makeClip(pop, playId, msId) {
+    // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
+    // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
+    function nfClipUrl(playId, msId, ticks) {
+        return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
+            + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
+            + (msId ? '&mediaSourceId=' + msId : '')
+            + (ticks ? '&startTimeTicks=' + Math.floor(ticks * 0.25) : '')
+            + '&api_key=' + ApiClient.accessToken();
+    }
+    function makeClip(pop, playId, msId, ticks) {
         var media = pop.querySelector('.nf-pop-media');
         if (!media || popEl !== pop) return;
-        var url = ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
-            + '?videoCodec=h264&audioCodec=aac'
-            + '&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
-            + (msId ? '&mediaSourceId=' + msId : '')
-            + '&api_key=' + ApiClient.accessToken();
+        var url = nfClipUrl(playId, msId, ticks);
         var video = document.createElement('video');
         video.muted = true; video.defaultMuted = true; video.autoplay = true;
         video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
@@ -684,7 +687,7 @@
         var type = item.Type || '';
         if (type !== 'Series' && type !== 'Season' && (item.RunTimeTicks || 0) >= 1200000000) {
             var msId = item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id;
-            makeClip(pop, item.Id, msId);
+            makeClip(pop, item.Id, msId, item.RunTimeTicks || 0);
             return;
         }
         if (type === 'Series' || type === 'Season' || item.IsFolder) {
@@ -692,13 +695,13 @@
             if (!uid || !ApiClient.getItems) return;
             ApiClient.getItems(uid, {
                 ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true,
-                Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources'
+                Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks'
             }).then(function (res) {
                 if (popEl !== pop) return;
                 var ep = res && res.Items && res.Items[0];
                 if (!ep) return;
                 var emsId = ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id;
-                makeClip(pop, ep.Id, emsId);
+                makeClip(pop, ep.Id, emsId, ep.RunTimeTicks || 0);
             }).catch(function () {});
         }
     }
@@ -941,6 +944,59 @@
     }
 
     // ============ Init ============
+    // ============ Detail page ("Mehr Infos") — autoplay clip over the backdrop ============
+    // When a detail page is open, play a muted, looping cut of the title (past the intro)
+    // over the top backdrop — the same self-contained remux used by the hero / hover preview.
+    function cleanupDetailClip() {
+        if (/#\/details/i.test(location.hash)) return;
+        document.querySelectorAll('.nf-detail-video').forEach(function (v) {
+            try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+            v.remove();
+        });
+        var bd = document.querySelector('#itemBackdrop[data-nf-clip]');
+        if (bd) bd.removeAttribute('data-nf-clip');
+    }
+    function setupDetailClip() {
+        try {
+            if (cfg('PreviewClips', true) === false) return;
+            if (!/#\/details/i.test(location.hash)) return;
+            if (typeof ApiClient === 'undefined' || !ApiClient.getItem || !ApiClient.getCurrentUserId) return;
+            var backdrop = document.querySelector('#itemBackdrop');
+            if (!backdrop || backdrop.getAttribute('data-nf-clip') === '1') return;
+            var idm = location.hash.match(/[?&]id=([a-f0-9]+)/i);
+            var id = idm && idm[1];
+            if (!id) return;
+            var uid = ApiClient.getCurrentUserId();
+            if (!uid) return;
+            backdrop.setAttribute('data-nf-clip', '1');
+            var stillHere = function () { return location.hash.indexOf(id) !== -1; };
+            function attach(playId, msId, ticks) {
+                if (!stillHere() || backdrop.querySelector('.nf-detail-video')) return;
+                var v = document.createElement('video');
+                v.className = 'nf-detail-video';
+                v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
+                v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+                v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
+                v.addEventListener('loadeddata', function () { v.classList.add('show'); });
+                v.src = nfClipUrl(playId, msId, ticks);
+                backdrop.appendChild(v);
+                var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+            }
+            ApiClient.getItem(uid, id).then(function (item) {
+                if (!item || !stillHere()) return;
+                var type = item.Type || '';
+                if (type === 'Series' || type === 'Season' || item.IsFolder) {
+                    ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
+                        var ep = res && res.Items && res.Items[0]; if (!ep) return;
+                        attach(ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id, ep.RunTimeTicks || 0);
+                    }).catch(function () {});
+                } else if (type === 'Movie' || type === 'Episode' || (item.RunTimeTicks || 0) > 0) {
+                    attach(item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id, item.RunTimeTicks || 0);
+                }
+            }).catch(function () {});
+        } catch (e) {}
+    }
+
     function applyDynamic() {
         addButton();
         setupNavTabs();
@@ -952,12 +1008,13 @@
         markHomeOwned();
         setupTopTen();
         setupMatchScore();
+        setupDetailClip();
     }
 
     function init() {
         setupCardPreviews();
         applyDynamic();
-        window.addEventListener('hashchange', function () { clearPreview(); setupHero(); renderNavTabs(); });
+        window.addEventListener('hashchange', function () { clearPreview(); cleanupDetailClip(); setupHero(); renderNavTabs(); });
 
         // Coalesce the SPA's mutation bursts into one applyDynamic per frame so
         // EVERY feature (nav tabs, hero, genre rows, ...) gets retried as the

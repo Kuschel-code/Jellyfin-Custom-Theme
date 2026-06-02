@@ -1261,6 +1261,13 @@ body, .mainDrawer, .dialog {
     opacity: 0; transition: opacity 1.2s ease;
 }
 .nf-hero-video.show { opacity: 1; }
+/* Detail page ("Mehr Infos") backdrop clip — fills #itemBackdrop, fades in over the image. */
+.nf-detail-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 0;
+    opacity: 0; transition: opacity 1.2s ease;
+}
+.nf-detail-video.show { opacity: 1; }
 .nf-hero-slide::after {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
     background:
