@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.17.0",
+        "changelog": "Home rows now use Jellyfin's native card markup (title + year text, hover play overlay, data-action delegation) so cards look native and click/play work natively \u2014 without fragile minified-bundle patching.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.17/custom-theme-v2.5.17.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T18:00:00"
+      },
+      {
         "version": "2.5.16.0",
         "changelog": "Applied lessons from IAmParadox27's plugins: hero uses the Media Bar's quality filters (HasOverview, IsPlayed=false) so no empty slides; Ken Burns zoom + diagonal gradient on the hero; SPA-survival (Custom Tabs technique) - patches history.pushState/replaceState and listens to nav events so the settings button / nav tabs / home takeover survive client-side navigation; the injected script now carries a version attribute so index.html busts browser cache on every update.",
         "targetAbi": "10.11.0.0",
