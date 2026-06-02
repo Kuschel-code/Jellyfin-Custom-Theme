@@ -13,7 +13,7 @@
         "changelog": "Home rows now use Jellyfin's native card markup (title + year text, hover play overlay, data-action delegation) so cards look native and click/play work natively \u2014 without fragile minified-bundle patching.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.17/custom-theme-v2.5.17.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "45ed79e402017445d46f14fa9bf1715e",
         "timestamp": "2026-06-02T18:00:00"
       },
       {
