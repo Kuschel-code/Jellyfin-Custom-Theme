@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.25.0",
+        "changelog": "Fixes clips that ended on hover / didn't play on the detail page: only ONE clip remux now runs at a time across the whole UI (rotating hero + hover + detail no longer pile up and saturate the server transcoder). The hero also rotates slower (14s) and pauses while you're hovering a card, so a hover/detail clip gets the transcoder to itself and actually plays.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.25/custom-theme-v2.5.25.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-03T02:45:00"
+      },
+      {
         "version": "2.5.24.0",
         "changelog": "Clip stall watchdog: if a hover/hero/detail clip can't actually start playing within ~10s (a slow or failing on-the-fly remux), it is dropped so the static backdrop/poster image stays \u2014 no frozen or endlessly-loading video box. Completes the clip robustness work.",
         "targetAbi": "10.11.0.0",

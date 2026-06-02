@@ -261,7 +261,7 @@
 
     // ============ Hero billboard carousel (home page) ============
     var heroBusy = false;
-    var HERO_INTERVAL = 8000;
+    var HERO_INTERVAL = 14000;
     var HERO_MAX = 6;
 
     function isHomePage() {
@@ -394,6 +394,7 @@
             v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
             v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
             v.addEventListener('playing', function () { v.classList.add('show'); });
+            nfClaim(v);
             v.src = nfClipUrl(playId, msId, ticks);
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
@@ -429,7 +430,7 @@
         }
 
         if (slideEls.length > 1) {
-            hero._timer = setInterval(function () { if (!paused) go(cur + 1); }, HERO_INTERVAL);
+            hero._timer = setInterval(function () { if (!paused && !popEl) go(cur + 1); }, HERO_INTERVAL);
             dotEls.forEach(function (el) {
                 el.addEventListener('click', function () { go(+el.getAttribute('data-idx')); });
             });
@@ -684,6 +685,20 @@
             } catch (e) {}
         }, 10000);
     }
+    // Single active clip across the whole UI: only ONE clip remux runs at a time. On a box
+    // with a busy/limited transcoder, several concurrent remuxes (rotating hero + hover +
+    // detail) saturate it and ALL stall (clip "ends" / detail "won't play"). Before starting a
+    // new clip we stop the previous one, so there is never more than one transcode in flight.
+    var nfActiveVideo = null;
+    function nfClaim(v) {
+        try {
+            if (nfActiveVideo && nfActiveVideo !== v) {
+                try { nfActiveVideo.pause(); nfActiveVideo.removeAttribute('src'); nfActiveVideo.load(); } catch (e) {}
+                try { nfActiveVideo.remove(); } catch (e) {}
+            }
+        } catch (e) {}
+        nfActiveVideo = v;
+    }
     function makeClip(pop, playId, msId, ticks) {
         var media = pop.querySelector('.nf-pop-media');
         if (!media || popEl !== pop) return;
@@ -692,6 +707,7 @@
         video.muted = true; video.defaultMuted = true; video.autoplay = true;
         video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
         video.addEventListener('error', function () { try { video.remove(); } catch (e) {} });
+        nfClaim(video);
         video.src = url;
         media.insertBefore(video, media.firstChild);
         var play = video.play();
@@ -998,6 +1014,7 @@
                 v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
                 v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
                 v.addEventListener('playing', function () { v.classList.add('show'); });
+                nfClaim(v);
                 v.src = nfClipUrl(playId, msId, ticks);
                 backdrop.appendChild(v);
                 var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
