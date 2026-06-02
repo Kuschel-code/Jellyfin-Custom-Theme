@@ -313,6 +313,8 @@
                 IncludeItemTypes: 'Movie,Series',
                 Recursive: true,
                 ImageTypes: 'Backdrop',
+                HasOverview: true,   // Media Bar's quality filters: only good-looking slides
+                IsPlayed: false,
                 Limit: 30,
                 Fields: 'Overview,Genres,ProductionYear,CommunityRating'
             }).then(function (res) {
