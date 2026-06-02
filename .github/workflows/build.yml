@@ -26,8 +26,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p dist
-          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll meta.json dist/
-          (cd dist && zip -q -X plugin.zip Jellyfin.Plugin.CustomTheme.dll meta.json)
+          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll bin/Release/net9.0/CustomTheme.FileTransformation.dll meta.json dist/
+          (cd dist && zip -q -X plugin.zip Jellyfin.Plugin.CustomTheme.dll CustomTheme.FileTransformation.dll meta.json)
           echo "MD5: $(md5sum dist/plugin.zip | cut -d' ' -f1)"
 
       - uses: actions/upload-artifact@v4
@@ -60,8 +60,8 @@ jobs:
           ZIP="custom-theme-v${VERSION}.zip"
           dotnet build -c Release --nologo
           mkdir -p dist
-          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll meta.json dist/
-          (cd dist && zip -q -X "$ZIP" Jellyfin.Plugin.CustomTheme.dll meta.json)
+          cp bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll bin/Release/net9.0/CustomTheme.FileTransformation.dll meta.json dist/
+          (cd dist && zip -q -X "$ZIP" Jellyfin.Plugin.CustomTheme.dll CustomTheme.FileTransformation.dll meta.json)
           MD5="$(md5sum "dist/$ZIP" | cut -d' ' -f1)"
           echo "### Plugin checksum" >> "$GITHUB_STEP_SUMMARY"
           echo "MD5 \`$MD5\` for $ZIP" >> "$GITHUB_STEP_SUMMARY"

@@ -40,6 +40,23 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             ApplyCss();
 
+            // Touch the bundled File Transformation provider so its assembly is loaded into
+            // our plugin context and other plugins (e.g. the Media Bar) can discover it and
+            // register their index.html transformations — no separate File Transformation
+            // plugin required.
+            try
+            {
+                if (Plugin.Instance?.Configuration?.ProvideFileTransformation ?? true)
+                {
+                    var count = Jellyfin.Plugin.FileTransformation.PluginInterface.GetRegistrations().Count;
+                    _logger.LogInformation("[Custom Theme] Bundled File Transformation provider active ({Count} registrations); other plugins can inject without the separate File Transformation plugin.", count);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Custom Theme] Could not initialise the bundled File Transformation provider");
+            }
+
             // Injection strategy:
             //  - OwnInjection ON (default): our built-in IndexInjectionMiddleware injects at
             //    serve time. We do NOT ask the File Transformation plugin to inject (no double
