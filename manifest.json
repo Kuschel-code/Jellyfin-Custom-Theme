@@ -10,7 +10,7 @@
     "versions": [
       {
         "version": "2.5.17.0",
-        "changelog": "Home rows now use Jellyfin's native card markup (title + year text, hover play overlay, data-action delegation) so cards look native and click/play work natively \u2014 without fragile minified-bundle patching.",
+        "changelog": "Home rows now use Jellyfin's native card markup (title + year text, hover play overlay, data-action delegation) so cards look native and click/play work natively \u2014 without fragile minified-bundle patching. Loading screen fixed: hide Jellyfin native rotating spinner and force no-rotation, so the loader is a single clean centered bar (no more spinning/ugly double loader).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.17/custom-theme-v2.5.17.zip",
         "checksum": "00000000000000000000000000000000",
