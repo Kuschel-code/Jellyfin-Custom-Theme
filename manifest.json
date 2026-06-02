@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.14.0",
+        "changelog": "Version consistency fix: meta.json, csproj and manifest are all 2.5.14.0 (the 2.5.13 build shipped meta.json 2.5.12.0, causing a perpetual 'update available'). Same features as 2.5.13 \u2014 bundled File Transformation provider (Media Bar works without the separate plugin), self-contained injection, centered loading animation.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.14/custom-theme-v2.5.14.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T13:00:00"
+      },
+      {
         "version": "2.5.13.0",
         "changelog": "Bundled File Transformation: the plugin now provides the File Transformation service itself, so companion plugins like the Media Bar work WITHOUT the separate File Transformation plugin. Plus: the plugin's own injection is fully self-contained (no FT needed). Loading animation centered on screen. New 'Provide File Transformation' setting.",
         "targetAbi": "10.11.0.0",
