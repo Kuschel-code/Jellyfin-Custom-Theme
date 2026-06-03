@@ -367,6 +367,7 @@
         var dots = items.map(function (_, i) { return '<span class="nf-hero-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '"></span>'; }).join('');
         hero.innerHTML = slides +
             '<div class="nf-hero-controls">' +
+                '<button type="button" class="nf-hero-ctrl nf-hero-mute" title="Ton an/aus"><span class="material-icons" aria-hidden="true">volume_off</span></button>' +
                 '<button type="button" class="nf-hero-ctrl nf-hero-pause" title="Pause"><span class="material-icons" aria-hidden="true">pause</span></button>' +
                 '<div class="nf-hero-dots">' + dots + '</div>' +
             '</div>';
@@ -440,8 +441,25 @@
                 this.querySelector('.material-icons').textContent = paused ? 'play_arrow' : 'pause';
             });
         } else {
-            var ctrls = hero.querySelector('.nf-hero-controls');
-            if (ctrls) { ctrls.style.display = 'none'; }
+            var ctrlsSingle = hero.querySelector('.nf-hero-controls');
+            // keep the mute button even with one slide; only hide pause/dots
+            var ps = hero.querySelector('.nf-hero-pause'); if (ps) ps.style.display = 'none';
+            var ds = hero.querySelector('.nf-hero-dots'); if (ds) ds.style.display = 'none';
+        }
+
+        // Mute-Toggle (Netflix-style): clips autoplay muted; this unmutes the current clip on
+        // a real user gesture (autoplay can't start unmuted, so we only toggle on click).
+        var muteBtn = hero.querySelector('.nf-hero-mute');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                var v = hero.querySelector('.nf-hero-video');
+                if (v) {
+                    v.muted = !v.muted;
+                    var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+                }
+                this.querySelector('.material-icons').textContent = (v && !v.muted) ? 'volume_up' : 'volume_off';
+            });
         }
 
         // "+ Meine Liste" toggles the Jellyfin favorite flag (Netflix My List).
@@ -468,16 +486,16 @@
     var GENRE_MAX_ROWS = 6;
 
     function buildCardHtml(item, sid) {
-        var ptag = item.ImageTags && item.ImageTags.Primary;
-        var img = ptag ? ApiClient.getScaledImageUrl(item.Id, { type: 'Primary', fillWidth: 300, quality: 96, tag: ptag }) : '';
+        // Netflix uses LANDSCAPE 16:9 boxart, not portrait posters. Prefer a landscape image
+        // (Backdrop/Thumb/ParentBackdrop), fall back to the portrait Primary cropped to 16:9.
+        var img = cwImage(item) || '';
         var href = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
         var year = item.ProductionYear || '';
-        // Mirror Jellyfin's native overflow card markup so it inherits native styling and
-        // event delegation: data-action="link" navigates, data-action="resume" plays.
-        return '<div data-id="' + item.Id + '" data-serverid="' + (sid || '') + '" data-type="' + item.Type + '" data-mediatype="Video" data-isfolder="false" class="card overflowPortraitCard card-hoverable card-withuserdata nf-card">' +
+        // Mirror Jellyfin's native overflow backdrop-card markup for native styling + delegation.
+        return '<div data-id="' + item.Id + '" data-serverid="' + (sid || '') + '" data-type="' + item.Type + '" data-mediatype="Video" data-isfolder="false" class="card overflowBackdropCard card-hoverable card-withuserdata nf-card nf-card-landscape">' +
             '<div class="cardBox cardBox-bottompadded">' +
               '<div class="cardScalable">' +
-                '<div class="cardPadder cardPadder-overflowPortrait"></div>' +
+                '<div class="cardPadder cardPadder-overflowBackdrop"></div>' +
                 '<a href="' + href + '" data-action="link" class="cardImageContainer cardContent itemAction" aria-label="' + esc(item.Name) + '" style="background-image:url(\'' + img + '\')"></a>' +
                 '<div class="cardOverlayContainer itemAction" data-action="link">' +
                   '<a href="' + href + '" data-action="link" class="cardImageContainer"></a>' +
@@ -521,9 +539,9 @@
                 genres.forEach(function (g) {
                     ApiClient.getItems(userId, {
                         IncludeItemTypes: 'Movie,Series', Recursive: true, Genres: g,
-                        SortBy: 'Random', Limit: 20, ImageTypeLimit: 1, EnableImageTypes: 'Primary'
+                        SortBy: 'Random', Limit: 20, ImageTypeLimit: 1, EnableImageTypes: 'Backdrop,Thumb,Primary'
                     }).then(function (r) {
-                        var its = ((r && r.Items) || []).filter(function (x) { return x.ImageTags && x.ImageTags.Primary; });
+                        var its = ((r && r.Items) || []).filter(function (x) { return (x.BackdropImageTags && x.BackdropImageTags.length) || (x.ImageTags && (x.ImageTags.Thumb || x.ImageTags.Primary)); });
                         if (!its.length || !isHomePage()) { return; }
                         var c = activeHomeContainer();
                         if (!c || c.getAttribute('data-nf-rows') !== '1') { return; }
@@ -776,6 +794,7 @@
                     '<div class="nf-pop-actions">' +
                         '<a class="nf-pop-btn play" href="' + detailUrl + '" title="Abspielen"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
                         '<button type="button" class="nf-pop-btn nf-pop-list" title="Meine Liste"><span class="material-icons" aria-hidden="true">add</span></button>' +
+                        '<button type="button" class="nf-pop-btn nf-pop-like" title="Gefällt mir"><span class="material-icons" aria-hidden="true">thumb_up_off_alt</span></button>' +
                         '<a class="nf-pop-btn more" href="' + detailUrl + '" title="Mehr Infos"><span class="material-icons" aria-hidden="true">expand_more</span></a>' +
                     '</div>' +
                     '<div class="nf-pop-title">' + esc(item.Name || '') + '</div>' +
@@ -799,6 +818,24 @@
                     ApiClient.updateFavoriteStatus(uid, item.Id, nowFav).then(function () {
                         listBtn.classList.toggle('active', nowFav);
                         listBtn.querySelector('.material-icons').textContent = nowFav ? 'check' : 'add';
+                    }).catch(function () {});
+                });
+            }
+
+            // Like (👍) — Netflix thumbs. Maps to Jellyfin's Likes rating.
+            var likeBtn = pop.querySelector('.nf-pop-like');
+            if (likeBtn && item.UserData && item.UserData.Likes === true) {
+                likeBtn.classList.add('active');
+                likeBtn.querySelector('.material-icons').textContent = 'thumb_up';
+            }
+            if (likeBtn) {
+                likeBtn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    if (!uid || !ApiClient.updateUserItemRating) return;
+                    var nowLike = !likeBtn.classList.contains('active');
+                    ApiClient.updateUserItemRating(uid, item.Id, nowLike).then(function () {
+                        likeBtn.classList.toggle('active', nowLike);
+                        likeBtn.querySelector('.material-icons').textContent = nowLike ? 'thumb_up' : 'thumb_up_off_alt';
                     }).catch(function () {});
                 });
             }

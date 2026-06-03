@@ -38,7 +38,7 @@ body, .mainDrawer, .dialog {
    ============================================= */
 
 .skinHeader {
-    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%) !important;
+    background: linear-gradient(to bottom, rgba(20,20,20,0.6) 0%, rgba(20,20,20,0.25) 50%, transparent 100%) !important;
     height: var(--nav-height) !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -49,8 +49,9 @@ body, .mainDrawer, .dialog {
     backdrop-filter: none !important;
 }
 
+/* Scrolled (Jellyfin toggles .skinHeader-withBackground) → solid Netflix dark */
 .skinHeader-withBackground {
-    background: rgba(0, 0, 0, 0.95) !important;
+    background: #141414 !important;
 }
 
 .skinHeader-blurred {
@@ -1350,8 +1351,8 @@ body, .mainDrawer, .dialog {
 .nf-genre-section { margin: 0 0 2.4vw; }
 .nf-genre-section .sectionTitle {
     padding-left: 4%;
-    font-size: clamp(1.05rem, 1.35vw, 1.45rem);
-    font-weight: 700; color: #e5e5e5; letter-spacing: 0.2px;
+    font-size: clamp(1.1rem, 1.4vw, 1.45rem);
+    font-weight: 500; color: #e5e5e5; letter-spacing: normal;
     margin: 0 0 0.5em;
 }
 .nf-row-scroll {
@@ -1363,10 +1364,16 @@ body, .mainDrawer, .dialog {
 .nf-row-track { display: flex; gap: 0.5vw; align-items: flex-start; }
 .nf-genre-section .nf-card {
     flex: 0 0 auto;
-    width: clamp(130px, 12.5vw, 210px);
+    width: clamp(210px, 19vw, 330px);
     margin: 0;
 }
-.nf-genre-section .cardPadder-overflowPortrait { padding-bottom: 150%; }
+/* Landscape 16:9 boxart (Netflix-style) for genre-row cards */
+.nf-genre-section .cardPadder-overflowBackdrop { padding-bottom: 56.25%; }
+.nf-genre-section .nf-card .cardImageContainer {
+    background-size: cover !important;
+    background-position: center center !important;
+    border-radius: 4px;
+}
 
 /* =============================================
    TOP NAV TABS (built by headerButton.js) — replaces Custom Tabs

@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.29.0",
+        "changelog": "Closer to Netflix (from a live UI analysis): genre rows now use LANDSCAPE 16:9 boxart cards (Backdrop/Thumb, like Netflix) instead of portrait posters; hover preview gains a Like (👍) button next to Play/+; the hero gets a mute/unmute toggle for its clip; row titles use Netflix's lighter weight; header is more transparent at the top and goes solid (#141414) on scroll.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.29/custom-theme-v2.5.29.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-03T21:30:00"
+      },
+      {
         "version": "2.5.28.0",
         "changelog": "Fewer clip errors: preview/hero/detail clips now start at the beginning instead of seeking ~2 min in \u2014 the mid-file seek failed (HTTP 500) on MPEG-TS files without a clean keyframe there. The hero also rotates a bit slower (20s) to ease the server transcoder. Result: far fewer 500 errors and clips that actually play.",
         "targetAbi": "10.11.0.0",
