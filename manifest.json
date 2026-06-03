@@ -13,7 +13,7 @@
         "changelog": "Header + Top 10 tweaks from feedback: search, theme and profile now sit at the far right of the header (Netflix layout) instead of bunched next to the nav tabs; the Top 10 row drops the big background rank numbers for a clean poster row.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.32/custom-theme-v2.5.32.zip",
-        "checksum": "0000",
+        "checksum": "6cc8841cdcbce4aa93cd668415dde3ff",
         "timestamp": "2026-06-04T00:45:00"
       },
       {
