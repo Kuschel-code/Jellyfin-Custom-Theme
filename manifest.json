@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.27.0",
-        "changelog": "iPad / touch support: on touch devices the hover preview now works by TAP — tap a card once to show the Netflix-style preview popup (it no longer opens the title immediately), tap it again or its Play/More buttons to open. Desktop hover behaviour is unchanged.",
+        "changelog": "iPad / touch support: on touch devices the hover preview now works by TAP \u2014 tap a card once to show the Netflix-style preview popup (it no longer opens the title immediately), tap it again or its Play/More buttons to open. Desktop hover behaviour is unchanged.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.27/custom-theme-v2.5.27.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "410b3b033cd4fc74a603644b7c8c6103",
         "timestamp": "2026-06-03T08:00:00"
       },
       {
