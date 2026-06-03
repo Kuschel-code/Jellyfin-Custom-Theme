@@ -391,7 +391,7 @@
             if (!slideEl || !slideEl.classList.contains('active') || !document.body.contains(slideEl)) return;
             var v = document.createElement('video');
             v.className = 'nf-hero-video';
-            v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
+            v.muted = true; v.defaultMuted = true; v.autoplay = true;
             v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
             v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
             v.addEventListener('playing', function () { v.classList.add('show'); });
@@ -401,6 +401,7 @@
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
             var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
             nfClipWatch(v);
+            nfClipLoop(v);
         }
         function playClip(idx) {
             if (cfg('PreviewClips', true) === false) return;
@@ -700,6 +701,23 @@
                 }
             } catch (e) {}
         }, 10000);
+    }
+    // Ambient re-loop WITHOUT the native `loop` attribute. A copy-remux of an
+    // MPEG-TS source has no global duration up front (duration === NaN); with
+    // loop=true the browser hits the early buffered/fragment boundary, treats it
+    // as end-of-media and seeks back to 0 — over and over — so the clip "skips
+    // like a record". Letting it play un-looped lets the duration resolve and the
+    // clip plays straight through; we then restart manually on `ended`, but only
+    // once the duration is known, finite and long enough to be a real clip.
+    function nfClipLoop(v) {
+        v.addEventListener('ended', function () {
+            if (!document.body.contains(v)) return;
+            if (isFinite(v.duration) && v.duration > 6) {
+                try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+            } else {
+                try { v.pause(); } catch (e) {}
+            }
+        });
     }
     // Single active clip across the whole UI: only ONE clip remux runs at a time. On a box
     // with a busy/limited transcoder, several concurrent remuxes (rotating hero + hover +
@@ -1069,7 +1087,7 @@
                 if (!stillHere() || backdrop.querySelector('.nf-detail-video')) return;
                 var v = document.createElement('video');
                 v.className = 'nf-detail-video';
-                v.muted = true; v.defaultMuted = true; v.autoplay = true; v.loop = true;
+                v.muted = true; v.defaultMuted = true; v.autoplay = true;
                 v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
                 v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
                 v.addEventListener('playing', function () { v.classList.add('show'); });
@@ -1078,6 +1096,7 @@
                 backdrop.appendChild(v);
                 var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
                 nfClipWatch(v);
+                nfClipLoop(v);
             }
             ApiClient.getItem(uid, id).then(function (item) {
                 if (!item || !stillHere()) return;

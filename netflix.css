@@ -952,6 +952,14 @@ body, .mainDrawer, .dialog {
 .navMenuOption:hover { color: var(--text-main) !important; background-color: rgba(255,255,255,0.08) !important; }
 .navMenuOption-selected { color: var(--text-main) !important; background-color: rgba(255,255,255,0.1) !important; }
 
+/* Nav drawer vs. fixed header: the drawer (top:0) used to run under the
+   transparent billboard header, so its top entries collided with the logo/tabs.
+   Push the drawer's items below the header, and make the header solid #141414
+   while the drawer is open so the top reads cleanly (no see-through collision). */
+.mainDrawer-scrollContainer { padding-top: var(--nav-height) !important; }
+body:has(.mainDrawer.drawer-open) .skinHeader { background: #141414 !important; }
+body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) !important; transition: filter 0.2s ease !important; }
+
 /* =============================================
    MISC
    ============================================= */
