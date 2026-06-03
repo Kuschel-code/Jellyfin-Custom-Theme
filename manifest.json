@@ -13,7 +13,7 @@
         "changelog": "Header now behaves like Netflix: over the home billboard it is transparent with a soft top scrim at the very top, and fades to solid #141414 as soon as you scroll. Previously it was always solid (the v2.5.29 'header on scroll' note never actually took effect on the home page). Other pages stay solid from the top, as on Netflix.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.30/custom-theme-v2.5.30.zip",
-        "checksum": "0000",
+        "checksum": "3ab46ba501415068fea0e38490086460",
         "timestamp": "2026-06-03T21:55:00"
       },
       {
