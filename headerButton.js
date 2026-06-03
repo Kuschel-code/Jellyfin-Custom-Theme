@@ -813,7 +813,31 @@
         }).catch(function () {});
     }
 
+    function nfIsTouch() {
+        try { return !!(window.matchMedia && window.matchMedia('(hover: none)').matches); } catch (e) { return false; }
+    }
+
+    // Touch devices (iPad / phone) have no hover. Netflix-on-touch: the FIRST tap on a card
+    // shows the preview popup (instead of opening the title); a second tap on the same card —
+    // or its Play / More buttons — opens it. Reuses the same buildPop()/popup as desktop hover.
+    function setupTouchPreviews() {
+        document.body.addEventListener('click', function (e) {
+            if (cfg('HoverPreviewCard', true) === false) return;
+            if (popEl && popEl.contains(e.target)) return;            // inside popup -> let its links act
+            var card = e.target.closest && e.target.closest('.card');
+            if (!card || !eligibleCard(card)) { if (popEl) { clearPreview(); } return; }
+            if (card === popCard && popEl) return;                    // second tap on same card -> navigate
+            e.preventDefault();                                       // first tap -> preview only
+            e.stopPropagation();
+            clearPreview();
+            popCard = card;
+            buildPop(card);
+        }, true);
+        window.addEventListener('scroll', function () { clearPreview(); }, true);
+    }
+
     function setupCardPreviews() {
+        if (nfIsTouch()) { setupTouchPreviews(); return; }
         document.body.addEventListener('mouseover', function (e) {
             if (cfg('HoverPreviewCard', true) === false) return;
             if (popEl && popEl.contains(e.target)) return; // inside the popup

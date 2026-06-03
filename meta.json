@@ -1,7 +1,7 @@
 {
   "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
   "name": "Custom Theme",
-  "version": "2.5.26.0",
+  "version": "2.5.27.0",
   "description": "Netflix-style skin for Jellyfin: rotating hero carousel, genre rows, top nav tabs, native hover previews, settings panel and 15 fonts. Self-contained on most installs (no Media Bar / Home Sections / Custom Tabs needed); on read-only / Docker web roots, install the File Transformation plugin so the header button loads.",
   "overview": "Netflix-style skin: hero carousel, genre rows, nav tabs, settings panel, 15 fonts. On read-only/Docker installs the File Transformation plugin is recommended.",
   "owner": "Kuschel-code",
