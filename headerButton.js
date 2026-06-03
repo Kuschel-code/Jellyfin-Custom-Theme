@@ -261,7 +261,7 @@
 
     // ============ Hero billboard carousel (home page) ============
     var heroBusy = false;
-    var HERO_INTERVAL = 14000;
+    var HERO_INTERVAL = 20000;
     var HERO_MAX = 6;
 
     function isHomePage() {
@@ -661,14 +661,12 @@
     // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
     // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
     function nfClipUrl(playId, msId, ticks) {
-        // Skip the intro by jumping ~2 min in, but only when the title is long enough. A small
-        // FIXED offset (intros are ~constant length, not proportional to runtime) keeps the
-        // copy-remux fast and reliable to start — a deep percentage seek can stall the stream.
-        var skip = (ticks && ticks > 2400000000) ? 1200000000 : 0; // >4min -> start at 2min
+        // Start at frame 0 (always a keyframe). A mid-file startTimeTicks seek makes the
+        // copy-remux fail (ffmpeg 500) on MPEG-TS sources without a clean keyframe there —
+        // that was the cause of the clip 500 errors. Reliability > skipping the intro.
         return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
             + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
             + (msId ? '&mediaSourceId=' + msId : '')
-            + (skip ? '&startTimeTicks=' + skip : '')
             + '&api_key=' + ApiClient.accessToken();
     }
     // Stall watchdog: if a clip hasn't actually started progressing within ~10s (slow or
