@@ -62,6 +62,11 @@ body, .mainDrawer, .dialog {
     -webkit-backdrop-filter: none !important;
 }
 
+/* Netflix layout: nav/logo on the left, search + theme + profile pushed to the
+   far right. Jellyfin packs .headerRight right after .headerLeft (justify-start),
+   so it sat mid-left; margin-left:auto absorbs the free space and pins it right. */
+.skinHeader .headerRight { margin-left: auto !important; }
+
 .headerTop {
     height: var(--nav-height) !important;
 }
@@ -1536,7 +1541,11 @@ html.preload, #loadingSpinner { background-color: var(--bg-darker, #000) !import
 /* =============================================
    TOP 10 TRENDING ROW (built by headerButton.js, AniList data) — big rank numbers
    ============================================= */
-.nf-trend-track { gap: 0.2vw !important; align-items: flex-end !important; }
+/* Top 10: user preference — drop the big background rank numbers and show a
+   clean poster row (the negative-margin overlap spacing went with the numbers,
+   so widen the gap to normal row spacing). */
+.nf-trend-rank { display: none !important; }
+.nf-trend-track { gap: 0.6vw !important; align-items: flex-end !important; }
 .nf-trend-item { display: flex; align-items: flex-end; flex: 0 0 auto; text-decoration: none; }
 .nf-trend-rank {
     font-family: var(--font-netflix); font-weight: 900;
