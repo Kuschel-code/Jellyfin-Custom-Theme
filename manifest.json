@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.31.0",
-        "changelog": "Two fixes from live testing. (1) Preview clips that 'skipped like a record': the hero and detail clips used the native video loop, which on remuxed MPEG-TS sources restarts at the buffered start before the clip's duration is known — so it strobed the first half-second forever. Clips now play straight through and only re-loop once finished. (2) Navigation drawer: its top entries no longer collide with the logo/tabs (the drawer now clears the fixed header), and while it is open the header goes solid and the page behind dims, Netflix-style.",
+        "changelog": "Two fixes from live testing. (1) Preview clips that 'skipped like a record': the hero and detail clips used the native video loop, which on remuxed MPEG-TS sources restarts at the buffered start before the clip's duration is known \u2014 so it strobed the first half-second forever. Clips now play straight through and only re-loop once finished. (2) Navigation drawer: its top entries no longer collide with the logo/tabs (the drawer now clears the fixed header), and while it is open the header goes solid and the page behind dims, Netflix-style.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.31/custom-theme-v2.5.31.zip",
-        "checksum": "0000",
+        "checksum": "043a23fab50a3befe09fbbe5ee456371",
         "timestamp": "2026-06-04T00:10:00"
       },
       {
