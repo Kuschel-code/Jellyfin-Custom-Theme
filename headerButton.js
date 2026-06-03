@@ -1094,6 +1094,28 @@
         } catch (e) {}
     }
 
+    // Netflix header behaviour: transparent (top scrim) over a billboard at the
+    // very top, solid #141414 once you scroll. Jellyfin's .skinHeader-withBackground
+    // only marks "this view has a backdrop" — it is NOT scroll-driven — so we drive
+    // the solid state ourselves with a .nf-scrolled class toggled on window scroll.
+    function syncHeaderScrolled() {
+        var h = document.querySelector('.skinHeader');
+        if (!h) return;
+        var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        h.classList.toggle('nf-scrolled', y > 60);
+    }
+    function setupHeaderScroll() {
+        if (window.__nfHeaderScroll) return;
+        window.__nfHeaderScroll = true;
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () { ticking = false; syncHeaderScrolled(); });
+        }, { passive: true });
+        syncHeaderScrolled();
+    }
+
     function applyDynamic() {
         addButton();
         setupNavTabs();
@@ -1106,10 +1128,12 @@
         setupTopTen();
         setupMatchScore();
         setupDetailClip();
+        syncHeaderScrolled();
     }
 
     function init() {
         setupCardPreviews();
+        setupHeaderScroll();
         applyDynamic();
         window.addEventListener('hashchange', function () { clearPreview(); cleanupDetailClip(); setupHero(); renderNavTabs(); });
 

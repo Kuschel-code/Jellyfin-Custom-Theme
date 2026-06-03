@@ -38,7 +38,7 @@ body, .mainDrawer, .dialog {
    ============================================= */
 
 .skinHeader {
-    background: linear-gradient(to bottom, rgba(20,20,20,0.6) 0%, rgba(20,20,20,0.25) 50%, transparent 100%) !important;
+    background: #141414 !important;
     height: var(--nav-height) !important;
     padding: 0 !important;
     box-shadow: none !important;
@@ -49,9 +49,12 @@ body, .mainDrawer, .dialog {
     backdrop-filter: none !important;
 }
 
-/* Scrolled (Jellyfin toggles .skinHeader-withBackground) → solid Netflix dark */
-.skinHeader-withBackground {
-    background: #141414 !important;
+/* Netflix: over a billboard, the header is transparent with a top scrim at the
+   very top, and goes solid #141414 once scrolled. headerButton.js toggles
+   .nf-scrolled on window scroll; .skinHeader-withBackground marks billboard views.
+   Non-billboard views keep the solid default above. */
+.skinHeader-withBackground:not(.nf-scrolled) {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 40%, transparent 100%) !important;
 }
 
 .skinHeader-blurred {
