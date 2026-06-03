@@ -10,10 +10,10 @@
     "versions": [
       {
         "version": "2.5.28.0",
-        "changelog": "Fewer clip errors: preview/hero/detail clips now start at the beginning instead of seeking ~2 min in — the mid-file seek failed (HTTP 500) on MPEG-TS files without a clean keyframe there. The hero also rotates a bit slower (20s) to ease the server transcoder. Result: far fewer 500 errors and clips that actually play.",
+        "changelog": "Fewer clip errors: preview/hero/detail clips now start at the beginning instead of seeking ~2 min in \u2014 the mid-file seek failed (HTTP 500) on MPEG-TS files without a clean keyframe there. The hero also rotates a bit slower (20s) to ease the server transcoder. Result: far fewer 500 errors and clips that actually play.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.28/custom-theme-v2.5.28.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "b2834fda37782d42cd16662ac7c2d276",
         "timestamp": "2026-06-03T08:25:00"
       },
       {
