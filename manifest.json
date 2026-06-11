@@ -9,8 +9,16 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.34.0",
+        "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), Netflix-density rows without under-art text, Netflix-style login box without cyan accents.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.34/custom-theme-v2.5.34.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-11T03:00:00"
+      },
+      {
         "version": "2.5.33.0",
-        "changelog": "Housekeeping release: fixed all compiler warnings (nullable annotations in the injection middleware); dashboard settings page now has every setting (CleanHome, GenreRows, NavTabs, TrendingRow were missing); header panel gained Logo letter + Logo image URL fields; removed three dead manifest entries (2.5.12/2.5.15/2.5.16 pointed at releases that never existed, breaking installs of those versions); descriptions and code comments aligned with the current injection strategy (self-contained direct-serve, File Transformation used automatically when present).",
+        "changelog": "CRITICAL injection fixes, found by running a real Jellyfin 10.11.11 + headless browser: (1) browsers send Accept-Encoding gzip/br, so the middleware buffered COMPRESSED bytes and never injected \u2014 curl tests passed while every real browser was missing the script (no settings button, no hero, no rows). The index request is now forced to identity encoding. (2) WebPath reflection on the app host finds nothing in 10.11 \u2014 now resolved via IApplicationPaths.WebPath, re-enabling direct-serve and on-disk injection. Plus: Housekeeping release: fixed all compiler warnings (nullable annotations in the injection middleware); dashboard settings page now has every setting (CleanHome, GenreRows, NavTabs, TrendingRow were missing); header panel gained Logo letter + Logo image URL fields; removed three dead manifest entries (2.5.12/2.5.15/2.5.16 pointed at releases that never existed, breaking installs of those versions); descriptions and code comments aligned with the current injection strategy (self-contained direct-serve, File Transformation used automatically when present).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.33/custom-theme-v2.5.33.zip",
         "checksum": "c2c5314fdeab71eeb0996c842acd1bd7",
