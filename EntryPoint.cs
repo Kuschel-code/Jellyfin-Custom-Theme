@@ -28,12 +28,14 @@ namespace Jellyfin.Plugin.CustomTheme
 
         private readonly IConfigurationManager _configManager;
         private readonly IServerApplicationHost _appHost;
+        private readonly IApplicationPaths _appPaths;
         private readonly ILogger<EntryPoint> _logger;
 
-        public EntryPoint(IConfigurationManager configManager, IServerApplicationHost appHost, ILogger<EntryPoint> logger)
+        public EntryPoint(IConfigurationManager configManager, IServerApplicationHost appHost, IApplicationPaths appPaths, ILogger<EntryPoint> logger)
         {
             _configManager = configManager;
             _appHost = appHost;
+            _appPaths = appPaths;
             _logger = logger;
         }
 
@@ -188,8 +190,20 @@ namespace Jellyfin.Plugin.CustomTheme
 
         private string? FindIndexHtml()
         {
-            // Reflection on the app host first (most accurate), then common install paths.
-            var webPath = _appHost.GetType().GetProperty("WebPath")?.GetValue(_appHost) as string;
+            // IApplicationPaths.WebPath is the authoritative location in 10.11 (the old
+            // reflection on the app host found nothing — its WebPath property is gone, which
+            // silently disabled direct-serve and on-disk injection). Keep common install
+            // paths as fallbacks.
+            string? webPath = null;
+            try
+            {
+                webPath = _appPaths.WebPath;
+            }
+            catch
+            {
+                // fall through to the static candidates
+            }
+
             var candidates = new[]
             {
                 webPath,

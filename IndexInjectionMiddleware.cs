@@ -103,6 +103,13 @@ namespace Jellyfin.Plugin.CustomTheme
                 return;
             }
 
+            // Browsers send Accept-Encoding: gzip/br, so the response-compression middleware
+            // hands us COMPRESSED bytes — no "</body>" match, no injection. (curl without
+            // compression got the injected page, which is why server-side tests passed while
+            // every real browser was missing the script.) Force identity for the index
+            // document so the capture path always sees plain HTML.
+            context.Request.Headers.Remove("Accept-Encoding");
+
             // Preferred path: serve index.html ourselves — read straight from disk and
             // transform in memory. This is the ONLY self-contained mechanism that injects on
             // read-only Docker web roots, where the static-file middleware uses SendFileAsync
