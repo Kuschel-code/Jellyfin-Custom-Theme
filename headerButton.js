@@ -873,7 +873,10 @@
     }
 
     function nfIsTouch() {
-        try { return !!(window.matchMedia && window.matchMedia('(hover: none)').matches); } catch (e) { return false; }
+        // (hover: none) alone misfires on VMs / RDP / headless setups, which would
+        // silently disable the desktop hover popup. Real touch devices (iPad, phone)
+        // report a coarse pointer too, so require both.
+        try { return !!(window.matchMedia && window.matchMedia('(hover: none)').matches && window.matchMedia('(any-pointer: coarse)').matches); } catch (e) { return false; }
     }
 
     // Touch devices (iPad / phone) have no hover. Netflix-on-touch: the FIRST tap on a card
@@ -957,7 +960,9 @@
     function setupMatchScore() {
         try {
             if (cfg('MatchScore', true) !== true) return;
-            document.querySelectorAll('.starRatingValue').forEach(function (el) {
+            // .starRatingValue is the classic markup; detail pages render the value
+            // directly inside .starRatingContainer (verified live on 10.11).
+            document.querySelectorAll('.starRatingValue, .starRatingContainer').forEach(function (el) {
                 if (el.dataset.ctMatch) return;
                 var n = parseFloat((el.textContent || '').replace(',', '.'));
                 if (isNaN(n) || n < 0 || n > 10) return;

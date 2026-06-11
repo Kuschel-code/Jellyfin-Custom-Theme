@@ -376,7 +376,8 @@ namespace Jellyfin.Plugin.CustomTheme
             if (config.MatchScore)
             {
                 // Community rating is restyled green; headerButton.js rewrites the value to "x% Match".
-                sb.AppendLine(@".starRatingValue { color: #46d369 !important; font-weight: 700 !important; }
+                // Detail pages put the value directly in .starRatingContainer (no .starRatingValue).
+                sb.AppendLine(@".starRatingValue, .starRatingContainer { color: #46d369 !important; font-weight: 700 !important; }
 .starIcon { display: none !important; }");
             }
 

@@ -927,6 +927,22 @@ body, .mainDrawer, .dialog {
     max-width: 450px !important;
 }
 
+/* 10.11 login markup: plain form, no .visual-card — give it the Netflix box */
+#loginPage form, .loginPage form {
+    background: rgba(0, 0, 0, 0.75) !important;
+    padding: 48px 56px 56px !important;
+    border-radius: 8px !important;
+    max-width: 420px !important;
+    margin: 8vh auto 0 !important;
+}
+
+/* Kill the cyan accents: focused labels and checkboxes go Netflix */
+#loginPage .inputLabel, #loginPage .inputLabelFocused, #loginPage .inputLabelUnfocused,
+.inputLabelFocused { color: var(--text-muted) !important; }
+input[type="checkbox"], .emby-checkbox { accent-color: var(--accent-red) !important; }
+.emby-checkbox:checked + span > .checkboxIcon-checked { background-color: var(--accent-red) !important; }
+.checkboxIcon { color: var(--accent-red) !important; }
+
 .inputContainer input, .emby-input {
     background-color: #333 !important;
     border: none !important;
@@ -1287,8 +1303,10 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 .nf-detail-video.show { opacity: 1; }
 .nf-hero-slide::after {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    /* Solid bg-dark band at the very bottom so the hero dissolves into the page
+       instead of leaving a hard colored edge when scrolling. */
     background:
-        linear-gradient(to top, var(--bg-dark) 0%, rgba(20,20,20,0.5) 22%, transparent 50%),
+        linear-gradient(to top, var(--bg-dark) 0%, var(--bg-dark) 5%, rgba(20,20,20,0.6) 24%, transparent 52%),
         linear-gradient(130deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 38%, transparent 62%);
 }
 .nf-hero-content {
@@ -1364,7 +1382,10 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 /* =============================================
    CURATED GENRE ROWS (built by headerButton.js) — replaces Home Screen Sections
    ============================================= */
-.nf-genre-section { margin: 0 0 2.4vw; }
+.nf-genre-section { margin: 0 0 1.4vw; }
+/* Netflix rows show no text under the artwork — title/match live in the hover popup. */
+.nf-genre-section .nf-card .cardText { display: none !important; }
+.nf-genre-section .nf-card .cardBox { padding-bottom: 0 !important; }
 .nf-genre-section .sectionTitle {
     padding-left: 4%;
     font-size: clamp(1.1rem, 1.4vw, 1.45rem);
