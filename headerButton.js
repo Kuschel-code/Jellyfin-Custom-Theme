@@ -12,6 +12,8 @@
         ['quicksand', 'Quicksand'], ['comfortaa', 'Comfortaa'], ['righteous', 'Righteous']
     ];
 
+    var AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (c) { return [c, c]; });
+
     // Mirrors the dashboard configuration page.
     var SECTIONS = [
         ['Netflix Features', [
@@ -39,6 +41,8 @@
         ]],
         ['Logo & Header', [
             ['LogoStyle', 'select', 'Logo style', [['jellyfin','Jellyfin'],['netflix','Netflix N'],['letter','Letter'],['custom','Custom image'],['none','None']]],
+            ['LogoLetter', 'select', 'Logo letter', AZ],
+            ['CustomLogoUrl', 'text', 'Logo image URL'],
             ['NavLeft', 'toggle', 'Left-aligned nav (Netflix)'],
             ['HeaderBlur', 'toggle', 'Header blur effect']
         ]],
@@ -152,6 +156,8 @@
                     html += '<label class="ct-switch"><input type="checkbox" data-key="' + key + '"' + (config[key] !== false ? ' checked' : '') + '><span class="ct-slider"></span></label>';
                 } else if (type === 'color') {
                     html += '<input type="color" data-key="' + key + '" value="' + esc(config[key] || '#000000') + '">';
+                } else if (type === 'text') {
+                    html += '<input type="text" data-key="' + key + '" value="' + esc(config[key] || '') + '" placeholder="https://...">';
                 } else {
                     html += '<select data-key="' + key + '">';
                     f[3].forEach(function (o) {
