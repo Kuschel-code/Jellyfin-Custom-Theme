@@ -17,9 +17,10 @@ namespace Jellyfin.Plugin.CustomTheme
 {
     /// <summary>
     /// On startup: applies the generated CSS (via branding CustomCss) and makes the
-    /// header/hero script load. Script injection is self-contained — it writes the
-    /// script into index.html on disk. If the optional File Transformation plugin is
-    /// present, that cleaner runtime method is used instead (e.g. for read-only installs).
+    /// header/hero script load. Injection order: the real File Transformation plugin when
+    /// installed (Harmony file-provider hook); otherwise the built-in middleware (which
+    /// also direct-serves index.html from disk, covering read-only web roots) plus an
+    /// on-disk write as belt-and-suspenders. All paths dedupe via the script marker.
     /// </summary>
     public class EntryPoint : IHostedService
     {

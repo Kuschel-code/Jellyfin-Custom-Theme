@@ -14,8 +14,10 @@ namespace Jellyfin.Plugin.CustomTheme
         {
             serviceCollection.AddHostedService<EntryPoint>();
 
-            // Self-contained index.html injection (no File Transformation plugin needed).
-            // Defensive + gated by the OwnInjection setting; see IndexInjectionMiddleware.
+            // Index.html injection middleware: serves/injects our script and applies
+            // transformations other plugins registered with the bundled File Transformation
+            // provider. Gated by the OwnInjection / ProvideFileTransformation settings;
+            // EntryPoint prefers the real File Transformation plugin when installed.
             serviceCollection.AddSingleton<IStartupFilter, IndexInjectionStartupFilter>();
         }
     }

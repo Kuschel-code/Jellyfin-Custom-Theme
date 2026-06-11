@@ -173,7 +173,7 @@ namespace Jellyfin.Plugin.CustomTheme
             // Restore the real response body before writing the result.
             context.Features.Set(originalBodyFeature);
 
-            string html = null;
+            string? html = null;
             try
             {
                 html = Encoding.UTF8.GetString(buffer.ToArray());
@@ -183,7 +183,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 html = null;
             }
 
-            string output = null;
+            string? output = null;
             if (html != null
                 && context.Response.StatusCode == 200
                 && html.IndexOf("</body>", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -256,7 +256,7 @@ namespace Jellyfin.Plugin.CustomTheme
             return html;
         }
 
-        private static bool MatchesIndex(string pattern)
+        private static bool MatchesIndex(string? pattern)
         {
             if (string.IsNullOrEmpty(pattern))
             {
@@ -294,7 +294,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 return null;
             }
 
-            object arg;
+            object? arg;
             var paramType = parameters[0].ParameterType;
             if (paramType == typeof(string))
             {
@@ -308,7 +308,7 @@ namespace Jellyfin.Plugin.CustomTheme
                 arg = JsonSerializer.Deserialize(payloadJson, paramType, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
 
-            var target = method.IsStatic ? null : Activator.CreateInstance(type);
+            var target = method.IsStatic ? null : Activator.CreateInstance(type!);
             return method.Invoke(target, new[] { arg }) as string;
         }
     }

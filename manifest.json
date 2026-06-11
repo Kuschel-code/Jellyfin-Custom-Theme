@@ -2,12 +2,20 @@
   {
     "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
     "name": "Custom Theme",
-    "description": "Netflix-style skin for Jellyfin: hero carousel, genre rows, nav tabs, native hover previews, settings panel and 15 fonts. Self-contained on most installs; on read-only / Docker web roots, install the File Transformation plugin so the header button loads.",
+    "description": "Netflix-style skin for Jellyfin: rotating hero carousel, genre rows, top nav tabs, native hover previews, settings panel and 15 fonts. Fully self-contained \u2014 the built-in middleware serves index.html with the script injected, so it works on read-only / Docker installs too; the File Transformation plugin is used automatically when installed.",
     "overview": "Netflix-inspired skin for Jellyfin with hero, genre rows, nav tabs and a built-in settings panel",
     "owner": "Kuschel-code",
     "category": "General",
     "imageUrl": "",
     "versions": [
+      {
+        "version": "2.5.33.0",
+        "changelog": "Housekeeping release: fixed all compiler warnings (nullable annotations in the injection middleware); dashboard settings page now has every setting (CleanHome, GenreRows, NavTabs, TrendingRow were missing); header panel gained Logo letter + Logo image URL fields; removed three dead manifest entries (2.5.12/2.5.15/2.5.16 pointed at releases that never existed, breaking installs of those versions); descriptions and code comments aligned with the current injection strategy (self-contained direct-serve, File Transformation used automatically when present).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.33/custom-theme-v2.5.33.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-02T20:00:00"
+      },
       {
         "version": "2.5.32.0",
         "changelog": "Header + Top 10 tweaks from feedback: search, theme and profile now sit at the far right of the header (Netflix layout) instead of bunched next to the nav tabs; the Top 10 row drops the big background rank numbers for a clean poster row.",
@@ -137,22 +145,6 @@
         "timestamp": "2026-06-02T18:00:00"
       },
       {
-        "version": "2.5.16.0",
-        "changelog": "Applied lessons from IAmParadox27's plugins: hero uses the Media Bar's quality filters (HasOverview, IsPlayed=false) so no empty slides; Ken Burns zoom + diagonal gradient on the hero; SPA-survival (Custom Tabs technique) - patches history.pushState/replaceState and listens to nav events so the settings button / nav tabs / home takeover survive client-side navigation; the injected script now carries a version attribute so index.html busts browser cache on every update.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.16/custom-theme-v2.5.16.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-02T17:00:00"
-      },
-      {
-        "version": "2.5.15.0",
-        "changelog": "Injection reliability: prefer the File Transformation plugin when installed (its Harmony file-provider hook injects even on read-only Docker web dirs), otherwise built-in middleware PLUS on-disk write. Fixes the missing header/settings button. Loading screen reworked into a centered Netflix-style progress bar (inspired by the Media Bar) \u2014 fixes the loader stuck in the top-left corner.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.15/custom-theme-v2.5.15.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-02T15:00:00"
-      },
-      {
         "version": "2.5.14.0",
         "changelog": "Version consistency fix: meta.json, csproj and manifest are all 2.5.14.0 (the 2.5.13 build shipped meta.json 2.5.12.0, causing a perpetual 'update available'). Same features as 2.5.13 \u2014 bundled File Transformation provider (Media Bar works without the separate plugin), self-contained injection, centered loading animation.",
         "targetAbi": "10.11.0.0",
@@ -167,14 +159,6 @@
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.13/custom-theme-v2.5.13.zip",
         "checksum": "15ac0afac7a04ddbbe867c9090c63fc5",
         "timestamp": "2026-06-02T12:00:00"
-      },
-      {
-        "version": "2.5.12.0",
-        "changelog": "Loading animation is now centered on the whole screen (full-screen flex-centered red ring).",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.12/custom-theme-v2.5.12.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-01T12:00:00"
       },
       {
         "version": "2.5.11.0",
