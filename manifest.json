@@ -13,7 +13,7 @@
         "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), Netflix-density rows without under-art text, Netflix-style login box without cyan accents.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.34/custom-theme-v2.5.34.zip",
-        "checksum": "00000000000000000000000000000000",
+        "checksum": "63c5be24a38626a6a866887c1688a871",
         "timestamp": "2026-06-11T03:00:00"
       },
       {
