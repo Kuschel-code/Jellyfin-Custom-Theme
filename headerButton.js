@@ -89,6 +89,15 @@
         return CT_CONFIG[key];
     }
 
+    // Netflix-style "x% Match" from a community rating. Community ratings are on a
+    // 0-10 scale, so we guard the range — a stray value (e.g. a percent-scale or
+    // bad metadata rating) must never render "764% Match". Returns '' when invalid.
+    function matchHtml(rating, cls) {
+        var n = parseFloat(rating);
+        if (isNaN(n) || n < 0 || n > 10) return '';
+        return '<span class="' + cls + '">' + Math.round(n * 10) + '% Match</span>';
+    }
+
     // ============ Header settings button ============
     function addButton() {
         if (document.querySelector('.ct-settings-btn')) return;
@@ -348,7 +357,7 @@
             titleHtml = '<div class="nf-hero-title">' + esc(item.Name || '') + '</div>';
         }
 
-        var match = item.CommunityRating ? '<span class="nf-hero-match">' + Math.round(item.CommunityRating * 10) + '% Match</span>' : '';
+        var match = matchHtml(item.CommunityRating, 'nf-hero-match');
         var year = item.ProductionYear ? '<span>' + item.ProductionYear + '</span>' : '';
         var rating = item.OfficialRating ? '<span class="nf-hero-rating">' + esc(item.OfficialRating) + '</span>' : '';
         var genres = (item.Genres || []).slice(0, 3).map(esc).join(' • ');
@@ -803,7 +812,7 @@
                 ? ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 640, tag: bd })
                 : (item.ImageTags && item.ImageTags.Primary ? ApiClient.getScaledImageUrl(item.Id, { type: 'Primary', maxWidth: 640, tag: item.ImageTags.Primary }) : '');
             var detailUrl = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
-            var match = item.CommunityRating ? '<span class="nf-pop-match">' + Math.round(item.CommunityRating * 10) + '% Match</span>' : '';
+            var match = matchHtml(item.CommunityRating, 'nf-pop-match');
             var rating = item.OfficialRating ? '<span class="nf-pop-rating">' + esc(item.OfficialRating) + '</span>' : '';
             var extra = item.ChildCount ? ('<span>' + item.ChildCount + ' Staffel' + (item.ChildCount > 1 ? 'n' : '') + '</span>')
                 : (item.ProductionYear ? '<span>' + item.ProductionYear + '</span>' : '');

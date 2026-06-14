@@ -23,7 +23,7 @@ namespace Jellyfin.Plugin.CustomTheme
 
         // --- Logo ---
         /// <summary>jellyfin, netflix, letter, custom, none.</summary>
-        public string LogoStyle { get; set; } = "jellyfin";
+        public string LogoStyle { get; set; } = "netflix";
         public string LogoLetter { get; set; } = "N";
         public string CustomLogoUrl { get; set; } = string.Empty;
 

@@ -9,6 +9,22 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.5.36.0",
+        "changelog": "Netflix-style detail page + a full live UI review, every change verified on Jellyfin 10.11.11 + headless browser. Detail page: (1) the title no longer renders twice - Jellyfin's logo image was positioned off-screen (left:-336px) while the text title showed separately, so the broken logo is hidden and a single bold white title is used, which is also what Netflix falls back to for the many items with no logo art; (2) the Play button is now a proper white Netflix pill with a label ('Abspielen'/'Weiter') instead of a bare icon (Jellyfin stacked the icon over the label in a column; it now lays out as one horizontal row that grows to fit); (3) the title/synopsis block is pulled up so it overlaps the backdrop instead of sitting jammed at the bottom. Review fixes: (4) the login 'Remember Me' checkbox was still Jellyfin cyan (#00a4dc) - it is now a red box with a white check (the cyan was on .checkboxOutline, which the old selector never matched); toggle switches go red too; (5) the hero/hover '% Match' now guards the 0-10 rating range so a stray rating can never render nonsense like '764% Match' (matching the detail-page behaviour). Verified working across home, detail (movie+series), search, library grid and the settings panel.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.36/custom-theme-v2.5.36.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-14T03:40:00"
+      },
+      {
+        "version": "2.5.35.0",
+        "changelog": "Closer to 1:1 Netflix, each change verified live in a real Jellyfin + headless browser: (1) the header logo now defaults to the red Netflix-style 'N' mark instead of the Jellyfin logo - the single biggest 'this is Netflix' signal (existing installs: set Logo to 'Netflix N' in settings). (2) Genre rows now show ~6 landscape cards across like Netflix instead of ~4 (a global min-width:320 rule was forcing them wide).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.35/custom-theme-v2.5.35.zip",
+        "checksum": "00000000000000000000000000000000",
+        "timestamp": "2026-06-14T03:10:00"
+      },
+      {
         "version": "2.5.34.0",
         "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), Netflix-density rows without under-art text, Netflix-style login box without cyan accents.",
         "targetAbi": "10.11.0.0",

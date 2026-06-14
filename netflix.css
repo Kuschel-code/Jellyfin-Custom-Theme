@@ -369,21 +369,15 @@ body, .mainDrawer, .dialog {
     pointer-events: none !important;
 }
 
-/* --- DETAIL LOGO (title card image) --- */
+/* --- DETAIL LOGO (title card image) ---
+   Jellyfin renders .detailLogo as a direct child of the page with a default
+   horizontal offset that puts it off-screen (left:-336px in testing), and it
+   sits detached above the title/buttons block. Rather than fight a fragile
+   position that also breaks for the many library items that have NO logo art,
+   we hide it and render a single, reliable big title via .itemName below —
+   which is what Netflix falls back to when no logo exists. */
 .detailLogo {
-    display: block !important;
-    position: relative !important;
-    z-index: 5 !important;
-    max-width: 350px !important;
-    max-height: 150px !important;
-    min-height: 60px !important;
-    margin-left: 4% !important;
-    margin-top: 0 !important;
-    margin-bottom: 10px !important;
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)) !important;
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-    background-position: left center !important;
+    display: none !important;
 }
 
 /* --- PAGE WRAPPER: Content overlays the backdrop --- */
@@ -391,7 +385,7 @@ body, .mainDrawer, .dialog {
     position: relative !important;
     z-index: 3 !important;
     margin-top: 0 !important;
-    padding-top: 35vh !important;
+    padding-top: 30vh !important;
 }
 
 .detailPagePrimaryContainer {
@@ -523,6 +517,33 @@ body, .mainDrawer, .dialog {
 
 .btnPlay:hover, .btnResume:hover, .btnReplay:hover {
     background-color: rgba(255,255,255,0.75) !important;
+}
+
+/* Netflix-style text label on the primary play button (scoped to the detail
+   page so card-hover play buttons keep their icon-only look). Jellyfin's
+   button only contains the ▶ icon, so we append the word after it. Jellyfin's
+   .detailButton base lays the icon out in a column, which would stack the
+   label under the icon — force a single horizontal row that grows to fit. */
+.mainDetailButtons .btnPlay,
+.mainDetailButtons .btnResume,
+.mainDetailButtons .btnReplay {
+    flex-direction: row !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 10px 26px 10px 20px !important;
+}
+.mainDetailButtons .btnPlay::after { content: 'Abspielen'; }
+.mainDetailButtons .btnResume::after { content: 'Weiter'; }
+.mainDetailButtons .btnReplay::after { content: 'Erneut'; }
+.mainDetailButtons .btnPlay::after,
+.mainDetailButtons .btnResume::after,
+.mainDetailButtons .btnReplay::after {
+    font-family: var(--font-netflix) !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.01em !important;
+    margin-left: 4px !important;
+    line-height: 1 !important;
 }
 
 /* Circle icon buttons (watched, favorite, more) — Netflix ring style */
@@ -940,8 +961,19 @@ body, .mainDrawer, .dialog {
 #loginPage .inputLabel, #loginPage .inputLabelFocused, #loginPage .inputLabelUnfocused,
 .inputLabelFocused { color: var(--text-muted) !important; }
 input[type="checkbox"], .emby-checkbox { accent-color: var(--accent-red) !important; }
-.emby-checkbox:checked + span > .checkboxIcon-checked { background-color: var(--accent-red) !important; }
-.checkboxIcon { color: var(--accent-red) !important; }
+/* The filled box of a checked Jellyfin checkbox is .checkboxOutline (default
+   #00a4dc cyan). It is a sibling AFTER the input, not a descendant of the label
+   span, so the old "+ span > .checkboxIcon-checked" selector never matched it. */
+.checkboxOutline { border-color: var(--text-muted) !important; }
+.emby-checkbox:checked ~ .checkboxOutline {
+    background-color: var(--accent-red) !important;
+    border-color: var(--accent-red) !important;
+}
+.checkboxIcon { color: #fff !important; }
+/* Toggle switches (settings, dashboard) — checked track/thumb go red too. */
+.emby-toggle:checked + .toggleButton-track { background-color: rgba(229,9,20,0.5) !important; }
+.emby-toggle:checked + .toggleButton-track + .toggleButton-thumb,
+.emby-toggle:checked ~ .toggleButton-thumb { background-color: var(--accent-red) !important; }
 
 .inputContainer input, .emby-input {
     background-color: #333 !important;
@@ -1399,9 +1431,12 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 }
 .nf-row-scroll::-webkit-scrollbar { display: none; }
 .nf-row-track { display: flex; gap: 0.5vw; align-items: flex-start; }
-.nf-genre-section .nf-card {
+/* ~6 landscape cards across like Netflix (was ~4). The 3-class selector + !important
+   overrides the global ".homeSectionsContainer .card.overflowBackdropCard {min-width:320px}". */
+.nf-genre-section .card.nf-card {
     flex: 0 0 auto;
-    width: clamp(210px, 19vw, 330px);
+    width: clamp(165px, 15.2vw, 285px) !important;
+    min-width: 0 !important;
     margin: 0;
 }
 /* Landscape 16:9 boxart (Netflix-style) for genre-row cards */
