@@ -34,7 +34,7 @@ body, .mainDrawer, .dialog {
 }
 
 /* =============================================
-   HEADER — Netflix top bar
+   HEADER — N top bar
    ============================================= */
 
 .skinHeader {
@@ -49,7 +49,7 @@ body, .mainDrawer, .dialog {
     backdrop-filter: none !important;
 }
 
-/* Netflix: over a billboard, the header is transparent with a top scrim at the
+/* N: over a billboard, the header is transparent with a top scrim at the
    very top, and goes solid #141414 once scrolled. headerButton.js toggles
    .nf-scrolled on window scroll; .skinHeader-withBackground marks billboard views.
    Non-billboard views keep the solid default above. */
@@ -62,7 +62,7 @@ body, .mainDrawer, .dialog {
     -webkit-backdrop-filter: none !important;
 }
 
-/* Netflix layout: nav/logo on the left, search + theme + profile pushed to the
+/* N layout: nav/logo on the left, search + theme + profile pushed to the
    far right. Jellyfin packs .headerRight right after .headerLeft (justify-start),
    so it sat mid-left; margin-left:auto absorbs the free space and pins it right. */
 .skinHeader .headerRight { margin-left: auto !important; }
@@ -76,7 +76,7 @@ body, .mainDrawer, .dialog {
     display: none !important;
 }
 
-/* Netflix N logo */
+/* N N logo */
 .headerLeft::before {
     content: 'N';
     color: var(--accent-red);
@@ -187,7 +187,7 @@ body, .mainDrawer, .dialog {
 .sectionTitle:hover { color: var(--text-main) !important; }
 .padded-left, .padded-right { padding: 0 !important; }
 
-/* Section title arrow on hover — Netflix "explore" feel */
+/* Section title arrow on hover — N "explore" feel */
 .sectionTitle .sectionTitleTextButton {
     color: var(--accent-red) !important;
     font-size: 0.85rem !important;
@@ -200,7 +200,7 @@ body, .mainDrawer, .dialog {
     opacity: 1 !important;
 }
 
-/* "Meine Medien" library cards — bigger, Netflix-style */
+/* "Meine Medien" library cards — bigger, N-style */
 .section0 .card.overflowBackdropCard {
     min-width: 250px !important;
 }
@@ -209,7 +209,7 @@ body, .mainDrawer, .dialog {
     border-radius: 6px !important;
 }
 
-/* --- HOME SCROLL ROWS — Netflix-style tight packing --- */
+/* --- HOME SCROLL ROWS — N-style tight packing --- */
 .homeSectionsContainer .scrollSlider {
     padding-bottom: 20px !important;
     margin-bottom: -20px !important;
@@ -284,7 +284,7 @@ body, .mainDrawer, .dialog {
     opacity: 1 !important;
 }
 
-/* Unplayed count badge — Netflix red pill */
+/* Unplayed count badge — N red pill */
 .indicator {
     background-color: var(--accent-red) !important;
     font-family: var(--font-netflix) !important;
@@ -303,7 +303,7 @@ body, .mainDrawer, .dialog {
     padding: 2px !important;
 }
 
-/* Horizontal scroll — Netflix-style edge arrows.
+/* Horizontal scroll — N-style edge arrows.
    SCOPED to the home container only: globally forcing emby-scroller to
    overflow:visible breaks horizontal scrolling on detail/search/library pages
    (their card rows expand to full width and blow out the page). Our own home
@@ -358,7 +358,7 @@ body, .mainDrawer, .dialog {
 
 /* .backgroundContainer is a sibling of .backdropContainer (NOT inside .itemDetailPage).
    When on a detail page, Jellyfin adds .withBackdrop class.
-   We make it transparent and apply the Netflix gradient overlay here (z-index 1, above backdrop). */
+   We make it transparent and apply the N gradient overlay here (z-index 1, above backdrop). */
 .backgroundContainer.withBackdrop {
     background-color: transparent !important;
     background-image:
@@ -375,7 +375,7 @@ body, .mainDrawer, .dialog {
    sits detached above the title/buttons block. Rather than fight a fragile
    position that also breaks for the many library items that have NO logo art,
    we hide it and render a single, reliable big title via .itemName below —
-   which is what Netflix falls back to when no logo exists. */
+   which is what N falls back to when no logo exists. */
 .detailLogo {
     display: none !important;
 }
@@ -417,7 +417,7 @@ body, .mainDrawer, .dialog {
     max-width: 700px !important;
 }
 
-/* Hide poster — Netflix never shows it on detail page */
+/* Hide poster — N never shows it on detail page */
 .detailImageContainer {
     display: none !important;
 }
@@ -464,7 +464,7 @@ body, .mainDrawer, .dialog {
     gap: 8px !important;
 }
 
-/* Green match score like Netflix */
+/* Green match score like N */
 .starRatingValue {
     color: #46d369 !important;
     font-weight: 700 !important;
@@ -482,7 +482,7 @@ body, .mainDrawer, .dialog {
 }
 
 /* =============================================
-   DETAIL PAGE BUTTONS — Netflix style
+   DETAIL PAGE BUTTONS — N style
    ============================================= */
 
 .mainDetailButtons {
@@ -497,7 +497,7 @@ body, .mainDrawer, .dialog {
     z-index: 5 !important;
 }
 
-/* ▶ Play button — large white Netflix button with text label */
+/* ▶ Play button — large white N button with text label */
 .btnPlay, .btnResume, .btnReplay {
     background-color: white !important;
     color: black !important;
@@ -519,7 +519,7 @@ body, .mainDrawer, .dialog {
     background-color: rgba(255,255,255,0.75) !important;
 }
 
-/* Netflix-style text label on the primary play button (scoped to the detail
+/* N-style text label on the primary play button (scoped to the detail
    page so card-hover play buttons keep their icon-only look). Jellyfin's
    button only contains the ▶ icon, so we append the word after it. Jellyfin's
    .detailButton base lays the icon out in a column, which would stack the
@@ -546,7 +546,7 @@ body, .mainDrawer, .dialog {
     line-height: 1 !important;
 }
 
-/* Circle icon buttons (watched, favorite, more) — Netflix ring style */
+/* Circle icon buttons (watched, favorite, more) — N ring style */
 .btnPlaystate, .btnUserRating, .btnShare, .btnMoreCommands {
     background-color: rgba(42, 42, 42, 0.6) !important;
     border: 2px solid rgba(255,255,255,0.5) !important;
@@ -757,7 +757,7 @@ body, .mainDrawer, .dialog {
     letter-spacing: 0.01em !important;
 }
 
-/* --- NEXT UP SECTION — Netflix "Als Nächstes" card --- */
+/* --- NEXT UP SECTION — N "Als Nächstes" card --- */
 .nextUpSection .card {
     max-width: 350px !important;
 }
@@ -767,7 +767,7 @@ body, .mainDrawer, .dialog {
     overflow: hidden !important;
 }
 
-/* --- EPISODE LIST ITEMS — Netflix dark row style --- */
+/* --- EPISODE LIST ITEMS — N dark row style --- */
 .detailVerticalSection .listItem-border {
     border-color: rgba(255,255,255,0.08) !important;
 }
@@ -815,7 +815,7 @@ body, .mainDrawer, .dialog {
     text-decoration: underline !important;
 }
 
-/* --- TAGS — Netflix pill style --- */
+/* --- TAGS — N pill style --- */
 .itemTag {
     background-color: rgba(255,255,255,0.08) !important;
     border-radius: 4px !important;
@@ -897,7 +897,7 @@ body, .mainDrawer, .dialog {
     text-align: left !important;
 }
 
-/* --- CAST / PERSON CARDS — Netflix round style --- */
+/* --- CAST / PERSON CARDS — N round style --- */
 .personCard .cardPadder {
     padding-bottom: 0 !important;
 }
@@ -948,7 +948,7 @@ body, .mainDrawer, .dialog {
     max-width: 450px !important;
 }
 
-/* 10.11 login markup: plain form, no .visual-card — give it the Netflix box */
+/* 10.11 login markup: plain form, no .visual-card — give it the N box */
 #loginPage form, .loginPage form {
     background: rgba(0, 0, 0, 0.75) !important;
     padding: 48px 56px 56px !important;
@@ -957,7 +957,7 @@ body, .mainDrawer, .dialog {
     margin: 8vh auto 0 !important;
 }
 
-/* Kill the cyan accents: focused labels and checkboxes go Netflix */
+/* Kill the cyan accents: focused labels and checkboxes go N */
 #loginPage .inputLabel, #loginPage .inputLabelFocused, #loginPage .inputLabelUnfocused,
 .inputLabelFocused { color: var(--text-muted) !important; }
 input[type="checkbox"], .emby-checkbox { accent-color: var(--accent-red) !important; }
@@ -1017,7 +1017,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
    MISC
    ============================================= */
 
-/* Progress bar — Netflix red */
+/* Progress bar — N red */
 .itemProgressBar-inner, .progressBarFill { background-color: var(--accent-red) !important; }
 .itemProgressBar {
     background-color: rgba(255,255,255,0.2) !important;
@@ -1025,7 +1025,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
     height: 3px !important;
 }
 
-/* Dialogs — dark Netflix style */
+/* Dialogs — dark N style */
 .dialog {
     border-radius: 8px !important;
     background-color: #181818 !important;
@@ -1077,7 +1077,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Section titles — Netflix "explore more" arrow on hover */
+/* Section titles — N "explore more" arrow on hover */
 .sectionTitle-linkbutton {
     transition: color 0.2s ease !important;
 }
@@ -1219,7 +1219,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 }
 .sectionTitle .sectionTitleTextButton::after { content: ' \203A'; }
 
-/* --- Cards: smoother, deeper Netflix hover --- */
+/* --- Cards: smoother, deeper N hover --- */
 .card { will-change: transform; }
 .cardImageContainer { transition: filter 0.3s ease, transform 0.35s cubic-bezier(0.33,1,0.68,1) !important; }
 .card:hover { transform: scale(1.09) translateY(-6px) !important; }
@@ -1415,7 +1415,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
    CURATED GENRE ROWS (built by headerButton.js) — replaces Home Screen Sections
    ============================================= */
 .nf-genre-section { margin: 0 0 1.4vw; }
-/* Netflix rows show no text under the artwork — title/match live in the hover popup. */
+/* N rows show no text under the artwork — title/match live in the hover popup. */
 .nf-genre-section .nf-card .cardText { display: none !important; }
 .nf-genre-section .nf-card .cardBox { padding-bottom: 0 !important; }
 .nf-genre-section .sectionTitle {
@@ -1431,7 +1431,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 }
 .nf-row-scroll::-webkit-scrollbar { display: none; }
 .nf-row-track { display: flex; gap: 0.5vw; align-items: flex-start; }
-/* ~6 landscape cards across like Netflix (was ~4). The 3-class selector + !important
+/* ~6 landscape cards across like N (was ~4). The 3-class selector + !important
    overrides the global ".homeSectionsContainer .card.overflowBackdropCard {min-width:320px}". */
 .nf-genre-section .card.nf-card {
     flex: 0 0 auto;
@@ -1439,7 +1439,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
     min-width: 0 !important;
     margin: 0;
 }
-/* Landscape 16:9 boxart (Netflix-style) for genre-row cards */
+/* Landscape 16:9 boxart (N-style) for genre-row cards */
 .nf-genre-section .cardPadder-overflowBackdrop { padding-bottom: 56.25%; }
 .nf-genre-section .nf-card .cardImageContainer {
     background-size: cover !important;
@@ -1514,7 +1514,7 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 @media (max-width: 768px) { .nf-pop { display: none; } }
 
 /* =============================================
-   HOME TAKEOVER (managed by headerButton.js) — clean, Netflix-only home
+   HOME TAKEOVER (managed by headerButton.js) — clean, N-only home
    Once our own rows exist the container gets .nf-owned and every foreign row
    (native sections, Media Bar / Home Sections / other plugins) is hidden, so
    there is no blur, no duplication and no empty gaps. The page tab bar is
@@ -1554,8 +1554,8 @@ html.nf-home .skinHeader .headerTabs { display: none !important; }
 
 /* =============================================
    NETFLIX-STYLE LOADING ANIMATION (self-contained, CSS only)
-   Recolors Jellyfin's own spinner to Netflix red + a clean red ring, and gives
-   the initial preloader a Netflix-black backdrop. Branding CSS loads early, so
+   Recolors Jellyfin's own spinner to N red + a clean red ring, and gives
+   the initial preloader a N-black backdrop. Branding CSS loads early, so
    this also covers the very first app load — no companion plugin needed.
    ============================================= */
 /* Initial preloader / loading screen background — the full-page backdrop only.
@@ -1568,7 +1568,7 @@ html.preload, #loadingSpinner { background-color: var(--bg-darker, #000) !import
 .mdl-spinner__layer-1, .mdl-spinner__layer-2, .mdl-spinner__layer-3, .mdl-spinner__layer-4 { border-color: transparent !important; }
 .mdl-spinner__gap-patch, .mdl-spinner__circle { border-color: transparent !important; }
 
-/* Netflix-style loading spinner — a centered rotating ring (user-supplied design).
+/* N-style loading spinner — a centered rotating ring (user-supplied design).
    position:fixed so it sits dead-centre regardless of its container (fixes the loader
    stuck top-left); the rotate animation overrides transforms so we center via negative
    margins. Arcs use the accent red — the original #000 would be invisible on the black

@@ -2,15 +2,15 @@
   {
     "guid": "78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a",
     "name": "Custom Theme",
-    "description": "Netflix-style skin for Jellyfin: rotating hero carousel, genre rows, top nav tabs, native hover previews, settings panel and 15 fonts. Fully self-contained \u2014 the built-in middleware serves index.html with the script injected, so it works on read-only / Docker installs too; the File Transformation plugin is used automatically when installed.",
-    "overview": "Netflix-inspired skin for Jellyfin with hero, genre rows, nav tabs and a built-in settings panel",
+    "description": "N-style skin for Jellyfin: rotating hero carousel, genre rows, top nav tabs, native hover previews, settings panel and 15 fonts. Fully self-contained \u2014 the built-in middleware serves index.html with the script injected, so it works on read-only / Docker installs too; the File Transformation plugin is used automatically when installed.",
+    "overview": "N-inspired skin for Jellyfin with hero, genre rows, nav tabs and a built-in settings panel",
     "owner": "Kuschel-code",
     "category": "General",
     "imageUrl": "",
     "versions": [
       {
         "version": "2.5.36.0",
-        "changelog": "Netflix-style detail page + a full live UI review, every change verified on Jellyfin 10.11.11 + headless browser. Detail page: (1) the title no longer renders twice - Jellyfin's logo image was positioned off-screen (left:-336px) while the text title showed separately, so the broken logo is hidden and a single bold white title is used, which is also what Netflix falls back to for the many items with no logo art; (2) the Play button is now a proper white Netflix pill with a label ('Abspielen'/'Weiter') instead of a bare icon (Jellyfin stacked the icon over the label in a column; it now lays out as one horizontal row that grows to fit); (3) the title/synopsis block is pulled up so it overlaps the backdrop instead of sitting jammed at the bottom. Review fixes: (4) the login 'Remember Me' checkbox was still Jellyfin cyan (#00a4dc) - it is now a red box with a white check (the cyan was on .checkboxOutline, which the old selector never matched); toggle switches go red too; (5) the hero/hover '% Match' now guards the 0-10 rating range so a stray rating can never render nonsense like '764% Match' (matching the detail-page behaviour). Verified working across home, detail (movie+series), search, library grid and the settings panel.",
+        "changelog": "N-style detail page + a full live UI review, every change verified on Jellyfin 10.11.11 + headless browser. Detail page: (1) the title no longer renders twice - Jellyfin's logo image was positioned off-screen (left:-336px) while the text title showed separately, so the broken logo is hidden and a single bold white title is used, which is also what N falls back to for the many items with no logo art; (2) the Play button is now a proper white N pill with a label ('Abspielen'/'Weiter') instead of a bare icon (Jellyfin stacked the icon over the label in a column; it now lays out as one horizontal row that grows to fit); (3) the title/synopsis block is pulled up so it overlaps the backdrop instead of sitting jammed at the bottom. Review fixes: (4) the login 'Remember Me' checkbox was still Jellyfin cyan (#00a4dc) - it is now a red box with a white check (the cyan was on .checkboxOutline, which the old selector never matched); toggle switches go red too; (5) the hero/hover '% Match' now guards the 0-10 rating range so a stray rating can never render nonsense like '764% Match' (matching the detail-page behaviour). Verified working across home, detail (movie+series), search, library grid and the settings panel. (6) Renamed all visible 'Netflix' wording to 'N' (settings section/labels, the logo option, plugin description) so the theme is generically branded; internal identifiers and the saved logo value are unchanged, so existing settings keep working.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.36/custom-theme-v2.5.36.zip",
         "checksum": "9f0223ce53d65f795fd3f7d1844d3c24",
@@ -18,7 +18,7 @@
       },
       {
         "version": "2.5.35.0",
-        "changelog": "Closer to 1:1 Netflix, each change verified live in a real Jellyfin + headless browser: (1) the header logo now defaults to the red Netflix-style 'N' mark instead of the Jellyfin logo - the single biggest 'this is Netflix' signal (existing installs: set Logo to 'Netflix N' in settings). (2) Genre rows now show ~6 landscape cards across like Netflix instead of ~4 (a global min-width:320 rule was forcing them wide).",
+        "changelog": "Closer to 1:1 N, each change verified live in a real Jellyfin + headless browser: (1) the header logo now defaults to the red N-style 'N' mark instead of the Jellyfin logo - the single biggest 'this is N' signal (existing installs: set Logo to 'N' in settings). (2) Genre rows now show ~6 landscape cards across like N instead of ~4 (a global min-width:320 rule was forcing them wide).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.35/custom-theme-v2.5.35.zip",
         "checksum": "00000000000000000000000000000000",
@@ -26,7 +26,7 @@
       },
       {
         "version": "2.5.34.0",
-        "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), Netflix-density rows without under-art text, Netflix-style login box without cyan accents.",
+        "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), N-density rows without under-art text, N-style login box without cyan accents.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.34/custom-theme-v2.5.34.zip",
         "checksum": "63c5be24a38626a6a866887c1688a871",
@@ -42,7 +42,7 @@
       },
       {
         "version": "2.5.32.0",
-        "changelog": "Header + Top 10 tweaks from feedback: search, theme and profile now sit at the far right of the header (Netflix layout) instead of bunched next to the nav tabs; the Top 10 row drops the big background rank numbers for a clean poster row.",
+        "changelog": "Header + Top 10 tweaks from feedback: search, theme and profile now sit at the far right of the header (N layout) instead of bunched next to the nav tabs; the Top 10 row drops the big background rank numbers for a clean poster row.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.32/custom-theme-v2.5.32.zip",
         "checksum": "6cc8841cdcbce4aa93cd668415dde3ff",
@@ -50,7 +50,7 @@
       },
       {
         "version": "2.5.31.0",
-        "changelog": "Two fixes from live testing. (1) Preview clips that 'skipped like a record': the hero and detail clips used the native video loop, which on remuxed MPEG-TS sources restarts at the buffered start before the clip's duration is known \u2014 so it strobed the first half-second forever. Clips now play straight through and only re-loop once finished. (2) Navigation drawer: its top entries no longer collide with the logo/tabs (the drawer now clears the fixed header), and while it is open the header goes solid and the page behind dims, Netflix-style.",
+        "changelog": "Two fixes from live testing. (1) Preview clips that 'skipped like a record': the hero and detail clips used the native video loop, which on remuxed MPEG-TS sources restarts at the buffered start before the clip's duration is known \u2014 so it strobed the first half-second forever. Clips now play straight through and only re-loop once finished. (2) Navigation drawer: its top entries no longer collide with the logo/tabs (the drawer now clears the fixed header), and while it is open the header goes solid and the page behind dims, N-style.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.31/custom-theme-v2.5.31.zip",
         "checksum": "043a23fab50a3befe09fbbe5ee456371",
@@ -58,7 +58,7 @@
       },
       {
         "version": "2.5.30.0",
-        "changelog": "Header now behaves like Netflix: over the home billboard it is transparent with a soft top scrim at the very top, and fades to solid #141414 as soon as you scroll. Previously it was always solid (the v2.5.29 'header on scroll' note never actually took effect on the home page). Other pages stay solid from the top, as on Netflix.",
+        "changelog": "Header now behaves like N: over the home billboard it is transparent with a soft top scrim at the very top, and fades to solid #141414 as soon as you scroll. Previously it was always solid (the v2.5.29 'header on scroll' note never actually took effect on the home page). Other pages stay solid from the top, as on N.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.30/custom-theme-v2.5.30.zip",
         "checksum": "3ab46ba501415068fea0e38490086460",
@@ -66,7 +66,7 @@
       },
       {
         "version": "2.5.29.0",
-        "changelog": "Closer to Netflix (from a live UI analysis): genre rows now use LANDSCAPE 16:9 boxart cards (Backdrop/Thumb, like Netflix) instead of portrait posters; hover preview gains a Like (\ud83d\udc4d) button next to Play/+; the hero gets a mute/unmute toggle for its clip; row titles use Netflix's lighter weight; header is more transparent at the top and goes solid (#141414) on scroll.",
+        "changelog": "Closer to N (from a live UI analysis): genre rows now use LANDSCAPE 16:9 boxart cards (Backdrop/Thumb, like N) instead of portrait posters; hover preview gains a Like (\ud83d\udc4d) button next to Play/+; the hero gets a mute/unmute toggle for its clip; row titles use N's lighter weight; header is more transparent at the top and goes solid (#141414) on scroll.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.29/custom-theme-v2.5.29.zip",
         "checksum": "6cc48a181082182240889fce511347c1",
@@ -82,7 +82,7 @@
       },
       {
         "version": "2.5.27.0",
-        "changelog": "iPad / touch support: on touch devices the hover preview now works by TAP \u2014 tap a card once to show the Netflix-style preview popup (it no longer opens the title immediately), tap it again or its Play/More buttons to open. Desktop hover behaviour is unchanged.",
+        "changelog": "iPad / touch support: on touch devices the hover preview now works by TAP \u2014 tap a card once to show the N-style preview popup (it no longer opens the title immediately), tap it again or its Play/More buttons to open. Desktop hover behaviour is unchanged.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.27/custom-theme-v2.5.27.zip",
         "checksum": "410b3b033cd4fc74a603644b7c8c6103",
@@ -218,7 +218,7 @@
       },
       {
         "version": "2.5.7.0",
-        "changelog": "Live-test bug fixes + new features. Fixes: detail/search/episode pages no longer blow out to extreme width (horizontal scrollers were globally forced to overflow:visible) \u2014 rows scroll again; the card hover popup poster is now clickable (opens the title); the Netflix 'N' logo navigates home; removed a stray /Users/null/Views 400 before login. New: Netflix-style red loading animation (recolors Jellyfin's spinner, self-contained); a 'Top 10 Anime heute' row built from live AniList trending data, limited to titles you actually have. Both toggleable.",
+        "changelog": "Live-test bug fixes + new features. Fixes: detail/search/episode pages no longer blow out to extreme width (horizontal scrollers were globally forced to overflow:visible) \u2014 rows scroll again; the card hover popup poster is now clickable (opens the title); the N 'N' logo navigates home; removed a stray /Users/null/Views 400 before login. New: N-style red loading animation (recolors Jellyfin's spinner, self-contained); a 'Top 10 Anime heute' row built from live AniList trending data, limited to titles you actually have. Both toggleable.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.7/custom-theme-v2.5.7.zip",
         "checksum": "559e267c9383b7983d0a5c2910412419",
@@ -234,7 +234,7 @@
       },
       {
         "version": "2.5.5.0",
-        "changelog": "Clean Netflix home takeover: the plugin now owns the home page \u2014 native/other-plugin rows, empty sections and the page tab bar are hidden, replaced by our hero, a sharp Continue Watching row (no more blurry placeholders) and the genre rows. Fixes the duplicated/overlapping/blurry rows. Toggle off via 'Clean Netflix home' in settings.",
+        "changelog": "Clean N home takeover: the plugin now owns the home page \u2014 native/other-plugin rows, empty sections and the page tab bar are hidden, replaced by our hero, a sharp Continue Watching row (no more blurry placeholders) and the genre rows. Fixes the duplicated/overlapping/blurry rows. Toggle off via 'Clean N home' in settings.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.5/custom-theme-v2.5.5.zip",
         "checksum": "3db142a9da1fbf4f3f2efe232ebc7a1f",
@@ -242,7 +242,7 @@
       },
       {
         "version": "2.5.4.0",
-        "changelog": "Netflix hover-expand popup: hovering a card now floats a larger preview card over the row with a muted autoplay clip, action buttons (Play / + My List / More), title, green % match, maturity rating and genre tags \u2014 the signature Netflix card hover.",
+        "changelog": "N hover-expand popup: hovering a card now floats a larger preview card over the row with a muted autoplay clip, action buttons (Play / + My List / More), title, green % match, maturity rating and genre tags \u2014 the signature N card hover.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.4/custom-theme-v2.5.4.zip",
         "checksum": "ab2327edf05db888f5bd7b4580b55d92",
@@ -258,7 +258,7 @@
       },
       {
         "version": "2.5.2.0",
-        "changelog": "Fix: the home page now reliably shows the built-in genre rows and top nav tabs (they were only attempted once on load before the home had rendered). The hero carousel also actively hides a detected Media Bar so there is never a double hero \u2014 the built-in Netflix look is now fully self-contained.",
+        "changelog": "Fix: the home page now reliably shows the built-in genre rows and top nav tabs (they were only attempted once on load before the home had rendered). The hero carousel also actively hides a detected Media Bar so there is never a double hero \u2014 the built-in N look is now fully self-contained.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.2/custom-theme-v2.5.2.zip",
         "checksum": "1b0a8f4461414ae4cca570589a3fed54",
@@ -266,7 +266,7 @@
       },
       {
         "version": "2.5.1.0",
-        "changelog": "Self-contained Netflix experience \u2014 no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
+        "changelog": "Self-contained N experience \u2014 no companion plugins needed. New rotating auto-play hero carousel (replaces Media Bar), curated genre rows (replaces Home Screen Sections) and top navigation tabs (replaces Custom Tabs). Fixed blurry/unclickable cards (card image container collapsed to 0px). All features toggleable in the settings panel.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.1/custom-theme-v2.5.1.zip",
         "checksum": "f37f19464dc69a520b1866432ae10e96",
@@ -274,7 +274,7 @@
       },
       {
         "version": "2.5.0.0",
-        "changelog": "Closer to Netflix: left-aligned header navigation, neighbouring cards slide aside on hover so the expanded card never overlaps, community rating shown as a green 'x% Match', and polished series/episode detail pages (season selector, episode rows, round cast). All toggleable.",
+        "changelog": "Closer to N: left-aligned header navigation, neighbouring cards slide aside on hover so the expanded card never overlaps, community rating shown as a green 'x% Match', and polished series/episode detail pages (season selector, episode rows, round cast). All toggleable.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.0/custom-theme-v2.5.0.zip",
         "checksum": "cff0e5449508bd8533a1caaba4bf4224",
@@ -282,7 +282,7 @@
       },
       {
         "version": "2.2.0.0",
-        "changelog": "Self-contained script injection: the plugin writes the header/hero script into index.html itself (no extra plugin needed), replacing the unreliable middleware. On read-only web dirs it uses the File Transformation plugin if installed. This makes the header settings button and Netflix hero banner appear.",
+        "changelog": "Self-contained script injection: the plugin writes the header/hero script into index.html itself (no extra plugin needed), replacing the unreliable middleware. On read-only web dirs it uses the File Transformation plugin if installed. This makes the header settings button and N hero banner appear.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.2.0/custom-theme-v2.2.0.zip",
         "checksum": "2dfa647c43c3f2d4c5b540ec1c5d19d3",
@@ -290,7 +290,7 @@
       },
       {
         "version": "2.1.0.0",
-        "changelog": "Settings now appear directly in the dashboard menu. Hardened script injection against ChunkLoadError (no-cache on the modified index, 200-only). Netflix design overhaul: hero billboard on the home page, refined card hover, polished detail page, custom scrollbar, English tooltips. Added MIT license and CI. Checksum is filled in automatically by the release workflow.",
+        "changelog": "Settings now appear directly in the dashboard menu. Hardened script injection against ChunkLoadError (no-cache on the modified index, 200-only). N design overhaul: hero billboard on the home page, refined card hover, polished detail page, custom scrollbar, English tooltips. Added MIT license and CI. Checksum is filled in automatically by the release workflow.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.1.0/custom-theme-v2.1.0.zip",
         "checksum": "a4783f6d1b82e73f41ddbfed763a2fa6",

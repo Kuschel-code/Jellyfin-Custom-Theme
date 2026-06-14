@@ -1,6 +1,6 @@
 # Jellyfin Custom Theme
 
-A Netflix-inspired skin for **Jellyfin 10.11+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
+A N-inspired skin for **Jellyfin 10.11+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
 
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11+-00A4DC?logo=jellyfin&logoColor=white)
 [![Build](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml/badge.svg)](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml)
@@ -20,12 +20,12 @@ The plugin also injects a small script that adds a **palette settings button** i
 
 ## Features
 
-- Netflix-style dark UI with backdrop gradients and smooth animations
+- N-style dark UI with backdrop gradients and smooth animations
 - **Server-side settings** stored in the plugin configuration (persist across all devices)
 - **Dashboard settings page** at *Plugins → Custom Theme*
 - **Optional header settings button** (palette icon) with the same options
 - **15 Google Fonts** — Inter, Poppins, Montserrat, Roboto, Oswald, Raleway, Nunito, Bebas Neue, Lato, Source Sans, Ubuntu, Playfair Display, Quicksand, Comfortaa, Righteous
-- **Logo options** — Jellyfin (default), Netflix N, custom letter, custom image URL, or none
+- **Logo options** — Jellyfin (default), N, custom letter, custom image URL, or none
 - **Seasonal presets** — Default, Christmas, Halloween, Summer, Ocean (override the colour palette)
 - Color customization — accent, background, text, muted text, progress bar
 - Round cast/crew images, full-backdrop detail page, card hover zoom
@@ -59,7 +59,7 @@ Open **Dashboard → Plugins → Custom Theme**, or click the palette icon in th
 | Section | Options |
 |---------|---------|
 | Colors | Theme preset, accent, background, text, muted text, progress bar |
-| Logo & Header | Logo style (Jellyfin / Netflix N / letter / custom image / none), header blur |
+| Logo & Header | Logo style (Jellyfin / N / letter / custom image / none), header blur |
 | Elements | Badges, watched marks, backdrop, round cast, description, tags, external links, similar titles, spoiler mode |
 | Detail buttons | Watched, favorite, more |
 | Layout | 15 fonts, font size, card rounding, card size, card shape, hover zoom, info overlay, gradient strength, title size, animation speed, compact sidebar, ambient glow |
@@ -113,7 +113,7 @@ LICENSE                    # MIT license
 ## Requirements
 
 - Jellyfin 10.11+
-- *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big Netflix-style hero banner; works without the separate File Transformation plugin because Custom Theme provides that service
+- *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big N-style hero banner; works without the separate File Transformation plugin because Custom Theme provides that service
 - No File Transformation plugin required (it is bundled/provided by this plugin)
 - .NET 9 SDK (only to build from source)
 
