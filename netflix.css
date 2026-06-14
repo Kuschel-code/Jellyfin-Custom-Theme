@@ -1399,9 +1399,12 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 }
 .nf-row-scroll::-webkit-scrollbar { display: none; }
 .nf-row-track { display: flex; gap: 0.5vw; align-items: flex-start; }
-.nf-genre-section .nf-card {
+/* ~6 landscape cards across like Netflix (was ~4). The 3-class selector + !important
+   overrides the global ".homeSectionsContainer .card.overflowBackdropCard {min-width:320px}". */
+.nf-genre-section .card.nf-card {
     flex: 0 0 auto;
-    width: clamp(210px, 19vw, 330px);
+    width: clamp(165px, 15.2vw, 285px) !important;
+    min-width: 0 !important;
     margin: 0;
 }
 /* Landscape 16:9 boxart (Netflix-style) for genre-row cards */
