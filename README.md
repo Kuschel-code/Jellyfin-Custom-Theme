@@ -101,7 +101,7 @@ IndexInjectionMiddleware.cs# Built-in middleware: injects the script + applies o
 ThemeTransformation.cs     # Builds/strips the inline headerButton.js injection
 FileTransformation/        # Bundled File Transformation provider (separate CustomTheme.FileTransformation.dll)
 ServiceRegistrator.cs      # Registers the services with Jellyfin's DI container
-netflix.css                # Base skin stylesheet (embedded resource)
+*.css                      # Base skin stylesheet (embedded resource)
 configPage.html            # Dashboard settings page
 headerButton.js            # Header button + slide-in settings panel + hero/preview/Top 10
 manifest.json              # Plugin repository manifest
