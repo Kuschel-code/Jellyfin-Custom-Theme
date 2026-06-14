@@ -961,8 +961,19 @@ body, .mainDrawer, .dialog {
 #loginPage .inputLabel, #loginPage .inputLabelFocused, #loginPage .inputLabelUnfocused,
 .inputLabelFocused { color: var(--text-muted) !important; }
 input[type="checkbox"], .emby-checkbox { accent-color: var(--accent-red) !important; }
-.emby-checkbox:checked + span > .checkboxIcon-checked { background-color: var(--accent-red) !important; }
-.checkboxIcon { color: var(--accent-red) !important; }
+/* The filled box of a checked Jellyfin checkbox is .checkboxOutline (default
+   #00a4dc cyan). It is a sibling AFTER the input, not a descendant of the label
+   span, so the old "+ span > .checkboxIcon-checked" selector never matched it. */
+.checkboxOutline { border-color: var(--text-muted) !important; }
+.emby-checkbox:checked ~ .checkboxOutline {
+    background-color: var(--accent-red) !important;
+    border-color: var(--accent-red) !important;
+}
+.checkboxIcon { color: #fff !important; }
+/* Toggle switches (settings, dashboard) — checked track/thumb go red too. */
+.emby-toggle:checked + .toggleButton-track { background-color: rgba(229,9,20,0.5) !important; }
+.emby-toggle:checked + .toggleButton-track + .toggleButton-thumb,
+.emby-toggle:checked ~ .toggleButton-thumb { background-color: var(--accent-red) !important; }
 
 .inputContainer input, .emby-input {
     background-color: #333 !important;
