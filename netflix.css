@@ -369,21 +369,15 @@ body, .mainDrawer, .dialog {
     pointer-events: none !important;
 }
 
-/* --- DETAIL LOGO (title card image) --- */
+/* --- DETAIL LOGO (title card image) ---
+   Jellyfin renders .detailLogo as a direct child of the page with a default
+   horizontal offset that puts it off-screen (left:-336px in testing), and it
+   sits detached above the title/buttons block. Rather than fight a fragile
+   position that also breaks for the many library items that have NO logo art,
+   we hide it and render a single, reliable big title via .itemName below —
+   which is what Netflix falls back to when no logo exists. */
 .detailLogo {
-    display: block !important;
-    position: relative !important;
-    z-index: 5 !important;
-    max-width: 350px !important;
-    max-height: 150px !important;
-    min-height: 60px !important;
-    margin-left: 4% !important;
-    margin-top: 0 !important;
-    margin-bottom: 10px !important;
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6)) !important;
-    background-size: contain !important;
-    background-repeat: no-repeat !important;
-    background-position: left center !important;
+    display: none !important;
 }
 
 /* --- PAGE WRAPPER: Content overlays the backdrop --- */
@@ -391,7 +385,7 @@ body, .mainDrawer, .dialog {
     position: relative !important;
     z-index: 3 !important;
     margin-top: 0 !important;
-    padding-top: 35vh !important;
+    padding-top: 30vh !important;
 }
 
 .detailPagePrimaryContainer {
@@ -523,6 +517,33 @@ body, .mainDrawer, .dialog {
 
 .btnPlay:hover, .btnResume:hover, .btnReplay:hover {
     background-color: rgba(255,255,255,0.75) !important;
+}
+
+/* Netflix-style text label on the primary play button (scoped to the detail
+   page so card-hover play buttons keep their icon-only look). Jellyfin's
+   button only contains the ▶ icon, so we append the word after it. Jellyfin's
+   .detailButton base lays the icon out in a column, which would stack the
+   label under the icon — force a single horizontal row that grows to fit. */
+.mainDetailButtons .btnPlay,
+.mainDetailButtons .btnResume,
+.mainDetailButtons .btnReplay {
+    flex-direction: row !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 10px 26px 10px 20px !important;
+}
+.mainDetailButtons .btnPlay::after { content: 'Abspielen'; }
+.mainDetailButtons .btnResume::after { content: 'Weiter'; }
+.mainDetailButtons .btnReplay::after { content: 'Erneut'; }
+.mainDetailButtons .btnPlay::after,
+.mainDetailButtons .btnResume::after,
+.mainDetailButtons .btnReplay::after {
+    font-family: var(--font-netflix) !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.01em !important;
+    margin-left: 4px !important;
+    line-height: 1 !important;
 }
 
 /* Circle icon buttons (watched, favorite, more) — Netflix ring style */
