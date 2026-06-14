@@ -16,8 +16,8 @@
 
     // Mirrors the dashboard configuration page.
     var SECTIONS = [
-        ['N Features', [
-            ['CleanHome', 'toggle', 'Clean N home (hide native rows)'],
+        ['Netflix Features', [
+            ['CleanHome', 'toggle', 'Clean Netflix home (hide native rows)'],
             ['TrendingRow', 'toggle', 'Top 10 trending row (AniList)'],
             ['OwnInjection', 'toggle', 'Self-contained inject (no File Transformation)'],
             ['ProvideFileTransformation', 'toggle', 'Provide File Transformation to other plugins'],
@@ -40,10 +40,10 @@
             ['ProgressColor', 'select', 'Progress bar', [['accent','Accent'],['red','Red'],['green','Green'],['blue','Blue'],['purple','Purple']]]
         ]],
         ['Logo & Header', [
-            ['LogoStyle', 'select', 'Logo style', [['jellyfin','Jellyfin'],['netflix','N'],['letter','Letter'],['custom','Custom image'],['none','None']]],
+            ['LogoStyle', 'select', 'Logo style', [['jellyfin','Jellyfin'],['netflix','Netflix N'],['letter','Letter'],['custom','Custom image'],['none','None']]],
             ['LogoLetter', 'select', 'Logo letter', AZ],
             ['CustomLogoUrl', 'text', 'Logo image URL'],
-            ['NavLeft', 'toggle', 'Left-aligned nav (N)'],
+            ['NavLeft', 'toggle', 'Left-aligned nav (Netflix)'],
             ['HeaderBlur', 'toggle', 'Header blur effect']
         ]],
         ['Elements', [
@@ -89,7 +89,7 @@
         return CT_CONFIG[key];
     }
 
-    // N-style "x% Match" from a community rating. Community ratings are on a
+    // Netflix-style "x% Match" from a community rating. Community ratings are on a
     // 0-10 scale, so we guard the range — a stray value (e.g. a percent-scale or
     // bad metadata rating) must never render "764% Match". Returns '' when invalid.
     function matchHtml(rating, cls) {
@@ -463,7 +463,7 @@
             var ds = hero.querySelector('.nf-hero-dots'); if (ds) ds.style.display = 'none';
         }
 
-        // Mute-Toggle (N-style): clips autoplay muted; this unmutes the current clip on
+        // Mute-Toggle (Netflix-style): clips autoplay muted; this unmutes the current clip on
         // a real user gesture (autoplay can't start unmuted, so we only toggle on click).
         var muteBtn = hero.querySelector('.nf-hero-mute');
         if (muteBtn) {
@@ -478,7 +478,7 @@
             });
         }
 
-        // "+ Meine Liste" toggles the Jellyfin favorite flag (N My List).
+        // "+ Meine Liste" toggles the Jellyfin favorite flag (Netflix My List).
         hero.querySelectorAll('.nf-hero-list').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -502,7 +502,7 @@
     var GENRE_MAX_ROWS = 6;
 
     function buildCardHtml(item, sid) {
-        // N uses LANDSCAPE 16:9 boxart, not portrait posters. Prefer a landscape image
+        // Netflix uses LANDSCAPE 16:9 boxart, not portrait posters. Prefer a landscape image
         // (Backdrop/Thumb/ParentBackdrop), fall back to the portrait Primary cropped to 16:9.
         var img = cwImage(item) || '';
         var href = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
@@ -648,7 +648,7 @@
         } catch (e) {}
     }
 
-    // ============ N hover-expand popup (card preview) ============
+    // ============ Netflix hover-expand popup (card preview) ============
     // On card hover, float a larger preview card over the row: backdrop (with a
     // muted ~30s autoplay clip), action buttons, title, % match, rating, genres.
     var popCard = null;
@@ -855,7 +855,7 @@
                 });
             }
 
-            // Like (👍) — N thumbs. Maps to Jellyfin's Likes rating.
+            // Like (👍) — Netflix thumbs. Maps to Jellyfin's Likes rating.
             var likeBtn = pop.querySelector('.nf-pop-like');
             if (likeBtn && item.UserData && item.UserData.Likes === true) {
                 likeBtn.classList.add('active');
@@ -888,7 +888,7 @@
         try { return !!(window.matchMedia && window.matchMedia('(hover: none)').matches && window.matchMedia('(any-pointer: coarse)').matches); } catch (e) { return false; }
     }
 
-    // Touch devices (iPad / phone) have no hover. N-on-touch: the FIRST tap on a card
+    // Touch devices (iPad / phone) have no hover. Netflix-on-touch: the FIRST tap on a card
     // shows the preview popup (instead of opening the title); a second tap on the same card —
     // or its Play / More buttons — opens it. Reuses the same buildPop()/popup as desktop hover.
     function setupTouchPreviews() {
@@ -1060,8 +1060,8 @@
     }
 
     // ============ Logo -> Home ============
-    // The N "N" logo sits on the (non-clickable) page-title element. Make it
-    // navigate home like N by delegating to Jellyfin's own home button.
+    // The Netflix "N" logo sits on the (non-clickable) page-title element. Make it
+    // navigate home like Netflix by delegating to Jellyfin's own home button.
     function setupLogoHome() {
         try {
             var logo = document.querySelector('.skinHeader .pageTitleWithLogo, .skinHeader .pageTitle');
@@ -1133,7 +1133,7 @@
         } catch (e) {}
     }
 
-    // N header behaviour: transparent (top scrim) over a billboard at the
+    // Netflix header behaviour: transparent (top scrim) over a billboard at the
     // very top, solid #141414 once you scroll. Jellyfin's .skinHeader-withBackground
     // only marks "this view has a backdrop" — it is NOT scroll-driven — so we drive
     // the solid state ourselves with a .nf-scrolled class toggled on window scroll.

@@ -119,7 +119,7 @@ namespace Jellyfin.Plugin.CustomTheme
             AppendElements(sb, config);
             AppendButtons(sb, config);
             AppendLayout(sb, config);
-            AppendThemeExtras(sb, config);
+            AppendNetflixExtras(sb, config);
             AppendPanelStyles(sb);
 
             return sb.ToString();
@@ -344,12 +344,12 @@ namespace Jellyfin.Plugin.CustomTheme
             }
         }
 
-        /// <summary>N-style extras: hover preview cards, Top 10 numbers, glass, OLED, detail polish.</summary>
-        private static void AppendThemeExtras(StringBuilder sb, PluginConfiguration config)
+        /// <summary>Netflix-style extras: hover preview cards, Top 10 numbers, glass, OLED, detail polish.</summary>
+        private static void AppendNetflixExtras(StringBuilder sb, PluginConfiguration config)
         {
             if (config.HoverPreviewCard)
             {
-                // Single scale on the inner element, and neighbours slide aside (N-style)
+                // Single scale on the inner element, and neighbours slide aside (Netflix-style)
                 // via :has() so the expanded card never overlaps them.
                 sb.AppendLine(@".card:hover { transform: none !important; box-shadow: none !important; z-index: 60 !important; }
 .card:hover .cardScalable { transform: scale(1.2) !important; transform-origin: center center !important; box-shadow: 0 18px 40px rgba(0,0,0,0.85) !important; border-radius: 6px !important; }
@@ -367,7 +367,7 @@ namespace Jellyfin.Plugin.CustomTheme
 
             if (config.NavLeft)
             {
-                // Logo + tabs pinned to the left like N, instead of centered tabs.
+                // Logo + tabs pinned to the left like Netflix, instead of centered tabs.
                 sb.AppendLine(@".headerTabs.sectionTabs { position: static !important; left: auto !important; transform: none !important; margin: 0 0 0 10px !important; }
 .headerLeft { flex: 0 0 auto !important; }
 .skinHeader .headerLeft { margin-right: 8px !important; }");

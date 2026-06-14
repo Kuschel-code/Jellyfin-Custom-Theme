@@ -76,10 +76,10 @@ namespace Jellyfin.Plugin.CustomTheme
         public bool SidebarCompact { get; set; }
         public bool AmbientGlow { get; set; }
 
-        // --- N features (need the injected script) ---
+        // --- Netflix features (need the injected script) ---
         /// <summary>
         /// Rotating auto-play hero billboard carousel on the home page (own implementation —
-        /// replaces the Jellyfin Media Bar plugin). On by default so the N look is
+        /// replaces the Jellyfin Media Bar plugin). On by default so the Netflix look is
         /// self-contained out of the box.
         /// </summary>
         public bool HeroBillboard { get; set; } = true;
@@ -87,11 +87,11 @@ namespace Jellyfin.Plugin.CustomTheme
         /// <summary>Build curated genre rows on the home page (replaces the Home Screen Sections plugin).</summary>
         public bool GenreRows { get; set; } = true;
 
-        /// <summary>Show N-style top navigation tabs (Home + libraries) in the header (replaces the Custom Tabs plugin).</summary>
+        /// <summary>Show Netflix-style top navigation tabs (Home + libraries) in the header (replaces the Custom Tabs plugin).</summary>
         public bool NavTabs { get; set; } = true;
 
         /// <summary>
-        /// Take over the home page for a clean N layout: hide native / other-plugin
+        /// Take over the home page for a clean Netflix layout: hide native / other-plugin
         /// rows + the page tab bar and show only our hero, a sharp Continue Watching row
         /// and the genre rows. Turn off to keep Jellyfin's native home sections.
         /// </summary>
@@ -119,10 +119,10 @@ namespace Jellyfin.Plugin.CustomTheme
         /// <summary>Play a muted ~30s clip from the middle of the title when hovering a card (streamed on the fly, nothing stored).</summary>
         public bool PreviewClips { get; set; } = true;
 
-        /// <summary>N-style hover: the card grows and shows an info panel with action buttons.</summary>
+        /// <summary>Netflix-style hover: the card grows and shows an info panel with action buttons.</summary>
         public bool HoverPreviewCard { get; set; } = true;
 
-        /// <summary>Show big outlined rank numbers (1-10) on the first home row, like N's Top 10.</summary>
+        /// <summary>Show big outlined rank numbers (1-10) on the first home row, like Netflix's Top 10.</summary>
         public bool TopTenRow { get; set; }
 
         /// <summary>Frosted-glass blur on the header, dialogs and panels.</summary>
@@ -131,10 +131,10 @@ namespace Jellyfin.Plugin.CustomTheme
         /// <summary>Pure-black background for OLED screens.</summary>
         public bool OledBlack { get; set; }
 
-        /// <summary>Left-align the header navigation (logo + tabs) like N, instead of centering the tabs.</summary>
+        /// <summary>Left-align the header navigation (logo + tabs) like Netflix, instead of centering the tabs.</summary>
         public bool NavLeft { get; set; } = true;
 
-        /// <summary>Show the community rating as a green "x% Match" like N instead of a star value.</summary>
+        /// <summary>Show the community rating as a green "x% Match" like Netflix instead of a star value.</summary>
         public bool MatchScore { get; set; } = true;
     }
 }
