@@ -481,6 +481,10 @@ body, .mainDrawer, .dialog {
     line-height: 1.4 !important;
 }
 
+/* "Ends at 11:20 PM" is a player-style estimate Netflix never shows on a title
+   page — drop it from the detail metadata row for a cleaner Netflix line. */
+.itemMiscInfo .endsAt { display: none !important; }
+
 /* =============================================
    DETAIL PAGE BUTTONS — Netflix style
    ============================================= */

@@ -977,6 +977,12 @@
                 if (isNaN(n) || n < 0 || n > 10) return;
                 el.dataset.ctMatch = '1';
                 el.textContent = Math.round(n * 10) + '% Match';
+                // Netflix leads the title metadata line with the green match score —
+                // move it to the front of the detail page's info row (once).
+                var misc = el.closest('.itemMiscInfo');
+                if (misc && el.parentElement === misc && misc.firstChild !== el) {
+                    misc.insertBefore(el, misc.firstChild);
+                }
             });
         } catch (e) {}
     }
