@@ -408,10 +408,9 @@
             v.className = 'nf-hero-video';
             v.muted = true; v.defaultMuted = true; v.autoplay = true;
             v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
-            v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
             v.addEventListener('playing', function () { v.classList.add('show'); });
             nfClaim(v);
-            v.src = nfClipUrl(playId, msId, ticks);
+            nfClipSrc(v, playId, msId, ticks);
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
             var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
@@ -694,14 +693,38 @@
     // the browser. Copy-remux to mp4 plays everywhere and is light on the server.
     // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
     // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
-    function nfClipUrl(playId, msId, ticks) {
-        // Start at frame 0 (always a keyframe). A mid-file startTimeTicks seek makes the
-        // copy-remux fail (ffmpeg 500) on MPEG-TS sources without a clean keyframe there —
-        // that was the cause of the clip 500 errors. Reliability > skipping the intro.
+    function nfClipUrl(playId, msId, ticks, startTicks) {
         return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
             + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
             + (msId ? '&mediaSourceId=' + msId : '')
+            + (startTicks ? '&startTimeTicks=' + startTicks : '')
             + '&api_key=' + ApiClient.accessToken();
+    }
+    // Netflix previews skip the intro and play from inside the title. Start ~20% in for
+    // titles long enough to have a middle; shorter clips start at 0.
+    function nfSeekStart(ticks) {
+        var t = parseInt(ticks, 10) || 0;
+        return t >= 900000000 ? Math.floor(t * 0.2) : 0; // >= 90s -> 20% in
+    }
+    // Point a clip <video> at its source starting mid-title, falling back to frame 0 if the
+    // seeked copy-remux fails (e.g. MPEG-TS without a clean keyframe at the seek point — the
+    // historical cause of clip 500s). The <video> is only removed after a real failure.
+    function nfClipSrc(v, playId, msId, ticks) {
+        var start = nfSeekStart(ticks);
+        v.addEventListener('error', function onErr() {
+            v.removeEventListener('error', onErr);
+            if (start && !v._nfFell) {
+                v._nfFell = true;
+                v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
+                try {
+                    v.src = nfClipUrl(playId, msId, ticks, 0); v.load();
+                    var pp = v.play(); if (pp && pp.catch) { pp.catch(function () {}); }
+                } catch (e) {}
+            } else {
+                try { v.remove(); } catch (e) {}
+            }
+        });
+        v.src = nfClipUrl(playId, msId, ticks, start);
     }
     // Stall watchdog: if a clip hasn't actually started progressing within ~10s (slow or
     // failed on-the-fly remux), drop it so the static backdrop/poster image stays instead of
@@ -751,13 +774,11 @@
     function makeClip(pop, playId, msId, ticks) {
         var media = pop.querySelector('.nf-pop-media');
         if (!media || popEl !== pop) return;
-        var url = nfClipUrl(playId, msId, ticks);
         var video = document.createElement('video');
         video.muted = true; video.defaultMuted = true; video.autoplay = true;
         video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
-        video.addEventListener('error', function () { try { video.remove(); } catch (e) {} });
         nfClaim(video);
-        video.src = url;
+        nfClipSrc(video, playId, msId, ticks);
         media.insertBefore(video, media.firstChild);
         var play = video.play();
         if (play && play.catch) { play.catch(function () {}); }
@@ -1115,10 +1136,9 @@
                 v.className = 'nf-detail-video';
                 v.muted = true; v.defaultMuted = true; v.autoplay = true;
                 v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
-                v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
                 v.addEventListener('playing', function () { v.classList.add('show'); });
                 nfClaim(v);
-                v.src = nfClipUrl(playId, msId, ticks);
+                nfClipSrc(v, playId, msId, ticks);
                 backdrop.appendChild(v);
                 var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
                 nfClipWatch(v);
