@@ -693,11 +693,25 @@
     // the browser. Copy-remux to mp4 plays everywhere and is light on the server.
     // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
     // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
-    function nfClipUrl(playId, msId, ticks, startTicks) {
+    //
+    // DELIVERY: iOS/Safari only autoplays a <video> whose source answers HTTP byte-range
+    // requests (206). Jellyfin's live transcode stream usually returns 200 with no range
+    // support, so iOS refuses it — which is why previews showed "image zoom but no video" on
+    // iPhone/iPad (and in the mobile app's WebView) while desktop Chrome played them fine. So
+    // we try the DIRECT original file first (static=true serves it with 206 + Accept-Ranges,
+    // the same path normal direct-play uses) and only fall back to a transcode if the browser
+    // can't decode the original (e.g. HEVC/MKV).
+    function nfTransUrl(playId, msId, startTicks) {
         return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
             + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
             + (msId ? '&mediaSourceId=' + msId : '')
             + (startTicks ? '&startTimeTicks=' + startTicks : '')
+            + '&api_key=' + ApiClient.accessToken();
+    }
+    function nfStaticUrl(playId, msId) {
+        return ApiClient.serverAddress() + '/Videos/' + playId + '/stream'
+            + '?static=true'
+            + (msId ? '&mediaSourceId=' + msId : '')
             + '&api_key=' + ApiClient.accessToken();
     }
     // Netflix previews skip the intro and play from inside the title. Start ~20% in for
@@ -706,25 +720,41 @@
         var t = parseInt(ticks, 10) || 0;
         return t >= 900000000 ? Math.floor(t * 0.2) : 0; // >= 90s -> 20% in
     }
-    // Point a clip <video> at its source starting mid-title, falling back to frame 0 if the
-    // seeked copy-remux fails (e.g. MPEG-TS without a clean keyframe at the seek point — the
-    // historical cause of clip 500s). The <video> is only removed after a real failure.
+    // Point a clip <video> at its source. Try the direct file first (iOS-compatible), seeking
+    // ~20% in once metadata is known to skip the intro; on error fall back to a transcode that
+    // starts mid-title (covers HEVC/MKV and keeps desktop working). Removed only after both fail.
     function nfClipSrc(v, playId, msId, ticks) {
-        var start = nfSeekStart(ticks);
+        var start = nfSeekStart(ticks);              // ticks offset for the transcode seek
+        var startSec = start ? start / 10000000 : 0; // seconds for the direct-file currentTime seek
+        // Switch the direct file for a transcode. Used both on a hard error and when the direct
+        // file loads but the browser can't decode its video track (HEVC on a desktop without HEVC
+        // support: audio plays, videoWidth stays 0, no error fires). iOS decodes HEVC natively, so
+        // there it keeps the direct file.
+        function fallback() {
+            if (v._nfFell) return;
+            v._nfFell = true;
+            if (v._nfVwTimer) { clearTimeout(v._nfVwTimer); v._nfVwTimer = null; }
+            v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
+            try {
+                v.src = nfTransUrl(playId, msId, start); v.load();
+                var pp = v.play(); if (pp && pp.catch) { pp.catch(function () {}); }
+            } catch (e) {}
+        }
+        function onMeta() {
+            v.removeEventListener('loadedmetadata', onMeta);
+            if (v._nfFell || !startSec) return;
+            try { if (isFinite(v.duration) && v.duration > startSec + 2) v.currentTime = startSec; } catch (e) {}
+        }
+        v.addEventListener('loadedmetadata', onMeta);
         v.addEventListener('error', function onErr() {
             v.removeEventListener('error', onErr);
-            if (start && !v._nfFell) {
-                v._nfFell = true;
-                v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
-                try {
-                    v.src = nfClipUrl(playId, msId, ticks, 0); v.load();
-                    var pp = v.play(); if (pp && pp.catch) { pp.catch(function () {}); }
-                } catch (e) {}
-            } else {
-                try { v.remove(); } catch (e) {}
-            }
+            if (!v._nfFell) { fallback(); } else { try { v.remove(); } catch (e) {} }
         });
-        v.src = nfClipUrl(playId, msId, ticks, start);
+        // No-picture watchdog: if the direct file is progressing but no video frame decoded, transcode.
+        v._nfVwTimer = setTimeout(function () {
+            if (!v._nfFell && v.videoWidth === 0) fallback();
+        }, 5000);
+        v.src = nfStaticUrl(playId, msId);
     }
     // Stall watchdog: if a clip hasn't actually started progressing within ~10s (slow or
     // failed on-the-fly remux), drop it so the static backdrop/poster image stays instead of
