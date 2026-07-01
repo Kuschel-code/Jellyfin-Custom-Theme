@@ -25,14 +25,6 @@
         "timestamp": "2026-06-14T03:40:00"
       },
       {
-        "version": "2.5.35.0",
-        "changelog": "Closer to 1:1 Netflix, each change verified live in a real Jellyfin + headless browser: (1) the header logo now defaults to the red Netflix-style 'N' mark instead of the Jellyfin logo - the single biggest 'this is Netflix' signal (existing installs: set Logo to 'Netflix N' in settings). (2) Genre rows now show ~6 landscape cards across like Netflix instead of ~4 (a global min-width:320 rule was forcing them wide).",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.5.35/custom-theme-v2.5.35.zip",
-        "checksum": "00000000000000000000000000000000",
-        "timestamp": "2026-06-14T03:10:00"
-      },
-      {
         "version": "2.5.34.0",
         "changelog": "THE fix release, every change verified on a live Jellyfin 10.11.11 with a real browser. Injection: browsers send Accept-Encoding gzip/br so the middleware saw compressed bytes and never injected (settings button/hero/rows missing in every real browser while curl looked fine) - the index request is now forced to plain HTML; WebPath discovery repaired via IApplicationPaths (the 10.11 host no longer exposes it). Design: hover popup now fires on desktops/VMs (touch detection required any-pointer:coarse), green % Match on detail pages, hero dissolves into the page (no hard color band), Netflix-density rows without under-art text, Netflix-style login box without cyan accents.",
         "targetAbi": "10.11.0.0",

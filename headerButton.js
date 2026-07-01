@@ -397,23 +397,17 @@
         // itself, not a YouTube trailer) fades in over the backdrop of the active slide.
         function stopClip() {
             if (clipTimer) { clearTimeout(clipTimer); clipTimer = null; }
-            hero.querySelectorAll('.nf-hero-video').forEach(function (v) {
-                try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
-                v.remove();
-            });
+            hero.querySelectorAll('.nf-hero-video').forEach(nfKillVideo);
         }
-        function attachClip(slideEl, playId, msId, ticks) {
+        function attachClip(slideEl, playId, ms, ticks) {
             if (!slideEl || !slideEl.classList.contains('active') || !document.body.contains(slideEl)) return;
-            var v = document.createElement('video');
-            v.className = 'nf-hero-video';
-            v.muted = true; v.defaultMuted = true; v.autoplay = true;
-            v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+            var v = nfNewClipVideo('nf-hero-video');
             v.addEventListener('playing', function () { v.classList.add('show'); });
             nfClaim(v);
-            nfClipSrc(v, playId, msId, ticks);
+            nfClipSrc(v, playId, ms, ticks);
             var bg = slideEl.querySelector('.nf-hero-bg');
             slideEl.insertBefore(v, bg ? bg.nextSibling : slideEl.firstChild);
-            var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+            nfPlay(v);
             nfClipWatch(v);
             nfClipLoop(v);
         }
@@ -428,10 +422,10 @@
                 ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
                     if (!slideEl.classList.contains('active')) return;
                     var ep = res && res.Items && res.Items[0]; if (!ep) return;
-                    attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id, ep.RunTimeTicks || 0);
+                    attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
                 }).catch(function () {});
             } else {
-                attachClip(slideEl, item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id, item.RunTimeTicks || 0);
+                attachClip(slideEl, item.Id, item.MediaSources && item.MediaSources[0], item.RunTimeTicks || 0);
             }
         }
         function scheduleClip() {
@@ -662,7 +656,7 @@
         var el = popEl;
         popEl = null;
         var v = el.querySelector('video');
-        if (v) { try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} if (v._stopTimer) { clearTimeout(v._stopTimer); } }
+        if (v) nfKillVideo(v);
         el.classList.remove('show');
         setTimeout(function () { if (el.parentNode) { el.remove(); } }, 180);
     }
@@ -691,82 +685,133 @@
     // makes the server re-encode via its hardware encoder, which fails (ffmpeg code 187) for
     // these short on-the-fly clips, and source containers like MPEG-TS can't direct-play in
     // the browser. Copy-remux to mp4 plays everywhere and is light on the server.
-    // Shared clip URL: copy-remux (no re-encode) to mp4, starting ~25% in to skip the intro
-    // (the user asked for a cut from the video, not the intro). Reused by hover, hero & detail.
     //
     // DELIVERY: iOS/Safari only autoplays a <video> whose source answers HTTP byte-range
     // requests (206). Jellyfin's live transcode stream usually returns 200 with no range
     // support, so iOS refuses it — which is why previews showed "image zoom but no video" on
     // iPhone/iPad (and in the mobile app's WebView) while desktop Chrome played them fine. So
-    // we try the DIRECT original file first (static=true serves it with 206 + Accept-Ranges,
-    // the same path normal direct-play uses) and only fall back to a transcode if the browser
-    // can't decode the original (e.g. HEVC/MKV).
-    function nfTransUrl(playId, msId, startTicks) {
-        return ApiClient.serverAddress() + '/Videos/' + playId + '/stream.mp4'
-            + '?videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
+    // we play the DIRECT original file (static=true serves it with 206 + Accept-Ranges, the
+    // same path normal direct-play uses) whenever the browser says it can decode it, and use
+    // the h264 copy-remux only for sources it can't (e.g. HEVC/MKV on desktops).
+    var NF_TPS = 10000000; // Jellyfin ticks per second (ticks are 100ns units)
+    function nfVideoUrl(playId, path, query, msId) {
+        return ApiClient.serverAddress() + '/Videos/' + playId + path + '?' + query
             + (msId ? '&mediaSourceId=' + msId : '')
-            + (startTicks ? '&startTimeTicks=' + startTicks : '')
             + '&api_key=' + ApiClient.accessToken();
     }
+    function nfTransUrl(playId, msId, startTicks) {
+        return nfVideoUrl(playId, '/stream.mp4',
+            'videoCodec=h264&audioCodec=aac&allowVideoStreamCopy=true&allowAudioStreamCopy=true'
+            + (startTicks ? '&startTimeTicks=' + startTicks : ''), msId);
+    }
     function nfStaticUrl(playId, msId) {
-        return ApiClient.serverAddress() + '/Videos/' + playId + '/stream'
-            + '?static=true'
-            + (msId ? '&mediaSourceId=' + msId : '')
-            + '&api_key=' + ApiClient.accessToken();
+        return nfVideoUrl(playId, '/stream', 'static=true', msId);
+    }
+    function nfPlay(v) {
+        var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+    }
+    // Full teardown for a preview <video>: cancel its timers, abort the in-flight stream
+    // (removeAttribute + load) and drop the element. A detached-but-loaded video keeps
+    // streaming/transcoding server-side, so every discard path must come through here.
+    function nfKillVideo(v) {
+        if (!v) return;
+        v._nfDead = true; // events fired by the teardown itself must not resurrect the clip
+        if (v._nfVwTimer) { clearTimeout(v._nfVwTimer); v._nfVwTimer = null; }
+        if (v._nfWatchTimer) { clearTimeout(v._nfWatchTimer); v._nfWatchTimer = null; }
+        if (v._stopTimer) { clearTimeout(v._stopTimer); v._stopTimer = null; }
+        try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
+        try { v.remove(); } catch (e) {}
+    }
+    // One muted, inline-autoplay clip element — shared by hero, hover popup and detail.
+    function nfNewClipVideo(className) {
+        var v = document.createElement('video');
+        if (className) v.className = className;
+        v.muted = true; v.defaultMuted = true; v.autoplay = true;
+        v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+        return v;
     }
     // Netflix previews skip the intro and play from inside the title. Start ~20% in for
     // titles long enough to have a middle; shorter clips start at 0.
     function nfSeekStart(ticks) {
         var t = parseInt(ticks, 10) || 0;
-        return t >= 900000000 ? Math.floor(t * 0.2) : 0; // >= 90s -> 20% in
+        return t >= 90 * NF_TPS ? Math.floor(t * 0.2) : 0; // >= 90s -> 20% in
     }
-    // Point a clip <video> at its source. Try the direct file first (iOS-compatible), seeking
-    // ~20% in once metadata is known to skip the intro; on error fall back to a transcode that
-    // starts mid-title (covers HEVC/MKV and keeps desktop working). Removed only after both fail.
-    function nfClipSrc(v, playId, msId, ticks) {
-        var start = nfSeekStart(ticks);              // ticks offset for the transcode seek
-        var startSec = start ? start / 10000000 : 0; // seconds for the direct-file currentTime seek
-        // Switch the direct file for a transcode. Used both on a hard error and when the direct
-        // file loads but the browser can't decode its video track (HEVC on a desktop without HEVC
-        // support: audio plays, videoWidth stays 0, no error fires). iOS decodes HEVC natively, so
-        // there it keeps the direct file.
-        function fallback() {
-            if (v._nfFell) return;
+    // Can this browser decode the original file? Decided up front from the item's
+    // MediaSource (container + video codec) via canPlayType, so undecodable sources go
+    // straight to the transcode instead of wasting a blind 5s direct attempt (black box +
+    // full-bitrate download). Anything unknown errs toward trying the direct file.
+    function nfCanDirect(ms) {
+        try {
+            if (!ms || !ms.Container) return true;
+            var mimes = { mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', mkv: 'video/x-matroska', ts: 'video/mp2t', mpegts: 'video/mp2t', avi: 'video/x-msvideo', wmv: 'video/x-ms-wmv' };
+            var container = String(ms.Container).toLowerCase().split(',')[0];
+            var mime = mimes[container];
+            if (!mime) return true;
+            var codecs = { h264: 'avc1.640029', hevc: 'hvc1.1.6.L120.B0', h265: 'hvc1.1.6.L120.B0', av1: 'av01.0.08M.08', vp9: 'vp09.00.40.08', vp8: 'vp8' };
+            var vs = (ms.MediaStreams || []).filter(function (s) { return s.Type === 'Video'; })[0];
+            var codec = vs && vs.Codec && codecs[String(vs.Codec).toLowerCase()];
+            var probe = document.createElement('video');
+            return probe.canPlayType(codec ? mime + '; codecs="' + codec + '"' : mime) !== '';
+        } catch (e) { return true; }
+    }
+    // Point a clip <video> at its source. Direct file when decodable (iOS-compatible),
+    // seeked ~20% in via a #t= media fragment so the browser's FIRST range request lands at
+    // the offset (no wasted head download). Otherwise — or on error — the h264 copy-remux,
+    // seeked via startTimeTicks with a retry at 0: a mid-file seek can 500 on MPEG-TS
+    // sources without a keyframe there (the historical clip-500 bug), and start-0 is the
+    // remux that always worked. Removed only after every stage fails.
+    function nfClipSrc(v, playId, ms, ticks) {
+        var msId = ms && ms.Id;
+        var start = nfSeekStart(ticks);  // ticks offset for the transcode seek
+        var startSec = start / NF_TPS;   // seconds for the direct-file fragment/seek
+        v._nfLoopStart = 0;              // where nfClipLoop re-enters after 'ended'
+        function toTranscode(startTicks) {
+            if (v._nfDead) return;
             v._nfFell = true;
+            v._nfSeeked = !!startTicks;  // a seeked remux may 500 -> retried at 0
             if (v._nfVwTimer) { clearTimeout(v._nfVwTimer); v._nfVwTimer = null; }
-            v.addEventListener('error', function () { try { v.remove(); } catch (e) {} });
+            v._nfLoopStart = 0;          // the transcode's timeline already begins mid-title
             try {
-                v.src = nfTransUrl(playId, msId, start); v.load();
-                var pp = v.play(); if (pp && pp.catch) { pp.catch(function () {}); }
+                v.src = nfTransUrl(playId, msId, startTicks); v.load(); nfPlay(v);
+                nfClipWatch(v);          // fresh stall budget for the new source
             } catch (e) {}
         }
-        function onMeta() {
+        v.addEventListener('error', function () {
+            if (v._nfDead || !document.body.contains(v)) return;
+            if (!v._nfFell) { toTranscode(start); }
+            else if (v._nfSeeked) { toTranscode(0); }
+            else { nfKillVideo(v); }
+        });
+        if (!nfCanDirect(ms)) { toTranscode(start); return; }
+        v.addEventListener('loadedmetadata', function onMeta() {
             v.removeEventListener('loadedmetadata', onMeta);
             if (v._nfFell || !startSec) return;
-            try { if (isFinite(v.duration) && v.duration > startSec + 2) v.currentTime = startSec; } catch (e) {}
-        }
-        v.addEventListener('loadedmetadata', onMeta);
-        v.addEventListener('error', function onErr() {
-            v.removeEventListener('error', onErr);
-            if (!v._nfFell) { fallback(); } else { try { v.remove(); } catch (e) {} }
+            // Safety seek for browsers that ignore the #t= media fragment.
+            try { if (isFinite(v.duration) && v.duration > startSec + 2 && v.currentTime < startSec - 1) v.currentTime = startSec; } catch (e) {}
         });
-        // No-picture watchdog: if the direct file is progressing but no video frame decoded, transcode.
-        v._nfVwTimer = setTimeout(function () {
-            if (!v._nfFell && v.videoWidth === 0) fallback();
+        // No-picture watchdog: data is decoding but no video frame appeared (an HEVC track on
+        // a desktop without HEVC support plays audio only and never fires 'error'). A file
+        // that is merely still buffering gets another 5s instead of a spurious transcode;
+        // true stalls are nfClipWatch's job.
+        v._nfVwTimer = setTimeout(function check() {
+            v._nfVwTimer = null;
+            if (!document.body.contains(v) || v._nfFell || v.videoWidth > 0) return;
+            if (v.readyState >= 2) { toTranscode(start); }
+            else { v._nfVwTimer = setTimeout(check, 5000); }
         }, 5000);
-        v.src = nfStaticUrl(playId, msId);
+        v._nfLoopStart = startSec;
+        v.src = nfStaticUrl(playId, msId) + (startSec ? '#t=' + startSec : '');
     }
     // Stall watchdog: if a clip hasn't actually started progressing within ~10s (slow or
     // failed on-the-fly remux), drop it so the static backdrop/poster image stays instead of
     // a frozen or endlessly-loading video box.
     function nfClipWatch(v) {
-        setTimeout(function () {
+        if (v._nfWatchTimer) { clearTimeout(v._nfWatchTimer); }
+        v._nfWatchTimer = setTimeout(function () {
+            v._nfWatchTimer = null;
             try {
-                if (!v) return;
-                if (v.currentTime < 0.3 || v.readyState < 3) {
-                    try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
-                    v.remove();
-                }
+                if (!v || !document.body.contains(v)) return;
+                if (v.currentTime < 0.3 || v.readyState < 3) nfKillVideo(v);
             } catch (e) {}
         }, 10000);
     }
@@ -781,7 +826,10 @@
         v.addEventListener('ended', function () {
             if (!document.body.contains(v)) return;
             if (isFinite(v.duration) && v.duration > 6) {
-                try { v.currentTime = 0; var p = v.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+                // Re-enter at the clip's start point (the ~20% intro-skip on the direct
+                // file; 0 on a transcode whose timeline already begins there) — looping to
+                // absolute 0 would replay the very intro the seek exists to skip.
+                try { v.currentTime = v._nfLoopStart || 0; nfPlay(v); } catch (e) {}
             } else {
                 try { v.pause(); } catch (e) {}
             }
@@ -794,25 +842,21 @@
     var nfActiveVideo = null;
     function nfClaim(v) {
         try {
-            if (nfActiveVideo && nfActiveVideo !== v) {
-                try { nfActiveVideo.pause(); nfActiveVideo.removeAttribute('src'); nfActiveVideo.load(); } catch (e) {}
-                try { nfActiveVideo.remove(); } catch (e) {}
-            }
+            if (nfActiveVideo && nfActiveVideo !== v) nfKillVideo(nfActiveVideo);
         } catch (e) {}
         nfActiveVideo = v;
     }
-    function makeClip(pop, playId, msId, ticks) {
+    function makeClip(pop, playId, ms, ticks) {
         var media = pop.querySelector('.nf-pop-media');
         if (!media || popEl !== pop) return;
-        var video = document.createElement('video');
-        video.muted = true; video.defaultMuted = true; video.autoplay = true;
-        video.setAttribute('playsinline', ''); video.setAttribute('preload', 'auto');
+        var video = nfNewClipVideo('');
         nfClaim(video);
-        nfClipSrc(video, playId, msId, ticks);
+        nfClipSrc(video, playId, ms, ticks);
         media.insertBefore(video, media.firstChild);
-        var play = video.play();
-        if (play && play.catch) { play.catch(function () {}); }
-        video._stopTimer = setTimeout(function () { try { video.pause(); } catch (e) {} }, PREVIEW_SECONDS * 1000);
+        nfPlay(video);
+        // End of the preview window: tear the clip down fully (not just pause) so the
+        // browser stops buffering the rest of the file; the card artwork shows again.
+        video._stopTimer = setTimeout(function () { nfKillVideo(video); }, PREVIEW_SECONDS * 1000);
         nfClipWatch(video);
     }
 
@@ -821,9 +865,8 @@
     function streamClipInto(pop, item) {
         if (cfg('PreviewClips', true) === false) return;
         var type = item.Type || '';
-        if (type !== 'Series' && type !== 'Season' && (item.RunTimeTicks || 0) >= 1200000000) {
-            var msId = item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id;
-            makeClip(pop, item.Id, msId, item.RunTimeTicks || 0);
+        if (type !== 'Series' && type !== 'Season' && (item.RunTimeTicks || 0) >= 120 * NF_TPS) {
+            makeClip(pop, item.Id, item.MediaSources && item.MediaSources[0], item.RunTimeTicks || 0);
             return;
         }
         if (type === 'Series' || type === 'Season' || item.IsFolder) {
@@ -836,8 +879,7 @@
                 if (popEl !== pop) return;
                 var ep = res && res.Items && res.Items[0];
                 if (!ep) return;
-                var emsId = ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id;
-                makeClip(pop, ep.Id, emsId, ep.RunTimeTicks || 0);
+                makeClip(pop, ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
             }).catch(function () {});
         }
     }
@@ -1028,12 +1070,8 @@
                 if (isNaN(n) || n < 0 || n > 10) return;
                 el.dataset.ctMatch = '1';
                 el.textContent = Math.round(n * 10) + '% Match';
-                // Netflix leads the title metadata line with the green match score —
-                // move it to the front of the detail page's info row (once).
-                var misc = el.closest('.itemMiscInfo');
-                if (misc && el.parentElement === misc && misc.firstChild !== el) {
-                    misc.insertBefore(el, misc.firstChild);
-                }
+                // The match score leads the metadata row via CSS (flex `order` on
+                // .starRatingContainer in netflix.css) — no DOM reordering needed here.
             });
         } catch (e) {}
     }
@@ -1139,10 +1177,7 @@
     // over the top backdrop — the same self-contained remux used by the hero / hover preview.
     function cleanupDetailClip() {
         if (/#\/details/i.test(location.hash)) return;
-        document.querySelectorAll('.nf-detail-video').forEach(function (v) {
-            try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {}
-            v.remove();
-        });
+        document.querySelectorAll('.nf-detail-video').forEach(nfKillVideo);
         var bd = document.querySelector('#itemBackdrop[data-nf-clip]');
         if (bd) bd.removeAttribute('data-nf-clip');
     }
@@ -1160,17 +1195,14 @@
             if (!uid) return;
             backdrop.setAttribute('data-nf-clip', '1');
             var stillHere = function () { return location.hash.indexOf(id) !== -1; };
-            function attach(playId, msId, ticks) {
+            function attach(playId, ms, ticks) {
                 if (!stillHere() || backdrop.querySelector('.nf-detail-video')) return;
-                var v = document.createElement('video');
-                v.className = 'nf-detail-video';
-                v.muted = true; v.defaultMuted = true; v.autoplay = true;
-                v.setAttribute('playsinline', ''); v.setAttribute('preload', 'auto');
+                var v = nfNewClipVideo('nf-detail-video');
                 v.addEventListener('playing', function () { v.classList.add('show'); });
                 nfClaim(v);
-                nfClipSrc(v, playId, msId, ticks);
+                nfClipSrc(v, playId, ms, ticks);
                 backdrop.appendChild(v);
-                var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
+                nfPlay(v);
                 nfClipWatch(v);
                 nfClipLoop(v);
             }
@@ -1180,10 +1212,10 @@
                 if (type === 'Series' || type === 'Season' || item.IsFolder) {
                     ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
                         var ep = res && res.Items && res.Items[0]; if (!ep) return;
-                        attach(ep.Id, ep.MediaSources && ep.MediaSources[0] && ep.MediaSources[0].Id, ep.RunTimeTicks || 0);
+                        attach(ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
                     }).catch(function () {});
                 } else if (type === 'Movie' || type === 'Episode' || (item.RunTimeTicks || 0) > 0) {
-                    attach(item.Id, item.MediaSources && item.MediaSources[0] && item.MediaSources[0].Id, item.RunTimeTicks || 0);
+                    attach(item.Id, item.MediaSources && item.MediaSources[0], item.RunTimeTicks || 0);
                 }
             }).catch(function () {});
         } catch (e) {}
