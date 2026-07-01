@@ -464,6 +464,10 @@ body, .mainDrawer, .dialog {
     gap: 8px !important;
 }
 
+/* Netflix leads the metadata line with the green match score — .itemMiscInfo is a
+   flex row (above), so flex `order` puts the rating first without touching the DOM. */
+.itemMiscInfo .starRatingContainer { order: -1 !important; }
+
 /* Green match score like Netflix */
 .starRatingValue {
     color: #46d369 !important;
@@ -480,6 +484,10 @@ body, .mainDrawer, .dialog {
     color: var(--text-muted) !important;
     line-height: 1.4 !important;
 }
+
+/* "Ends at 11:20 PM" is a player-style estimate Netflix never shows on a title
+   page — drop it from the detail metadata row for a cleaner Netflix line. */
+.itemMiscInfo .endsAt { display: none !important; }
 
 /* =============================================
    DETAIL PAGE BUTTONS — Netflix style
