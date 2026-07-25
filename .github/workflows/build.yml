@@ -70,7 +70,27 @@ jobs:
           ZIP="custom-theme-${TAG}.zip"
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists — nothing to do."
+            # The tag exists. That is only fine if main hasn't changed since it was cut —
+            # otherwise this push shipped code that no release will ever contain, silently.
+            # (v2.5.38 exists because exactly that happened: the language-flag work merged
+            # after v2.5.37 was already tagged, so it was never packaged.)
+            CHANGED="$(git diff --name-only "refs/tags/${TAG}...HEAD" -- \
+              ':!manifest.json' ':!README.md' ':!.github/**' | head -20)"
+            if [ -n "$CHANGED" ]; then
+              {
+                echo "### :warning: Shipped nothing — bump the version"
+                echo ""
+                echo "\`main\` has plugin changes since \`$TAG\`, but meta.json still says \`$VERSION\`,"
+                echo "so no release was built and users never receive these files:"
+                echo ""
+                echo '```'
+                echo "$CHANGED"
+                echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::error::main changed since ${TAG} but meta.json is still ${VERSION} — bump the version so a release gets built."
+              exit 1
+            fi
+            echo "Release $TAG already exists and main is unchanged since it — nothing to do."
             exit 0
           fi
 
