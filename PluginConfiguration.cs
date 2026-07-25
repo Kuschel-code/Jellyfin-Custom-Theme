@@ -136,5 +136,8 @@ namespace Jellyfin.Plugin.CustomTheme
 
         /// <summary>Show the community rating as a green "x% Match" like Netflix instead of a star value.</summary>
         public bool MatchScore { get; set; } = true;
+
+        /// <summary>On the hover card, show a flag per available audio language plus a CC badge when subtitles exist.</summary>
+        public bool LanguageFlags { get; set; } = true;
     }
 }

@@ -1517,6 +1517,22 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
 .nf-pop-meta { display: flex; align-items: center; gap: 9px; font-size: 0.82rem; color: #ddd; margin-bottom: 7px; flex-wrap: wrap; }
 .nf-pop-match { color: #46d369; font-weight: 700; }
 .nf-pop-rating { border: 1px solid rgba(255,255,255,0.4); padding: 0 5px; border-radius: 3px; font-size: 0.72rem; }
+/* Audio-language flags + CC badge. The row stays collapsed until it is filled (the data
+   arrives after the popup is already on screen) so nothing jumps. */
+.nf-pop-langs { display: none; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 7px; }
+.nf-pop-langs.show { display: flex; }
+.nf-langs-audio { display: inline-flex; align-items: center; gap: 5px; }
+.nf-lang { font-size: 1.05rem; line-height: 1.15; cursor: default; }
+/* Unknown language: a readable code badge instead of a missing flag. */
+.nf-lang.code {
+    font-size: 0.68rem; line-height: 1.5; font-weight: 600; letter-spacing: 0.03em;
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 3px; padding: 0 4px; color: #ccc;
+}
+.nf-cc {
+    font-size: 0.66rem; line-height: 1.6; font-weight: 700; letter-spacing: 0.05em;
+    border: 1px solid rgba(255,255,255,0.45); border-radius: 3px; padding: 0 4px;
+    color: #ddd; cursor: default;
+}
 .nf-pop-genres { font-size: 0.82rem; color: #ccc; }
 .nf-pop-genres span:not(:last-child)::after { content: '•'; margin: 0 7px; color: #777; }
 @media (max-width: 768px) { .nf-pop { display: none; } }

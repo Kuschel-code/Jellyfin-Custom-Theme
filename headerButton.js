@@ -28,6 +28,7 @@
             ['PreviewClips', 'toggle', 'Autoplay preview on hover'],
             ['TopTenRow', 'toggle', 'Top 10 numbers (first row)'],
             ['MatchScore', 'toggle', 'Green "x% Match" rating'],
+            ['LanguageFlags', 'toggle', 'Audio-language flags on hover'],
             ['GlassEffect', 'toggle', 'Glass blur'],
             ['OledBlack', 'toggle', 'OLED pure black']
         ]],
@@ -96,6 +97,94 @@
         var n = parseFloat(rating);
         if (isNaN(n) || n < 0 || n > 10) return '';
         return '<span class="' + cls + '">' + Math.round(n * 10) + '% Match</span>';
+    }
+
+    // ============ Audio-language flags ============
+    // A dual-audio title should say so at a glance, so the hover card shows one flag per
+    // available audio language (plus a CC badge when subtitles exist).
+    // ISO 639-1 -> [flag country, German name].
+    var NF_LANG = {
+        de: ['DE', 'Deutsch'], en: ['GB', 'Englisch'], fr: ['FR', 'Französisch'],
+        es: ['ES', 'Spanisch'], it: ['IT', 'Italienisch'], ja: ['JP', 'Japanisch'],
+        ko: ['KR', 'Koreanisch'], zh: ['CN', 'Chinesisch'], ru: ['RU', 'Russisch'],
+        pt: ['PT', 'Portugiesisch'], nl: ['NL', 'Niederländisch'], pl: ['PL', 'Polnisch'],
+        tr: ['TR', 'Türkisch'], sv: ['SE', 'Schwedisch'], da: ['DK', 'Dänisch'],
+        no: ['NO', 'Norwegisch'], nb: ['NO', 'Norwegisch'], fi: ['FI', 'Finnisch'],
+        cs: ['CZ', 'Tschechisch'], sk: ['SK', 'Slowakisch'], hu: ['HU', 'Ungarisch'],
+        ro: ['RO', 'Rumänisch'], bg: ['BG', 'Bulgarisch'], hr: ['HR', 'Kroatisch'],
+        sr: ['RS', 'Serbisch'], sl: ['SI', 'Slowenisch'], el: ['GR', 'Griechisch'],
+        uk: ['UA', 'Ukrainisch'], he: ['IL', 'Hebräisch'], ar: ['SA', 'Arabisch'],
+        fa: ['IR', 'Persisch'], hi: ['IN', 'Hindi'], ta: ['IN', 'Tamil'],
+        th: ['TH', 'Thailändisch'], vi: ['VN', 'Vietnamesisch'], id: ['ID', 'Indonesisch'],
+        ms: ['MY', 'Malaiisch'], ca: ['ES', 'Katalanisch'], et: ['EE', 'Estnisch'],
+        lv: ['LV', 'Lettisch'], lt: ['LT', 'Litauisch'], is: ['IS', 'Isländisch']
+    };
+    // Jellyfin usually stores ISO 639-2 codes; map both the bibliographic (/B) and
+    // terminological (/T) spellings onto the table above.
+    var NF_LANG3 = {
+        ger: 'de', deu: 'de', eng: 'en', fre: 'fr', fra: 'fr', spa: 'es', ita: 'it',
+        jpn: 'ja', kor: 'ko', chi: 'zh', zho: 'zh', rus: 'ru', por: 'pt', dut: 'nl',
+        nld: 'nl', pol: 'pl', tur: 'tr', swe: 'sv', dan: 'da', nor: 'no', nob: 'no',
+        fin: 'fi', cze: 'cs', ces: 'cs', slo: 'sk', slk: 'sk', hun: 'hu', rum: 'ro',
+        ron: 'ro', bul: 'bg', hrv: 'hr', srp: 'sr', slv: 'sl', gre: 'el', ell: 'el',
+        ukr: 'uk', heb: 'he', ara: 'ar', per: 'fa', fas: 'fa', hin: 'hi', tam: 'ta',
+        tha: 'th', vie: 'vi', ind: 'id', may: 'ms', msa: 'ms', cat: 'ca', est: 'et',
+        lav: 'lv', lit: 'lt', ice: 'is', isl: 'is'
+    };
+    // 'DE' -> the regional-indicator pair that renders as a flag. Platforms without flag
+    // glyphs (Windows) draw the two letters instead, which still reads as the country.
+    function nfFlagEmoji(cc) {
+        return String.fromCodePoint(0x1F1E6 + cc.charCodeAt(0) - 65, 0x1F1E6 + cc.charCodeAt(1) - 65);
+    }
+    // "ger" / "de" / "pt-BR" -> { key, flag, name }. A region suffix wins for the flag, so
+    // pt-BR shows the Brazilian flag. Unknown codes fall back to a text badge rather than
+    // vanishing. Returns null for "und"/missing (undetermined tracks carry no information).
+    function nfLangInfo(code) {
+        if (!code) return null;
+        var parts = String(code).toLowerCase().split(/[-_]/);
+        var base = parts[0];
+        if (base.length > 2) base = NF_LANG3[base] || base;
+        if (!base || base === 'und' || base === 'zxx' || base === 'mis') return null;
+        var entry = NF_LANG[base];
+        var region = parts[1] && parts[1].length === 2 ? parts[1].toUpperCase() : null;
+        var name = entry ? entry[1] : base.toUpperCase();
+        return {
+            key: base + (region ? '-' + region : ''),
+            flag: region ? nfFlagEmoji(region) : (entry ? nfFlagEmoji(entry[0]) : null),
+            name: name + (region ? ' (' + region + ')' : '')
+        };
+    }
+    // Distinct audio and subtitle languages of a media source, in stream order.
+    function nfLangsOf(ms) {
+        var streams = (ms && ms.MediaStreams) || [];
+        var audio = [], subs = [], seen = { Audio: {}, Subtitle: {} };
+        for (var i = 0; i < streams.length; i++) {
+            var s = streams[i];
+            if (s.Type !== 'Audio' && s.Type !== 'Subtitle') continue;
+            var info = nfLangInfo(s.Language);
+            if (!info || seen[s.Type][info.key]) continue;
+            seen[s.Type][info.key] = 1;
+            (s.Type === 'Audio' ? audio : subs).push(info);
+        }
+        return { audio: audio, subs: subs };
+    }
+    function nfLangNames(list) {
+        return list.map(function (l) { return l.name; }).join(', ');
+    }
+    function nfLangsHtml(langs) {
+        if (!langs || (!langs.audio.length && !langs.subs.length)) return '';
+        var html = langs.audio.map(function (l) {
+            return l.flag
+                ? '<span class="nf-lang" role="img" aria-label="' + esc(l.name) + '" title="' + esc(l.name) + '">' + l.flag + '</span>'
+                : '<span class="nf-lang code" title="' + esc(l.name) + '">' + esc(l.name) + '</span>';
+        }).join('');
+        if (langs.audio.length) {
+            html = '<span class="nf-langs-audio" title="Audio: ' + esc(nfLangNames(langs.audio)) + '">' + html + '</span>';
+        }
+        if (langs.subs.length) {
+            html += '<span class="nf-cc" title="Untertitel: ' + esc(nfLangNames(langs.subs)) + '">CC</span>';
+        }
+        return html;
     }
 
     // ============ Header settings button ============
@@ -418,10 +507,8 @@
             var type = item.Type || '';
             if (type === 'Series' || type === 'Season' || item.IsFolder) {
                 var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
-                if (!uid || !ApiClient.getItems) return;
-                ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
-                    if (!slideEl.classList.contains('active')) return;
-                    var ep = res && res.Items && res.Items[0]; if (!ep) return;
+                nfFirstEpisode(uid, item.Id).then(function (ep) {
+                    if (!ep || !slideEl.classList.contains('active')) return;
                     attachClip(slideEl, ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
                 }).catch(function () {});
             } else {
@@ -693,6 +780,23 @@
     // we play the DIRECT original file (static=true serves it with 206 + Accept-Ranges, the
     // same path normal direct-play uses) whenever the browser says it can decode it, and use
     // the h264 copy-remux only for sources it can't (e.g. HEVC/MKV on desktops).
+    // A Series/Season has no media of its own, so both the preview clip and the language
+    // flags stand in for it with its first episode. Cached per parent so hovering a card,
+    // opening its detail page and rotating the hero don't each re-query the same episode.
+    var nfEpisodeCache = {};
+    function nfFirstEpisode(uid, parentId) {
+        if (nfEpisodeCache[parentId]) return Promise.resolve(nfEpisodeCache[parentId]);
+        if (!uid || !ApiClient.getItems) return Promise.resolve(null);
+        return ApiClient.getItems(uid, {
+            ParentId: parentId, IncludeItemTypes: 'Episode', Recursive: true,
+            Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks'
+        }).then(function (res) {
+            var ep = res && res.Items && res.Items[0];
+            if (ep) nfEpisodeCache[parentId] = ep;
+            return ep || null;
+        });
+    }
+
     var NF_TPS = 10000000; // Jellyfin ticks per second (ticks are 100ns units)
     function nfVideoUrl(playId, path, query, msId) {
         return ApiClient.serverAddress() + '/Videos/' + playId + path + '?' + query
@@ -871,15 +975,33 @@
         }
         if (type === 'Series' || type === 'Season' || item.IsFolder) {
             var uid = ApiClient.getCurrentUserId && ApiClient.getCurrentUserId();
-            if (!uid || !ApiClient.getItems) return;
-            ApiClient.getItems(uid, {
-                ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true,
-                Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks'
-            }).then(function (res) {
-                if (popEl !== pop) return;
-                var ep = res && res.Items && res.Items[0];
-                if (!ep) return;
+            nfFirstEpisode(uid, item.Id).then(function (ep) {
+                if (!ep || popEl !== pop) return;
                 makeClip(pop, ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
+            }).catch(function () {});
+        }
+    }
+
+    // Fill the hover card's language row: one flag per available audio language, plus a CC
+    // badge when subtitles exist — so a dual-audio title (or a season whose episodes carry
+    // several dubs) shows both at a glance. Movies/episodes carry their own MediaSources; a
+    // Series/Season stands in with its first episode. Filled asynchronously so the popup
+    // never waits on it, and only shown once there is something to show.
+    function fillLangsInto(pop, item, uid) {
+        if (cfg('LanguageFlags', true) === false) return;
+        var box = pop.querySelector('.nf-pop-langs');
+        if (!box) return;
+        function render(ms) {
+            if (popEl !== pop || !ms) return;
+            var html = nfLangsHtml(nfLangsOf(ms));
+            if (html) { box.innerHTML = html; box.classList.add('show'); }
+        }
+        var own = item.MediaSources && item.MediaSources[0];
+        if (own && own.MediaStreams) { render(own); return; }
+        var type = item.Type || '';
+        if (type === 'Series' || type === 'Season' || item.IsFolder) {
+            nfFirstEpisode(uid, item.Id).then(function (ep) {
+                render(ep && ep.MediaSources && ep.MediaSources[0]);
             }).catch(function () {});
         }
     }
@@ -925,6 +1047,7 @@
                     '</div>' +
                     '<div class="nf-pop-title">' + esc(item.Name || '') + '</div>' +
                     '<div class="nf-pop-meta">' + match + rating + extra + '</div>' +
+                    '<div class="nf-pop-langs"></div>' +
                     (genres ? '<div class="nf-pop-genres">' + genres + '</div>' : '') +
                 '</div>';
 
@@ -970,6 +1093,7 @@
             popEl = pop;
             document.body.appendChild(pop);
             requestAnimationFrame(function () { pop.classList.add('show'); });
+            fillLangsInto(pop, item, uid);
             streamClipInto(pop, item);
         }).catch(function () {});
     }
@@ -1210,8 +1334,8 @@
                 if (!item || !stillHere()) return;
                 var type = item.Type || '';
                 if (type === 'Series' || type === 'Season' || item.IsFolder) {
-                    ApiClient.getItems(uid, { ParentId: item.Id, IncludeItemTypes: 'Episode', Recursive: true, Limit: 1, SortBy: 'SortName', SortOrder: 'Ascending', Fields: 'MediaSources,RunTimeTicks' }).then(function (res) {
-                        var ep = res && res.Items && res.Items[0]; if (!ep) return;
+                    nfFirstEpisode(uid, item.Id).then(function (ep) {
+                        if (!ep) return;
                         attach(ep.Id, ep.MediaSources && ep.MediaSources[0], ep.RunTimeTicks || 0);
                     }).catch(function () {});
                 } else if (type === 'Movie' || type === 'Episode' || (item.RunTimeTicks || 0) > 0) {
