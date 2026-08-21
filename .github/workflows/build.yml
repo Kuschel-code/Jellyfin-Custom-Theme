@@ -74,8 +74,12 @@ jobs:
             # otherwise this push shipped code that no release will ever contain, silently.
             # (v2.5.38 exists because exactly that happened: the language-flag work merged
             # after v2.5.37 was already tagged, so it was never packaged.)
+            # The exclusions are the files that never reach the zip, so changing them
+            # cannot leave users missing anything: the manifest, the docs, CI itself,
+            # and the agent config (CLAUDE.md / .claude/).
             CHANGED="$(git diff --name-only "refs/tags/${TAG}...HEAD" -- \
-              ':!manifest.json' ':!README.md' ':!.github/**' | head -20)"
+              ':!manifest.json' ':!README.md' ':!.github/**' \
+              ':!CLAUDE.md' ':!.claude/**' | head -20)"
             if [ -n "$CHANGED" ]; then
               {
                 echo "### :warning: Shipped nothing — bump the version"
