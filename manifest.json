@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "2.6.0.0",
+        "changelog": "Jellyfin 12. Requires Jellyfin 12.0 or newer (.NET 10, targetAbi 12.0.0.0); Jellyfin 10.11 servers keep 2.5.38. Hover/detail preview clips now authenticate with ApiKey= instead of the legacy api_key= query parameter, which Jellyfin 12 rejects by default - without this, previews silently fail with 401 on a 12.x server.",
+        "targetAbi": "12.0.0.0",
+        "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.6.0/custom-theme-v2.6.0.zip",
+        "checksum": "",
+        "timestamp": "2026-09-23T03:00:00Z"
+      },
+      {
         "version": "2.5.38.0",
         "changelog": "Audio-language flags on the hover card. Hovering a card now shows one flag per available audio language, so a dual-audio title says so at a glance - all of them are shown, with a CC badge when subtitles exist and the full language names in the tooltip. Series and seasons stand in with their first episode; 3-letter ISO codes (ger/deu, fre/fra) and regional variants (pt-BR shows the Brazilian flag, distinct from pt-PT) are handled; duplicate spellings of one language collapse to a single flag; undetermined tracks are skipped and an unrecognised code falls back to a readable text badge instead of vanishing. Platforms without flag glyphs (Windows) render the two country letters, which still reads as the country. Switch it off with 'Audio-language flags on hover'. Also: a series' first episode is now looked up once and shared by the hero, the hover card and the detail page instead of four identical queries repeated on every hover. CI: the auto-release job now fails loudly when main changes without a version bump - v2.5.38's own reason for existing, since the flags landed on main after v2.5.37 was already tagged and would otherwise never have been packaged.",
         "targetAbi": "10.11.0.0",

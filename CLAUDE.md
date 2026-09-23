@@ -1,6 +1,6 @@
 # Jellyfin Custom Theme — server-side skin plugin
 
-Jellyfin 10.11+ / .NET 9 plugin that generates a complete stylesheet from its settings and
+Jellyfin 12+ / .NET 10 plugin that generates a complete stylesheet from its settings and
 writes it into Jellyfin's built-in Custom CSS, plus a small injected script for the header
 palette button and hover previews. Plugin GUID `78b7b285-8d9e-4e4c-8e4d-7a71f76d4e2a`.
 
@@ -11,7 +11,7 @@ one. `README.md` covers the feature set.
 ## Commands
 
 ```bash
-dotnet build -c Release          # output: bin/Release/net9.0/
+dotnet build -c Release          # output: bin/Release/net10.0/
 ```
 
 **There are no tests in this repo.** The only automated gate is that it compiles — so

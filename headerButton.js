@@ -801,7 +801,7 @@
     function nfVideoUrl(playId, path, query, msId) {
         return ApiClient.serverAddress() + '/Videos/' + playId + path + '?' + query
             + (msId ? '&mediaSourceId=' + msId : '')
-            + '&api_key=' + ApiClient.accessToken();
+            + '&ApiKey=' + ApiClient.accessToken();
     }
     function nfTransUrl(playId, msId, startTicks) {
         return nfVideoUrl(playId, '/stream.mp4',

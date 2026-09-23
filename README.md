@@ -1,8 +1,8 @@
 # Jellyfin Custom Theme
 
-A sleek, dark streaming-style skin for **Jellyfin 10.11+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
+A sleek, dark streaming-style skin for **Jellyfin 12+**. Install the plugin and the theme is applied automatically — all settings live on the server, so they follow you to every device. No manual CSS, no client tweaks.
 
-![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11+-00A4DC?logo=jellyfin&logoColor=white)
+![Jellyfin](https://img.shields.io/badge/Jellyfin-12+-00A4DC?logo=jellyfin&logoColor=white)
 [![Build](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml/badge.svg)](https://github.com/Kuschel-code/Jellyfin-Custom-Theme/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -66,13 +66,24 @@ Open **Dashboard → Plugins → Custom Theme**, or click the palette icon in th
 
 After saving, reload the web page to see the new theme.
 
+## Compatibility
+
+| Jellyfin server | Custom Theme | .NET |
+|---|---|---|
+| **12.0, 12.1+** | **2.6.x** | 10 |
+| 10.11.x | 2.5.38 (last 10.11 build) | 9 |
+
+The catalog only offers the build that fits your server. On Jellyfin 12, use 2.6.0 or newer:
+older builds authenticate hover previews with the legacy `api_key=` parameter, which
+Jellyfin 12 rejects by default, so previews stay blank.
+
 ## Build from source
 
-Requires the **.NET 9 SDK**.
+Requires the **.NET 10 SDK**.
 
 ```bash
 dotnet build -c Release
-# Output: bin/Release/net9.0/Jellyfin.Plugin.CustomTheme.dll
+# Output: bin/Release/net10.0/Jellyfin.Plugin.CustomTheme.dll
 ```
 
 To package a release zip manually, bundle the built DLL together with `meta.json`.
@@ -80,15 +91,15 @@ To package a release zip manually, bundle the built DLL together with `meta.json
 ### Releasing (maintainers)
 
 Every push and pull request to `main` is built by the
-[Build workflow](.github/workflows/build.yml). Pushing a `vX.Y.Z` tag additionally
-builds the plugin, packages `custom-theme-vX.Y.Z.zip`, and creates a matching
-GitHub release. The workflow prints the zip's MD5 in the job summary — copy it
-into the corresponding version entry in `manifest.json` so the plugin catalog can
-verify the download.
+[Build workflow](.github/workflows/build.yml). Releases are automatic — **don't tag by hand**:
 
-```bash
-git tag v2.0.1 && git push origin v2.0.1
-```
+1. Bump the version in `Jellyfin.Plugin.CustomTheme.csproj` (`Version`, `AssemblyVersion`,
+   `FileVersion`) **and** `meta.json`, keeping them identical.
+2. Add the new entry to `manifest.json` with an empty `checksum`.
+3. Merge to `main`. The workflow builds, creates the `vX.Y.Z` tag and GitHub release with
+   `custom-theme-vX.Y.Z.zip`, and pushes the pinned MD5 back into `manifest.json`.
+
+If `main` changes without a version bump, the release job fails on purpose ("Shipped nothing").
 
 ## Project structure
 
@@ -107,15 +118,15 @@ headerButton.js            # Header button + slide-in settings panel + hero/prev
 manifest.json              # Plugin repository manifest
 meta.json                  # Plugin metadata (shipped inside the zip)
 LICENSE                    # MIT license
-.github/workflows/build.yml # CI: build on push/PR, package & release on tags
+.github/workflows/build.yml # CI: build on push/PR, auto-release on version bump
 ```
 
 ## Requirements
 
-- Jellyfin 10.11+
+- Jellyfin 12+ (10.11 servers: use v2.5.38)
 - *(optional)* [Jellyfin Media Bar](https://github.com/IAmParadox27/jellyfin-plugin-media-bar) — for the big cinematic hero banner; works without the separate File Transformation plugin because Custom Theme provides that service
 - No File Transformation plugin required (it is bundled/provided by this plugin)
-- .NET 9 SDK (only to build from source)
+- .NET 10 SDK (only to build from source)
 
 ## License
 
