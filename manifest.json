@@ -13,7 +13,7 @@
         "changelog": "Jellyfin 12. Requires Jellyfin 12.0 or newer (.NET 10, targetAbi 12.0.0.0); Jellyfin 10.11 servers keep 2.5.38. Hover/detail preview clips now authenticate with ApiKey= instead of the legacy api_key= query parameter, which Jellyfin 12 rejects by default - without this, previews silently fail with 401 on a 12.x server.",
         "targetAbi": "12.0.0.0",
         "sourceUrl": "https://github.com/Kuschel-code/Jellyfin-Custom-Theme/releases/download/v2.6.0/custom-theme-v2.6.0.zip",
-        "checksum": "",
+        "checksum": "7bfd3aa533769cf9602d83180ef29a98",
         "timestamp": "2026-09-23T03:00:00Z"
       },
       {
