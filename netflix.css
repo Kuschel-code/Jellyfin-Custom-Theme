@@ -529,9 +529,12 @@ body, .mainDrawer, .dialog {
 
 /* Netflix-style text label on the primary play button (scoped to the detail
    page so card-hover play buttons keep their icon-only look). Jellyfin's
-   button only contains the ▶ icon, so we append the word after it. Jellyfin's
-   .detailButton base lays the icon out in a column, which would stack the
-   label under the icon — force a single horizontal row that grows to fit. */
+   button only contains the ▶ icon, so we append a word after it — taken from
+   the button's own title attribute, which Jellyfin fills with a localized
+   string (Play / ButtonResume …), so the label follows the user's Jellyfin
+   language instead of being hard-coded. Jellyfin's .detailButton base lays the
+   icon out in a column, which would stack the label under the icon — force a
+   single horizontal row that grows to fit. */
 .mainDetailButtons .btnPlay,
 .mainDetailButtons .btnResume,
 .mainDetailButtons .btnReplay {
@@ -540,9 +543,9 @@ body, .mainDrawer, .dialog {
     white-space: nowrap !important;
     padding: 10px 26px 10px 20px !important;
 }
-.mainDetailButtons .btnPlay::after { content: 'Abspielen'; }
-.mainDetailButtons .btnResume::after { content: 'Weiter'; }
-.mainDetailButtons .btnReplay::after { content: 'Erneut'; }
+.mainDetailButtons .btnPlay::after { content: attr(title); }
+.mainDetailButtons .btnResume::after { content: attr(title); }
+.mainDetailButtons .btnReplay::after { content: attr(title); }
 .mainDetailButtons .btnPlay::after,
 .mainDetailButtons .btnResume::after,
 .mainDetailButtons .btnReplay::after {
@@ -647,9 +650,9 @@ body, .mainDrawer, .dialog {
     z-index: 100 !important;
 }
 
-.btnPlaystate::after { content: 'Watched' !important; }
-.btnUserRating::after { content: 'Favorite' !important; }
-.btnMoreCommands::after { content: 'More' !important; }
+.btnPlaystate::after { content: attr(title) !important; }
+.btnUserRating::after { content: attr(title) !important; }
+.btnMoreCommands::after { content: attr(title) !important; }
 
 .btnPlaystate:hover::after,
 .btnUserRating:hover::after,
@@ -1383,6 +1386,9 @@ body:has(.mainDrawer.drawer-open) .mainAnimatedPages { filter: brightness(0.55) 
     text-decoration: none; transition: background 0.2s ease, transform 0.12s ease;
 }
 .nf-hero-btn .material-icons { font-size: 1.6rem; }
+/* The label comes from the button's localized title (set in headerButton.js). */
+.nf-hero-play::after { content: attr(title); }
+.nf-hero-info::after { content: attr(title); }
 .nf-hero-btn:hover { transform: scale(1.03); }
 .nf-hero-play { background: #fff; color: #000; }
 .nf-hero-play:hover { background: rgba(255,255,255,0.78); }

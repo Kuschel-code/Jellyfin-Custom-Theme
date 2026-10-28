@@ -102,22 +102,17 @@
     // ============ Audio-language flags ============
     // A dual-audio title should say so at a glance, so the hover card shows one flag per
     // available audio language (plus a CC badge when subtitles exist).
-    // ISO 639-1 -> [flag country, German name].
+    // ISO 639-1 -> flag country. Display names are resolved by the browser in
+    // the current Jellyfin language via Intl.DisplayNames, so no translated
+    // language names are stored here.
     var NF_LANG = {
-        de: ['DE', 'Deutsch'], en: ['GB', 'Englisch'], fr: ['FR', 'Französisch'],
-        es: ['ES', 'Spanisch'], it: ['IT', 'Italienisch'], ja: ['JP', 'Japanisch'],
-        ko: ['KR', 'Koreanisch'], zh: ['CN', 'Chinesisch'], ru: ['RU', 'Russisch'],
-        pt: ['PT', 'Portugiesisch'], nl: ['NL', 'Niederländisch'], pl: ['PL', 'Polnisch'],
-        tr: ['TR', 'Türkisch'], sv: ['SE', 'Schwedisch'], da: ['DK', 'Dänisch'],
-        no: ['NO', 'Norwegisch'], nb: ['NO', 'Norwegisch'], fi: ['FI', 'Finnisch'],
-        cs: ['CZ', 'Tschechisch'], sk: ['SK', 'Slowakisch'], hu: ['HU', 'Ungarisch'],
-        ro: ['RO', 'Rumänisch'], bg: ['BG', 'Bulgarisch'], hr: ['HR', 'Kroatisch'],
-        sr: ['RS', 'Serbisch'], sl: ['SI', 'Slowenisch'], el: ['GR', 'Griechisch'],
-        uk: ['UA', 'Ukrainisch'], he: ['IL', 'Hebräisch'], ar: ['SA', 'Arabisch'],
-        fa: ['IR', 'Persisch'], hi: ['IN', 'Hindi'], ta: ['IN', 'Tamil'],
-        th: ['TH', 'Thailändisch'], vi: ['VN', 'Vietnamesisch'], id: ['ID', 'Indonesisch'],
-        ms: ['MY', 'Malaiisch'], ca: ['ES', 'Katalanisch'], et: ['EE', 'Estnisch'],
-        lv: ['LV', 'Lettisch'], lt: ['LT', 'Litauisch'], is: ['IS', 'Isländisch']
+        de: 'DE', en: 'GB', fr: 'FR', es: 'ES', it: 'IT', ja: 'JP',
+        ko: 'KR', zh: 'CN', ru: 'RU', pt: 'PT', nl: 'NL', pl: 'PL',
+        tr: 'TR', sv: 'SE', da: 'DK', no: 'NO', nb: 'NO', fi: 'FI',
+        cs: 'CZ', sk: 'SK', hu: 'HU', ro: 'RO', bg: 'BG', hr: 'HR',
+        sr: 'RS', sl: 'SI', el: 'GR', uk: 'UA', he: 'IL', ar: 'SA',
+        fa: 'IR', hi: 'IN', ta: 'IN', th: 'TH', vi: 'VN', id: 'ID',
+        ms: 'MY', ca: 'ES', et: 'EE', lv: 'LV', lt: 'LT', is: 'IS'
     };
     // Jellyfin usually stores ISO 639-2 codes; map both the bibliographic (/B) and
     // terminological (/T) spellings onto the table above.
@@ -139,6 +134,21 @@
     // "ger" / "de" / "pt-BR" -> { key, flag, name }. A region suffix wins for the flag, so
     // pt-BR shows the Brazilian flag. Unknown codes fall back to a text badge rather than
     // vanishing. Returns null for "und"/missing (undetermined tracks carry no information).
+    var nfLangDisplay = null;
+    var nfLangDisplayLocale = null;
+    function nfLangName(code) {
+        try {
+            var locale = (document.documentElement.getAttribute('lang') || 'en').replace(/_/g, '-');
+            if (!nfLangDisplay || nfLangDisplayLocale !== locale) {
+                if (typeof Intl === 'undefined' || !Intl.DisplayNames) return code.toUpperCase();
+                nfLangDisplay = new Intl.DisplayNames([locale], { type: 'language' });
+                nfLangDisplayLocale = locale;
+            }
+            var name = nfLangDisplay.of(code);
+            if (name && name !== code) return name;
+        } catch (e) {}
+        return code.toUpperCase();
+    }
     function nfLangInfo(code) {
         if (!code) return null;
         var parts = String(code).toLowerCase().split(/[-_]/);
@@ -147,10 +157,10 @@
         if (!base || base === 'und' || base === 'zxx' || base === 'mis') return null;
         var entry = NF_LANG[base];
         var region = parts[1] && parts[1].length === 2 ? parts[1].toUpperCase() : null;
-        var name = entry ? entry[1] : base.toUpperCase();
+        var name = nfLangName(base);
         return {
             key: base + (region ? '-' + region : ''),
-            flag: region ? nfFlagEmoji(region) : (entry ? nfFlagEmoji(entry[0]) : null),
+            flag: region ? nfFlagEmoji(region) : (entry ? nfFlagEmoji(entry) : null),
             name: name + (region ? ' (' + region + ')' : '')
         };
     }
@@ -179,10 +189,10 @@
                 : '<span class="nf-lang code" title="' + esc(l.name) + '">' + esc(l.name) + '</span>';
         }).join('');
         if (langs.audio.length) {
-            html = '<span class="nf-langs-audio" title="Audio: ' + esc(nfLangNames(langs.audio)) + '">' + html + '</span>';
+            html = '<span class="nf-langs-audio" title="' + esc(nfT('audio')) + ': ' + esc(nfLangNames(langs.audio)) + '">' + html + '</span>';
         }
         if (langs.subs.length) {
-            html += '<span class="nf-cc" title="Untertitel: ' + esc(nfLangNames(langs.subs)) + '">CC</span>';
+            html += '<span class="nf-cc" title="' + esc(nfT('subtitles')) + ': ' + esc(nfLangNames(langs.subs)) + '">CC</span>';
         }
         return html;
     }
@@ -332,7 +342,7 @@
             return;
         }
 
-        var tabs = [['Startseite', '#/home.html']];
+        var tabs = [[nfT('home'), '#/home.html']];
         navViews.forEach(function (v) { tabs.push([v.Name, navRouteFor(v)]); });
         var nav = document.createElement('div');
         nav.className = 'nf-nav-tabs';
@@ -433,10 +443,104 @@
         } catch (e) { heroBusy = false; }
     }
 
+    // Localized UI labels, keyed by the locale Jellyfin writes to <html lang>.
+    // Columns follow NF_I18N_KEYS; rows are generated from jellyfin-web locale
+    // files (v10.11.11), so wording matches Jellyfin itself. Missing locales fall
+    // back to English. Add a language by appending a row in the same order.
+    var NF_I18N_KEYS = ["play","pause","mute","unmute","home","continueWatching","subtitles","audio","season","seasons","watched","favorite","more","info","favorites","moreInfo"];
+    var NF_I18N = {
+        'af': ["Play","Staak","Mute","Ontstom","Huis","Hou aan kyk","Subtitles","Klank","Season","Reekse","Gekyk","Gunstelling","Meer","Inligting","Gunstelinge","Meer inligting"],
+        'ar': ["قم بتشغيل","التوقف المؤقت","صامت","غير صامت","الصفحة الرئيسية","إستئناف المشاهدة","الترجمات","الصوت","موسم","المواسم","شاهدت","المفضلة","المزيد","معلومات","المفضلة","مزيد من المعلومات"],
+        'be': ["Прайграць","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","Больш інфармацыі"],
+        'be-by': ["Прайграць","Паўза","Адключыць аўдыё","Уключыць гук","Галоўная","Працягнуць прагляд","Субтытры","Аўдыё","Сезон","Сезоны","Прагледжана","Абранае","Больш","Інфармацыя","Абранае","Больш інфармацыі"],
+        'bg': ["Пусни","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","Повече информация"],
+        'bg-bg': ["Пускане","Пауза","Заглушаване","Без заглушаване","Начало","Продължаване на гледането","Субтитри","Звук","Сезон","Сезони","Изгледано","В любими","Още","Сведения","Любими","Повече информация"],
+        'bn': ["চালান","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","আরও তথ্য"],
+        'bn-bd': ["Play","বিরতি","Mute","Unmute","Home","Continue Watching","Subtitles","অডিও","Season","Seasons","Watched","পছন্দ","আরও","তথ্য","পছন্দগুলি","আরও তথ্য"],
+        'ca': ["Reprodueix","Atura","Silencia","De-silencia","Inici","Continueu mirant","Subtítols","Àudio","Temporada","Temporades","Vist","Preferit","Més","Informació","Preferits","Més informació"],
+        'cs': ["Přehrát","Pozastavit","Ztlumit","Povolit zvuk","Domovská obrazovka","Pokračovat ve sledování","Titulky","Zvuk","Série","Série","Zhlédnuto","Oblíbené","Více","Info","Oblíbené","Více informací"],
+        'cy': ["Chwarae","Saib","Tewi","Dad-dewi","Hafan","Parhewch i Wylio","Is-deitlau","Sain","Tymor","Tymorau","Gwylio","Ffefryn","Mwy","Gwybodaeth","Ffefrynnau","Mwy o wybodaeth"],
+        'da': ["Afspil","Pause","Afbryd lyd","Genoptag lyd","Hjem","Fortsæt afspilning","Undertekster","Lyd","Sæson","Sæsoner","Set","Favorit","Mere","Information","Favoritter","Mere info"],
+        'de': ["Abspielen","Pause","Stumm","Ton ein","Startseite","Weiterschauen","Untertitel","Audio","Staffel","Staffeln","Bereits gesehen","Favorit","Mehr","Info","Favoriten","Mehr Infos"],
+        'el': ["Αναπαραγωγή","Παύση","Σίγαση","Με ήχο","Αρχική","Συνεχίστε την παρακολούθηση","Υπότιτλοι","Ήχος","Σειρά","Σεζόν","Έχει γίνει παρακολούθηση","Αγαπημένο","Περισσότερα","Πληροφορία","Αγαπημένα","Περισσότερες πληροφορίες"],
+        'en': ["Play","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","More Info"],
+        'en-gb': ["Play","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Series","Series","Watched","Favourite","More","Info","Favourites","More Info"],
+        'en-us': ["Play","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","More Info"],
+        'eo': ["Ludu","Paŭzu","Silentigu","Nesilentigu","Hejmo","Daŭrigi Spektadon","Subtekstoj","Aŭdio","Sezono","Sezonoj","Spektita","Favorata","Pli","Informo","Favorataj","Pli da informoj"],
+        'es': ["Reproducir","Pausa","Silencio","Activar audio","Inicio","Seguir viendo","Subtítulos","Audio","Temporada","Temporadas","Visto","Favorito","Más","Información","Favoritos","Más información"],
+        'es-419': ["Reproducir","Pausar","Silenciar","Activar sonido","Inicio","Continuar viendo","Subtítulos","Audio","Temporada","Temporadas","Visto","Favorito","Más","Info","Favoritos","Más información"],
+        'es-ar': ["Reproducir","Pausar","Silenciar","Activar sonido","Inicio","Seguir viendo","Subtítulos","Audio","Temporada","Temporadas","Visto","Favorito","Más","Información","Favoritos","Más información"],
+        'es-do': ["Play","Pause","Mute","Unmute","Home","Continuar Viendo","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favoritos","Más información"],
+        'es-mx': ["Reproducir","Pausar","Silenciar","Activar sonido","Inicio","Continuar viendo","Subtítulos","Audio","Temporada","Temporadas","Visto","Favorito","Más","Info","Favoritos","Más información"],
+        'et': ["Esita","Paus","Vaigista","Tühista vaigistus","Avakuva","Jätka vaatamist","Subtiitrid","Heli","Hooaeg","Hooajad","Vaadatud","Lemmik","Veel","Info","Lemmikud","Rohkem teavet"],
+        'eu': ["Erreproduzitu","Etenaldia","Isiltasuna","Aktibatu audioa","Hasiera","Ikusten jarraitu","Azpitituluak","Audioa","Denboraldia","Denboraldiak","Ikusita","Gogokoa","Gehiago","Informazioa","Gogokoak","Informazio gehiago"],
+        'fa': ["اجرا کردن","مکث","سکوت","صدادار","خانه","ادامه تماشا","زیرنویس‌ها","صدا","فصل","فصل ها","مشاهده شده","مورد علاقه","بیشتر","اطلاعات","مورد علاقه‌ها","اطلاعات بیشتر"],
+        'fi': ["Toista","Tauko","Vaimenna","Lopeta vaimennus","Aloitusnäyttö","Jatka katselua","Tekstitykset","Ääni","Kausi","Kaudet","Katsotut","Suosikki","Lisää","Tiedot","Suosikit","Lisätietoja"],
+        'fil': ["I-play","I-pause","I-mute","I-unmute","Home","Magpatuloy sa Panonood","Mga subtitle","Odyo","Season","Mga Season","Napanood","Paborito","Higit pa","Impormasyon","Mga Paborito","Higit pang impormasyon"],
+        'fr': ["Lire","Pause","Couper le son","Rétablir le son","Accueil","Continuer de regarder","Sous-titres","Audio","Saison","Saisons","Vu","Favori","Plus","Informations","Favoris","Plus d'infos"],
+        'fr-ca': ["Lire","Pause","Muet","Activer le son","Accueil","Reprendre le visionnement","Sous-titres","Audio","Saison","Saisons","Vu","Favori","Plus","Informations","Favoris","Plus d'infos"],
+        'gl': ["Reproducir","Deter","Silenciar","Unmute","Inicio","Seguir vendo","Subtítulos","Audio","Tempada","Temporada","Visto","Favorito","Máis","Info","Favoritos","Máis información"],
+        'gsw': ["Abspile","Pause","Mute","Unmute","Deheim","weiter schauen","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorite","Mehr Infos"],
+        'he': ["נגן","השהה","השתק","ביטול השתקה","בית","המשך צפייה","כתוביות","שמע","עונה","עונות","נצפה","מועדף","עוד","מידע","מועדפים","מידע נוסף"],
+        'hi': ["चलाएँ","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","अधिक जानकारी"],
+        'hi-in': ["Play","रोकें","Mute","Unmute","Home","देखना जारी रखें","Subtitles","ऑडियो","Season","Seasons","Watched","Favorite","अधिक","जानकारी","पसंदीदा","अधिक जानकारी"],
+        'hr': ["Pokreni","Pauza","Isključi zvuk","Unmute","Početna","Nastavi gledati","Titlovi","Audio","Season","Sezone","Watched","Omiljeni","Više","Info","Favoriti","Više informacija"],
+        'hu': ["Lejátszás","Szünet","Némít","Hangosít","Kezdőlap","Megtekintés folytatása","Feliratok","Hang","Évad","Évadok","Megtekintett","Kedvenc","Tovább","Információ","Kedvencek","További információ"],
+        'id': ["Putar","Jeda","Bisukan","Membunyikan","Home","Lanjut Menonton","Subtitle","Audio","Musim","Musim","Ditonton","Favorit","Lebih banyak","Info","Favorit","Info selengkapnya"],
+        'it': ["Riproduci","Pausa","Muto","Togli muto","Home","Continua a guardare","Sottotitoli","Audio","Stagione","Stagioni","Visto","Preferito","Altro","Info","Preferiti","Altre informazioni"],
+        'ja': ["再生","一時停止","ミュート","ミュート解除","ホーム","再生を続ける","字幕","オーディオ","シーズン","シーズン","視聴済み","お気に入り","もっと","情報","お気に入り","詳細情報"],
+        'kk': ["Oinatu","Üzu","Dybysty öşıru","Dybysty qosu","Basqy","Qaraudy jalğastyru","Subtitrler","Dybys","Mausym","Mausymdar","Qaralğan","Tañdauly","Köbırek","Aqpar","Tañdaulylar","Қосымша ақпарат"],
+        'ko': ["재생","일시 중지","음소거","음소거 취소","홈","계속 시청하기","자막","오디오","시즌","시즌","시청함","즐겨찾기","더 보기","정보","즐겨찾기","상세 정보"],
+        'lt': ["Leisti","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","Daugiau informacijos"],
+        'lt-lt': ["Leisti","Pauzė","Nutildyti","Išjungti nutildymą","Pradinis","Žiūrėti toliau","Subtitrai","Garsas","Sezonas","Sezonai","Žiūrėta","Mėgstamas","Daugiau","Info","Mėgstami","Daugiau informacijos"],
+        'lv': ["Atskaņot","Pauzēt","Apklusināt","Ieslēgt skaņu","Sākums","Turpini skatīties","Subtitri","Audio","Sezona","Sezonas","Skatīts","Izlasē","Vairāk","Informācija","Izlase","Vairāk informācijas"],
+        'mr': ["प्ले","पॉझ","म्यूट","अनम्यूट","मुख्य स्क्रीन","बघणे चालू ठेवा","उपशिर्षक","ऑडिओ","सीझन","सीझन","बघितले","आवडीचे","अजून","माहिती","आवडीचे","अधिक माहिती"],
+        'ms': ["Play","Henti Sejenak","Mute","Unmute","Home","Teruskan Menonton","Subtitles","Audio","Season","Seasons","Watched","Kegemaran","Lagi","Info","Kegemaran","Maklumat lanjut"],
+        'nb': ["Spill av","Pause","Demp lyd","Skru på lyd","Hjem","Fortsett å se","Undertekster","Lyd","Sesong","Sesonger","Sett","Favoritt","Mer","Informasjon","Favoritter","Mer informasjon"],
+        'nl': ["Afspelen","Pauzeren","Dempen","Dempen opheffen","Startscherm","Verderkijken","Ondertiteling","Geluid","Seizoen","Seizoenen","Gekeken","Favoriet","Meer","Info","Favorieten","Meer informatie"],
+        'nn': ["Spel av","Pause","Demp","Skru på lyd","Heim","Fortsett å sjå","Undertekstar","Lyd","Sesong","Sesongar","Sett","Favoritt","Meir","Informasjon","Favorittar","Meir informasjon"],
+        'pl': ["Odtwarzaj","Pauza","Wycisz","Dezaktywuj wyciszenie","Start","Kontynuuj odtwarzanie","Napisy","Dźwięk","Sezon","Sezony","Obejrzany","Ulubione","Więcej","Informacje","Ulubione","Więcej informacji"],
+        'pr': ["Play","Pause","Mute","Unmute","Poop Deck","Continue Yer Journey","Subtitles","Sound","Season","Seasons","Watched","Favorite","More","Info","Finest Loot","More Info"],
+        'pt': ["Reproduzir","Pausar","Desativar som","Ativar som","Início","Continuar a ver","Legendas","Áudio","Temporada","Temporadas","Assistido","Favorito","Mais","Informação","Favoritos","Mais informações"],
+        'pt-br': ["Reproduzir","Pausar","Mudo","Sair do Mudo","Início","Continuar assistindo","Legendas","Áudio","Temporada","Temporadas","Assistido","Favorito","Mais","Informações","Favoritos","Mais informações"],
+        'pt-pt': ["Reproduzir","Pausar","Desativar som","Ativar som","Início","Continuar a ver","Legendas","Áudio","Temporada","Temporadas","Visto","Favorito","Mais","Informação","Favoritos","Mais informações"],
+        'ro': ["Rulează","Pauză","Mut","Activați sunetul","Acasă","Vizionează în continuare","Subtitrări","Audio","Sezon","Sezoane","Vizionat","Favorit","Mai mult","Info","Preferate","Mai multe informații"],
+        'ru': ["Воспроизвести","Пауза","Отключить звук","Вкл. звук","Главная","Продолжить просмотр","Субтитры","Аудио","Сезон","Сезоны","Просмотрено","Избранный","Ещё","Сведения","Избранное","Подробнее"],
+        'sk': ["Prehrať","Pozastaviť","Stíšiť","Zapnúť zvuk","Domov","Pokračovať v pozeraní","Titulky","Zvuk","Séria","Série","Pozreté","Obľúbené","Viac","Info","Obľúbené","Viac informácií"],
+        'sl': ["Predvajaj","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","Več informacij"],
+        'sl-si': ["Predvajaj","Premor","Utišaj","Obnovi zvok","Domov","Nadaljuj ogled","Podnapisi","Zvok","Sezona","Sezone","Ogledano","Priljubljeno","Več","Info","Priljubljeno","Več informacij"],
+        'sq': ["Play","Ndal","Mute","Unmute","Hyrje","Vazhdo të shikosh","Subtitles","Audio","Season","Sezone","Watched","Të preferuara","Më shumë","Info","Të preferuarat","Më shumë informacion"],
+        'sv': ["Spela upp","Paus","Tyst","Sätt på volym","Hem","Fortsätt titta","Undertexter","Ljud","Säsong","Säsonger","Visat","Favorit","Mer","Information","Favoriter","Mer information"],
+        'ta': ["வாசிக்கவும்","இடைநிறுத்தம்","முடக்கு","முடக்கு நீக்கம்","முகப்பு","தொடர்ந்து பார்","வசன வரிகள்","ஒலி","பருவம்","பருவங்கள்","ஏற்கனவே பார்த்தேன்","பிடித்தது","மேலும்","தகவல்","பிடித்தவை","மேலும் தகவல்"],
+        'th': ["Play","หยุดชั่วคราว","Mute","Unmute","Home","ดูต่อ","คำบรรยาย","เสียง","Season","Seasons","Watched","รายการโปรด","เพิ่มเติม","ข้อมูล","รายการโปรด","ข้อมูลเพิ่มเติม"],
+        'tr': ["Oynat","Duraklat","Sessiz","Sesi aç","Ana Ekran","İzlemeye Devam Et","Alt yazılar","Ses","Sezon","Sezonlar","İzlendi","Favori","Diğer","Bilgi","Favoriler","Daha fazla bilgi"],
+        'uk': ["Грати","Пауза","Заглушити","Увімкнути звук","Головна","Продовжити перегляд","Субтитри","Аудіо","Сезон","Сезони","Переглянуто","Обране","Більше","Інформація","Обрані","Докладніше"],
+        'ur': ["چلائیں","Pause","Mute","Unmute","Home","Continue Watching","Subtitles","Audio","Season","Seasons","Watched","Favorite","More","Info","Favorites","مزید معلومات"],
+        'ur-pk': ["پلے کریں","توقف","خاموش","چالو کریں","گھر","دیکھنا جاری رکھیں","سب ٹائٹلز","آڈیو","سیزن","موسم","دیکھا","پسندیدہ","مزید","معلومات","پسندیدہ","مزید معلومات"],
+        'vi': ["Phát","Tạm dừng","Tắt Tiếng","Bật Tiếng","Trang chủ","Xem Tiếp","Phụ đề","Âm thanh","Phần","Phần","Đã xem","Yêu thích","Thêm","Thông tin","Yêu Thích","Thông tin khác"],
+        'zh-cn': ["播放","暂停","静音","取消静音","首页","继续观看","字幕","音频","季","季","已观看","我的最爱","更多","详情","我的最爱","更多信息"],
+        'zh-hk': ["播放","暫停","Mute","取消靜音","首頁","繼續觀看","字幕","音訊","Season","季度","已觀看","我的最愛","更多","資訊","我的最愛","更多資訊"],
+        'zh-tw': ["播放","暫停","靜音","取消靜音","首頁","繼續觀看","字幕","音訊","季","季數","已看過","加到最愛","更多","詳細資料","我的最愛","更多資訊"]
+    };
+
+    // Jellyfin normalizes <html lang> to a lowercase, hyphenated tag.
+    function nfT(key) {
+        var lang = (document.documentElement.getAttribute('lang') || 'en')
+            .toLowerCase().replace(/_/g, '-');
+        var base = lang.split('-')[0];
+        var aliases = { no: 'nb', zh: 'zh-cn' };
+        var row = NF_I18N[lang] || NF_I18N[base] ||
+            NF_I18N[aliases[lang]] || NF_I18N[aliases[base]] || NF_I18N['en-us'];
+        var idx = NF_I18N_KEYS.indexOf(key);
+        return (idx >= 0 && row && row[idx]) || key;
+    }
+
     function heroSlideHtml(item, active) {
         var bg = ApiClient.getScaledImageUrl(item.Id, { type: 'Backdrop', maxWidth: 1920, tag: item.BackdropImageTags[0] });
         var serverId = item.ServerId || (ApiClient.serverId && ApiClient.serverId());
         var detailUrl = '#/details?id=' + item.Id + (serverId ? '&serverId=' + serverId : '');
+        var playLabel = esc(nfT('play'));
+        var moreLabel = esc(nfT('moreInfo'));
 
         var titleHtml;
         if (item.ImageTags && item.ImageTags.Logo) {
@@ -457,9 +561,9 @@
             '<div class="nf-hero-bg" style="background-image:url(\'' + bg + '\')"></div>' +
             '<div class="nf-hero-content">' + titleHtml + meta + overview +
                 '<div class="nf-hero-actions">' +
-                    '<a class="nf-hero-btn nf-hero-play" href="' + detailUrl + '"><span class="material-icons" aria-hidden="true">play_arrow</span> Abspielen</a>' +
-                    '<a class="nf-hero-btn nf-hero-info" href="' + detailUrl + '"><span class="material-icons" aria-hidden="true">info</span> Mehr Infos</a>' +
-                    '<button type="button" class="nf-hero-btn nf-hero-list" data-id="' + item.Id + '" title="Meine Liste"><span class="material-icons" aria-hidden="true">add</span></button>' +
+                    '<a class="nf-hero-btn nf-hero-play" href="' + detailUrl + '" title="' + playLabel + '" aria-label="' + playLabel + '"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
+                    '<a class="nf-hero-btn nf-hero-info" href="' + detailUrl + '" title="' + moreLabel + '" aria-label="' + moreLabel + '"><span class="material-icons" aria-hidden="true">info</span></a>' +
+                    '<button type="button" class="nf-hero-btn nf-hero-list" data-id="' + item.Id + '" title="' + esc(nfT('favorites')) + '"><span class="material-icons" aria-hidden="true">add</span></button>' +
                 '</div>' +
             '</div></div>';
     }
@@ -471,8 +575,8 @@
         var dots = items.map(function (_, i) { return '<span class="nf-hero-dot' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '"></span>'; }).join('');
         hero.innerHTML = slides +
             '<div class="nf-hero-controls">' +
-                '<button type="button" class="nf-hero-ctrl nf-hero-mute" title="Ton an/aus"><span class="material-icons" aria-hidden="true">volume_off</span></button>' +
-                '<button type="button" class="nf-hero-ctrl nf-hero-pause" title="Pause"><span class="material-icons" aria-hidden="true">pause</span></button>' +
+                '<button type="button" class="nf-hero-ctrl nf-hero-mute" title="' + esc(nfT('unmute')) + '"><span class="material-icons" aria-hidden="true">volume_off</span></button>' +
+                '<button type="button" class="nf-hero-ctrl nf-hero-pause" title="' + esc(nfT('pause')) + '"><span class="material-icons" aria-hidden="true">pause</span></button>' +
                 '<div class="nf-hero-dots">' + dots + '</div>' +
             '</div>';
         container.insertBefore(hero, container.firstChild);
@@ -535,6 +639,7 @@
             pauseBtn.addEventListener('click', function () {
                 paused = !paused;
                 this.querySelector('.material-icons').textContent = paused ? 'play_arrow' : 'pause';
+                this.title = paused ? nfT('play') : nfT('pause');
             });
         } else {
             var ctrlsSingle = hero.querySelector('.nf-hero-controls');
@@ -555,10 +660,11 @@
                     var p = v.play(); if (p && p.catch) { p.catch(function () {}); }
                 }
                 this.querySelector('.material-icons').textContent = (v && !v.muted) ? 'volume_up' : 'volume_off';
+                this.title = (v && !v.muted) ? nfT('mute') : nfT('unmute');
             });
         }
 
-        // "+ Meine Liste" toggles the Jellyfin favorite flag (Netflix My List).
+        // "+ My List" toggles the Jellyfin favorite flag (Netflix My List).
         hero.querySelectorAll('.nf-hero-list').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -596,7 +702,7 @@
                 '<div class="cardOverlayContainer itemAction" data-action="link">' +
                   '<a href="' + href + '" data-action="link" class="cardImageContainer"></a>' +
                   '<div class="cardOverlayButtonContainer cardOverlayButtonContainer-centered">' +
-                    '<button type="button" is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-hover itemAction paper-icon-button-light" data-action="resume" title="Abspielen"><span class="material-icons cardOverlayButtonIcon" aria-hidden="true">play_arrow</span></button>' +
+                    '<button type="button" is="paper-icon-button-light" class="cardOverlayButton cardOverlayButton-hover itemAction paper-icon-button-light" data-action="resume" title="' + esc(nfT('play')) + '"><span class="material-icons cardOverlayButtonIcon" aria-hidden="true">play_arrow</span></button>' +
                   '</div>' +
                 '</div>' +
               '</div>' +
@@ -704,7 +810,7 @@
                 }).join('');
                 var sec = document.createElement('div');
                 sec.className = 'verticalSection nf-cw-section';
-                sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Weiterschauen</h2>' +
+                sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">' + esc(nfT('continueWatching')) + '</h2>' +
                     '<div class="nf-cw-scroll"><div class="nf-cw-track">' + cards + '</div></div>';
                 var hero = c.querySelector('.nf-hero');
                 if (hero && hero.nextSibling) { c.insertBefore(sec, hero.nextSibling); }
@@ -1029,7 +1135,7 @@
             var detailUrl = '#/details?id=' + item.Id + (sid ? '&serverId=' + sid : '');
             var match = matchHtml(item.CommunityRating, 'nf-pop-match');
             var rating = item.OfficialRating ? '<span class="nf-pop-rating">' + esc(item.OfficialRating) + '</span>' : '';
-            var extra = item.ChildCount ? ('<span>' + item.ChildCount + ' Staffel' + (item.ChildCount > 1 ? 'n' : '') + '</span>')
+            var extra = item.ChildCount ? ('<span>' + item.ChildCount + ' ' + esc(nfT(item.ChildCount > 1 ? 'seasons' : 'season')) + '</span>')
                 : (item.ProductionYear ? '<span>' + item.ProductionYear + '</span>' : '');
             var genres = (item.Genres || []).slice(0, 3).map(function (g) { return '<span>' + esc(g) + '</span>'; }).join('');
 
@@ -1040,10 +1146,10 @@
                 '<a class="nf-pop-media" href="' + detailUrl + '"' + (media ? ' style="background-image:url(\'' + media + '\')"' : '') + '><div class="nf-pop-fade"></div></a>' +
                 '<div class="nf-pop-info">' +
                     '<div class="nf-pop-actions">' +
-                        '<a class="nf-pop-btn play" href="' + detailUrl + '" title="Abspielen"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
-                        '<button type="button" class="nf-pop-btn nf-pop-list" title="Meine Liste"><span class="material-icons" aria-hidden="true">add</span></button>' +
-                        '<button type="button" class="nf-pop-btn nf-pop-like" title="Gefällt mir"><span class="material-icons" aria-hidden="true">thumb_up_off_alt</span></button>' +
-                        '<a class="nf-pop-btn more" href="' + detailUrl + '" title="Mehr Infos"><span class="material-icons" aria-hidden="true">expand_more</span></a>' +
+                        '<a class="nf-pop-btn play" href="' + detailUrl + '" title="' + esc(nfT('play')) + '"><span class="material-icons" aria-hidden="true">play_arrow</span></a>' +
+                        '<button type="button" class="nf-pop-btn nf-pop-list" title="' + esc(nfT('favorites')) + '"><span class="material-icons" aria-hidden="true">add</span></button>' +
+                        '<button type="button" class="nf-pop-btn nf-pop-like" title="' + esc(nfT('favorite')) + '"><span class="material-icons" aria-hidden="true">thumb_up_off_alt</span></button>' +
+                        '<a class="nf-pop-btn more" href="' + detailUrl + '" title="' + esc(nfT('moreInfo')) + '"><span class="material-icons" aria-hidden="true">expand_more</span></a>' +
                     '</div>' +
                     '<div class="nf-pop-title">' + esc(item.Name || '') + '</div>' +
                     '<div class="nf-pop-meta">' + match + rating + extra + '</div>' +
@@ -1268,7 +1374,7 @@
                     }).join('');
                     var sec = document.createElement('div');
                     sec.className = 'verticalSection nf-genre-section nf-trend-section';
-                    sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Top 10 Anime – im Trend</h2>' +
+                    sec.innerHTML = '<h2 class="sectionTitle sectionTitle-cards">Top 10 Anime</h2>' +
                         '<div class="nf-row-scroll"><div class="nf-row-track nf-trend-track">' + cards + '</div></div>';
                     var anchor = c.querySelector('.nf-cw-section') || c.querySelector('.nf-hero');
                     if (anchor && anchor.nextSibling) { c.insertBefore(sec, anchor.nextSibling); }
